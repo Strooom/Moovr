@@ -1,0 +1,1 @@
+1. CodingStyle = WhiteSmith : https://en.wikipedia.org/wiki/Indent_style#Whitesmiths_style
