@@ -1,4 +1,4 @@
 # Mooov
 CNC Controller  
 
-See the Wiki for more info
+https://github.com/Strooom/Mooov/wiki
