@@ -1,4 +1,4 @@
-# Mooov
-CNC Controller  
+# Welcome to Mooov
+a CNC Controller project
 
-https://github.com/Strooom/Mooov/wiki
+please erad all about it in the Wiki : https://github.com/Strooom/Mooov/wiki
