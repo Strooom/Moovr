@@ -5,16 +5,12 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#include "logging.h"
-#include <math.h>
+#ifdef  WIN32
+#include <cstdlib>	// required for access to strtod under windows
+#endif
 #include "gcode.h"
 
-extern Logger logger;
-
-//#define log_gCode_parser
-
-
-uint8_t gCode::getNmbrWords() const
+uint32_t gCode::getNmbrWords() const
     {
     return theBlock.nmbrWords;
     };
@@ -155,7 +151,7 @@ void gCode::countModalGroupAndOthers(uint8_t i)
         }
     };
 
-void gCode::getBlock(char* commandLine)
+void gCode::getBlock(const char* commandLine)
     {
     uint8_t currentByte;
     uint8_t readPos = 0;
@@ -168,12 +164,6 @@ void gCode::getBlock(char* commandLine)
     theBlock.hasAxis = false;		// X Y Z A B C
     theBlock.hasOffset = false;		// I J K
     theBlock.hasRadius = false;		// R
-
-#ifdef log_gCode_parser
-    logger.logNow("getBlock : '");
-    logger.logNow(commandLine);
-    logger.logNow("'\n");
-#endif
 
     // reset counts for words part of modalGroups. Only maximum one G- or M-code for each of these blocks is allowed
     for (uint8_t i = 0; i < (uint8_t)modalGroup::nmbrModalGroups; ++i)
@@ -224,12 +214,6 @@ void gCode::getBlock(char* commandLine)
         }
     gCodeLine[writePos] = 0; // Terminate
 
-#ifdef log_gCode_parser
-    logger.logNow("getBlock cleaned to : '");
-    logger.logNow(gCodeLine);
-    logger.logNow("'\n");
-#endif
-
     // 2. Now parse the line of text and convert into an array of gCodeWords
     readPos = 0;
     while (gCodeLine[readPos] && (theBlock.nmbrWords < theBlock.MaxGCodeWordsPerGCodeBlock))
@@ -257,7 +241,6 @@ void gCode::getBlock(char* commandLine)
 
             theBlock.gCodeWords[theBlock.nmbrWords].number = strtod(number, NULL);
 
-
             if (('G' == theBlock.gCodeWords[theBlock.nmbrWords].letter) || ('M' == theBlock.gCodeWords[theBlock.nmbrWords].letter))
                 {
                 theBlock.gCodeWords[theBlock.nmbrWords].intNumber = (uint32_t)(theBlock.gCodeWords[theBlock.nmbrWords].number * 10);
@@ -268,21 +251,13 @@ void gCode::getBlock(char* commandLine)
                 }
             countModalGroupAndOthers(theBlock.nmbrWords);
 
-#ifdef log_gCode_parser
-			snprintf(logger.logLine, 127, "  %c %f %d\n", theBlock.gCodeWords[theBlock.nmbrWords].letter, theBlock.gCodeWords[theBlock.nmbrWords].number, theBlock.gCodeWords[theBlock.nmbrWords].intNumber);
-			logger.logNow();
-#endif
-
             ++theBlock.nmbrWords;
             }
         }
-#ifdef log_gCode_parser
-	snprintf(logger.logLine, 127, "  %d words detected\n", theBlock.nmbrWords);
-	logger.logNow();
-#endif
+
     };
 
-int8_t gCode::searchWord(uint8_t aLetter, uint32_t anIntNumber = 0) const
+int32_t gCode::searchWord(uint8_t aLetter, uint32_t anIntNumber) const
     {
     if (('G' == aLetter) || ('M' == aLetter))	// for G and M
         {
@@ -307,11 +282,11 @@ int8_t gCode::searchWord(uint8_t aLetter, uint32_t anIntNumber = 0) const
     return -1;
     }
 
-void gCode::removeWord(uint8_t i)
+void gCode::removeWord(int32_t i)
     {
-    if (theBlock.nmbrWords > 0)
+    if ((i >= 0) && (i < theBlock.nmbrWords))			// only if index is within meaningful range
         {
-        if (theBlock.nmbrWords > 1)
+        if (theBlock.nmbrWords > 1)						// if it's not the last word, swap the last item with the to be removed item
             {
             theBlock.gCodeWords[i].letter = theBlock.gCodeWords[theBlock.nmbrWords - 1].letter;
             theBlock.gCodeWords[i].number = theBlock.gCodeWords[theBlock.nmbrWords - 1].number;
@@ -323,62 +298,14 @@ void gCode::removeWord(uint8_t i)
 
 gCode::gCode()
     {
-#ifdef log_gCode_class						// logging output for the gCode parser
-    logger.logNow("gCode constructor start\n");
-#endif
-
-    // Initialize all Model groups
-    theState.modalGroupsState[(uint8_t)modalGroup::Motion] = (uint8_t)modalGroupMotion::G0;
-    theState.modalGroupsState[(uint8_t)modalGroup::FeedRate] = (uint8_t)modalGroupFeedRate::G94;
-    theState.modalGroupsState[(uint8_t)modalGroup::Spindle] = (uint8_t)modalGroupSpindle::M5;
-    theState.modalGroupsState[(uint8_t)modalGroup::Unit] = (uint8_t)modalGroupUnit::G21;
-    theState.modalGroupsState[(uint8_t)modalGroup::Unit] = (uint8_t)modalGroupUnit::G21;
-    theState.modalGroupsState[(uint8_t)modalGroup::Plane] = (uint8_t)modalGroupPlane::G17;
-    theState.modalGroupsState[(uint8_t)modalGroup::Distance] = (uint8_t)modalGroupDistance::G90;
-    theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G54;
-    theState.modalGroupsState[(uint8_t)modalGroup::CoolantFlood] = (uint8_t)modalGroupCoolantFlood::M9;
-    theState.modalGroupsState[(uint8_t)modalGroup::CoolantMist] = (uint8_t)modalGroupCoolantMist::M9;
-    theState.modalGroupsState[(uint8_t)modalGroup::ManualOverride] = (uint8_t)modalGroupOverrides::M48;
-
-    // initialize all letterValues
-    for (uint8_t theGCodeLetter = (uint8_t)gCodeLetter::X; theGCodeLetter < (uint8_t)gCodeLetter::nmbrLetters; theGCodeLetter++)
-        {
-        theState.letterValueState[theGCodeLetter] = 0.0;	// Array to hold value for each used gCode letter
-        }
-
-    for (uint8_t theAxis = 0; theAxis < (uint8_t)axis::nmbrAxis; ++theAxis)						// iterate over all axis
-        {
-        theState.currentPosition[theAxis] = 0.0;
-        }
-
-
-    // start from compile-time defaults
-    for (uint8_t theModalGroupCoordinateSet = 0; theModalGroupCoordinateSet < (uint8_t)modalGroupCoordinateSet::nmbrModes; theModalGroupCoordinateSet++)
-        {
-        for (uint8_t theAxis = (uint8_t)axis::X; theAxis < (uint8_t)axis::nmbrAxis; theAxis++)
-            {
-            theState.WCSorigin[theModalGroupCoordinateSet][theAxis] = 0;
-            }
-        }
-
-    // Test Only Defaults
-    theState.WCSorigin[(uint8_t)modalGroupCoordinateSet::G54][(uint8_t)axis::X] = 0;
-    theState.WCSorigin[(uint8_t)modalGroupCoordinateSet::G54][(uint8_t)axis::Y] = 0;
-    theState.WCSorigin[(uint8_t)modalGroupCoordinateSet::G54][(uint8_t)axis::Z] = 0;
-
-    // read Machine settings from SD-Card to override the defaults
-    // Todo
-
-#ifdef log_gCode_class
-    logger.logNow("gCode constructor end\n");
-#endif
+    initialize();
     };
 
 void gCode::parseBlock(gCodeParserResult &theParseResult)
     {
     int8_t i, j, k;										// indexes of gcode words in the array. int io uint, as 'not found' returns -1. All Words inside the block are executed in the correct order - no matter what order they appear on the line. Any word found is executed, and then removed from the block. At the same time, all syntax errors are being checked
     theParseResult.theParseResultType = gCodeParserResult::ParseResultType::EmptyBlock;
-	theParseResult.motion.theMotionType = MotionType::None;
+    theParseResult.motion.theMotionType = MotionType::None;
     theParseResult.error = gCodeParserResult::Error::None;
 
     // If we are in inverse feedmode or G91, we should reset F and axis for each block
@@ -986,7 +913,6 @@ void gCode::parseBlock(gCodeParserResult &theParseResult)
 // translate to parameters for efficient real-time calculation
 // the real-time calculations will use (hardware) float (single precision)
 
-
 void gCode::calcMotion(gCodeParserResult &theParseResult)
     {
     // 	################################
@@ -1247,168 +1173,26 @@ void gCode::calcMotion(gCodeParserResult &theParseResult)
         }
     }
 
+void gCode::initialize()
+    {
+    theState.initialize();
+    theBlock.initialize();
+
+    // Test Only Defaults
+    theState.WCSorigin[(uint8_t) modalGroupCoordinateSet::G54][(uint8_t) axis::X] = 0;
+    theState.WCSorigin[(uint8_t) modalGroupCoordinateSet::G54][(uint8_t) axis::Y] = 0;
+    theState.WCSorigin[(uint8_t) modalGroupCoordinateSet::G54][(uint8_t) axis::Z] = 0;
+
+    // read Machine settings from SD-Card to override the defaults
+    // Todo
+    }
+
 void gCode::saveState()
     {
+    //TODO
     }
 
 void gCode::restoreState()
     {
-    }
-
-
-void gCodeParserResult::toString()
-    {
-    logger.logNow("gCodeParserResult:\n");
-    switch (theParseResultType)
-        {
-        case gCodeParserResult::ParseResultType::EmptyBlock:
-            logger.logNow(" EmptyBlock\n");
-            break;
-        case gCodeParserResult::ParseResultType::OkContextUpdateOnly:
-            logger.logNow(" OkContextUpdateOnly\n");
-            break;
-        case gCodeParserResult::ParseResultType::OkContextUpdateAndMotion:
-            logger.logNow(" OkContextUpdateAndMotion\n");
-
-            switch (motion.theMotionType)
-                {
-                case MotionType::Traverse:
-                    logger.logNow(" Traverse\n");
-                    break;
-                case MotionType::FeedLinear:
-                    logger.logNow(" FeedLinear\n");
-                    break;
-                case MotionType::FeedHelicalCW:
-                    logger.logNow(" FeedHelicalCW\n");
-                    break;
-                case MotionType::FeedHelicalCCW:
-                    logger.logNow(" FeedHelicalCCW\n");
-                    break;
-                case MotionType::PauseAndResume:
-                    logger.logNow(" PauseAndResume\n");
-                    break;
-                case MotionType::Pause:
-                    logger.logNow(" Pause\n");
-                    break;
-                default:
-                    logger.logNow("*** ERROR : unknown MotionType ***\n");
-                    break;
-                }
-
-            switch (motion.theMotionType)
-                {
-                case MotionType::Traverse:
-                case MotionType::FeedLinear:
-                case MotionType::FeedHelicalCW:
-                case MotionType::FeedHelicalCCW:
-                    snprintf(logger.logLine, 127, "  length = %f mm\n", motion.trajectory.length);
-                    logger.logNow();
-                    snprintf(logger.logLine, 127, "  startPosition : (%f, %f, %f) mm\n", motion.trajectory.startPosition[0], motion.trajectory.startPosition[1], motion.trajectory.startPosition[2]);
-                    logger.logNow();
-                    snprintf(logger.logLine, 127, "  delta : (%f, %f, %f) mm\n", motion.trajectory.delta[0], motion.trajectory.delta[1], motion.trajectory.delta[2]);
-                    logger.logNow();
-                    break;
-                default:
-                    break;
-                }
-
-            switch (motion.theMotionType)
-                {
-                case MotionType::FeedHelicalCW:
-                case MotionType::FeedHelicalCCW:
-                    snprintf(logger.logLine, 127, "  radius = %f\n", motion.trajectory.radius);
-                    logger.logNow();
-                    snprintf(logger.logLine, 127, "  startAngle = %f\n", motion.trajectory.startAngle);
-                    logger.logNow();
-                    snprintf(logger.logLine, 127, "  deltaAngle = %f\n", motion.trajectory.deltaAngle);
-                    logger.logNow();
-                    break;
-                default:
-                    break;
-                }
-
-            snprintf(logger.logLine, 127, " feedrate : %f mm/s\n", motion.speedProfile.vFeed);
-            logger.logNow();
-            snprintf(logger.logLine, 127, " duration : %f s\n", motion.speedProfile.duration);
-            logger.logNow();
-
-            break;
-        case gCodeParserResult::ParseResultType::WarningContextUpdateOnly:
-            logger.logNow(" WarningContextUpdateOnly\n");
-            break;
-        case gCodeParserResult::ParseResultType::WarningContextUpdateAndMotion:
-            logger.logNow(" WarningContextUpdateAndMotion\n");
-            break;
-        case gCodeParserResult::ParseResultType::Error:
-            logger.logNow(" Error:");
-            switch (error)
-                {
-                case gCodeParserResult::Error::None:
-                    logger.logNow("None\n");
-                    break;
-                case gCodeParserResult::Error::TooManyWordsInBlock:
-                    logger.logNow("TooManyWordsInBlock\n");
-                    break;
-                case gCodeParserResult::Error::InvalidArcParameters:
-                    logger.logNow("InvalidArcParameters\n");
-                    break;
-                case gCodeParserResult::Error::ModalGroupCollision:
-                    logger.logNow("ModalGroupCollision\n");
-                    break;
-                case gCodeParserResult::Error::ValueWordCollision:
-                    logger.logNow("ValueWordCollision\n");
-                    break;
-                case gCodeParserResult::Error::InvalidLineNumber:
-                    logger.logNow("InvalidLineNumber\n");
-                    break;
-                case gCodeParserResult::Error::InvalidFeedrate:
-                    logger.logNow("InvalidFeedrate\n");
-                    break;
-                case gCodeParserResult::Error::MissingFeedrate:
-                    logger.logNow("MissingFeedrate\n");
-                    break;
-                case gCodeParserResult::Error::InvalidSpindleSpeed:
-                    logger.logNow("InvalidSpindleSpeed\n");
-                    break;
-                case gCodeParserResult::Error::MissingPForG4:
-                    logger.logNow("MissingPForG4\n");
-                    break;
-                case gCodeParserResult::Error::InvalidDwellTime:
-                    logger.logNow("InvalidDwellTime\n");
-                    break;
-                case gCodeParserResult::Error::MissingLForG10:
-                    logger.logNow("MissingLForG10\n");
-                    break;
-                case gCodeParserResult::Error::MissingPForG10:
-                    logger.logNow("MissingPForG10\n");
-                    break;
-                case gCodeParserResult::Error::InvalidPForG10:
-                    logger.logNow("InvalidPForG10\n");
-                    break;
-                case gCodeParserResult::Error::MissingAxisWord:
-                    logger.logNow("MissingAxisWord\n");
-                    break;
-                case gCodeParserResult::Error::MissingOffsetWord:
-                    logger.logNow("MissingOffsetWord\n");
-                    break;
-                case gCodeParserResult::Error::UnsupportedgCodeWord:
-                    logger.logNow("UnsupportedgCodeWord\n");
-                    break;
-                case gCodeParserResult::Error::MOTION_BUFFER_OVERFLOW:
-                    logger.logNow("MOTION_BUFFER_OVERFLOW\n");
-                    break;
-                case gCodeParserResult::Error::SoftLimits:
-                    logger.logNow("SoftLimits\n");
-                    break;
-                case gCodeParserResult::Error::ConfigFileError:
-                    logger.logNow("ConfigFileError\n");
-                    break;
-                default:
-                    break;
-                }
-            break;
-        default:
-            logger.logNow("*** ERROR : unknown gCodeParserResult::Type ***\n");
-            break;
-        }
+    //TODO
     }

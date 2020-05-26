@@ -5,13 +5,11 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#ifndef event_h
-#define event_h
-
-#ifndef WIN32
+#pragma once
+#ifndef  WIN32
 #include <Arduino.h>
 #else
-#include <inttypes.h>
+#include <stdint.h>
 #endif
 
 enum class Event : uint8_t
@@ -50,10 +48,6 @@ class EventBuffer
 
     public:
         void pushEvent(Event);			// push an event onto the eventBuffer
-        Event popEvent();
-        bool hasEvents();
+        Event popEvent();				// pop an event from the eventbuffer
+        bool hasEvents();				// check if there are any events
     };
-
-
-#endif
-

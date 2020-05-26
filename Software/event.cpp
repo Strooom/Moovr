@@ -51,11 +51,11 @@ Event EventBuffer::popEvent()
 bool EventBuffer::hasEvents()
     {
 #ifndef WIN32
-    cli();		// no Interrupts : this function can be called from main thread and fron interrupt handlers
+    cli();						// critical section
 #endif
     bool hasEvents = (eventBufferLevel > 0);
 #ifndef WIN32
-    sei(); // re-enable interrupts
+    sei();						// end ciritical section
 #endif
     return hasEvents;
     }
