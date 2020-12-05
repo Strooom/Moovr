@@ -14,7 +14,7 @@
 #include "general.h"										// required for definition of MotionSpeedProfile
 #include "gcodeparseresult.h"								// required as gCodeParseResult is passed as a parameter to some memberfunctions
 
-class MotionItemTrajectory
+class motionItemTrajectory
     {
     public:
 		void print(const MotionType theType) const;

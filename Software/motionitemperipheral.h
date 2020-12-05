@@ -15,7 +15,7 @@
 #include "gcodeparseresult.h"								// required as gCodeParseResult is passed as a parameter to some memberfunctions
 
 
-class MotionItemPeripheral
+class motionItemPeripheral
     {
 	public:
 		void print() const;

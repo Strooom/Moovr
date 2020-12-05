@@ -17,10 +17,10 @@
 #include "machineproperties.h"								// required for access to machineProperties, which is passed as parameter to member functions
 
 
-class MotionItemSpeedProfile
+class motionItemSpeedProfile
     {
 	public:
-		MotionItemSpeedProfile();
+		motionItemSpeedProfile();
 		void print() const;
 		void setSpeed(const gCodeParserResult &theParseResult);								// length and vFeed are inputs, and speedProfile is calculated
 		void setDuration(const gCodeParserResult &theParseResult);							// duration is input, speed is zero
