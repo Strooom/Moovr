@@ -8,7 +8,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "MCU.h"
+#include "machineproperties.h"
 #include "step.h"
 
 class stepBuffer {

@@ -1,5 +1,5 @@
 #include "hardwareTimers.h"
-#include "MCU.h"
+#include "machineproperties.h"
 #include "logging.h"
 
 extern uLog theLog;

@@ -1,4 +1,5 @@
 #pragma once
+
 #ifndef  WIN32
 #include <Arduino.h>
 #else
@@ -13,10 +14,10 @@
 class MotionItem
     {
 	public:
-		void set(const gCodeParserResult &theParseResult, const MachineProperties &theMachineProperties, const MotionStrategy &theStrategy, const Overrides &theOverrides);			// sets the properties of an Item based upon inputs from gcodeParseResult and machineProperties
+		void set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const MotionStrategy &theStrategy, const overrides &theOverrides);			// sets the properties of an Item based upon inputs from gcodeParseResult and machineProperties
 
-		void limit(const MachineProperties &theMachineProperties);													// calculate vMax, aMax and dMax from trajectory and machine limits
-		void optimize(MotionStrategy theStrategy, const Overrides &theOverrides);									// optimizes this motionItem
+		void limit(const machineProperties &theMachineProperties);													// calculate vMax, aMax and dMax from trajectory and machine limits
+		void optimize(MotionStrategy theStrategy, const overrides &theOverrides);									// optimizes this motionItem
 
 		void adjustRemaining();
 		float calcTriangular(const MotionStrategy theStrategy);
@@ -29,7 +30,7 @@ class MotionItem
 		void print() const;									// prints a diagram to Serial for evaluating and debugging
 		void plot(char type, float xMin, float xMax, uint32_t xSteps, float yMin, float yMax, uint32_t ySteps) const;		// plots a chart to Serial for evaluating and debugging. Type is 'a', 'v' or 's'
 
-		//float vMid2(Overrides &theOverrides);				// calculates maximum vMid from vFeed, vLimit and feed overrides
+		//float vMid2(overrides &theOverrides);				// calculates maximum vMid from vFeed, vLimit and feed overrides
 		//void fromParts(const SpeedProfileAccDec &left, const SpeedProfileAccDec &right, float d4, float len4);	// load the MotionItem properties, from two MotionParts
 
     //private:

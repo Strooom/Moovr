@@ -1,3 +1,5 @@
+#pragma once
+
 // #############################################################################
 // ### This file is part of the source code for the Moovr CNC Controller     ###
 // ### https://github.com/Strooom/Moovr                                      ###
@@ -5,12 +7,10 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#pragma once
 #ifndef  WIN32
 #include <Arduino.h>
 #else
 #include <stdint.h>
-#include <cmath>
 #endif
 #include "general.h"										// required for definition of MotionSpeedProfile
 
@@ -31,17 +31,17 @@ class SpeedProfileAccDec
 
         static constexpr float oneSixth = 1.0F / 6.0F;		// constant to avoid having to divide by 6, as division is slower than multiplication
 
-        void print() const;									// prints a diagram to Serial for evaluating and debugging
-        void plot(char type, float xMin, float xMax, uint32_t xSteps, float yMin, float yMax, uint32_t ySteps) const;		// plots a chart to Serial for evaluating and debugging. Type is 'a', 'v' or 's'
 
-    private:
-    public:													// for Unit testing, so all tests can read all members
-        // Inputs
+// TODO : check about private here..
+                                                                                                                            
+// Inputs
         float vStart;										// speed at entry of the section [mm/s]
         float vEnd;											// speed at exit of the section [mm/s]
         float aMax;											// maximum acceleration along the path [mm/ s^2]
         float dMax;											// maximum deceleration along the path [mm/ s^2]
         float jMax;											// maximum jerk = machine constant [mm / s^3]
+
+
 
         // Outputs - Speed
         float dV1;											// change in speed over phase 1

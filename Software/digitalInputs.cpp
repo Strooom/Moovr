@@ -6,7 +6,7 @@
 // #############################################################################
 
 #include "digitalInputs.h"
-#include "event.h"
+#include "eventbuffer.h"
 #include "logging.h"
 
 extern uLog theLog;
@@ -65,7 +65,7 @@ void inputs::sample() {
 // debounced input - mapped to IO and generates events
 // ---------------------------------------------------
 
-debouncedInput::debouncedInput(inputs &someInputs, const uint32_t anIndex, const Event anEventOnOpen, const Event anEventOnClose) : theInputs(someInputs), index(anIndex), onOpen(anEventOnOpen), onClose(anEventOnClose) {
+debouncedInput::debouncedInput(inputs &someInputs, const uint32_t anIndex, const event anEventOnOpen, const event anEventOnClose) : theInputs(someInputs), index(anIndex), onOpen(anEventOnOpen), onClose(anEventOnClose) {
     // TODO : check if pinNmbr is in valid range
     // TODO : some better naming of the ctor parameters..
     // TODO : further initialize members to avoid transient events at startup...
@@ -76,7 +76,7 @@ bool debouncedInput::getState() const {
     return currentState;
 }
 
-Event debouncedInput::getEvent() {
+event debouncedInput::getEvent() {
     if (theInputs.get(index)) {
         if (debounceCounter < debounceMaxCount) {
             ++debounceCounter;
@@ -98,5 +98,5 @@ Event debouncedInput::getEvent() {
             }
         }
     }
-    return Event::none;
+    return event::none;
 }

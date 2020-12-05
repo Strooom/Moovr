@@ -6,7 +6,7 @@
 // #############################################################################
 
 #include <Arduino.h>
-#include "MCU.h"
+#include "machineproperties.h"
 #include "digitalInputs.h"
 #include "hardwareTimers.h"
 #include "logging.h"

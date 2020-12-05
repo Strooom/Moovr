@@ -6,102 +6,27 @@
 // #############################################################################
 
 #include "motionctrl.h"
-
-MotionCtrl::MotionCtrl(EventBuffer &theEventbuffer) : theEventBuffer(theEventBuffer), theMachineProperties(theMachineProperties), theOverrides(theOverrides)
-    {
-//    // Initialize the buffer with some default values
-//    stepBufferReadIndex = 0;
-//    for (uint32_t i = 0; i < minBufferItems; i++)
-//        {
-//        buffer[i].out = 0x00;
-//        buffer[i].reload = defaultReload;
-//        stepBufferTotalTime = stepBufferTotalTime + defaultReload;
-//        stepBufferLevel++;
-//        }
-//
-//
-//
-//    // Setup the Periodic interrupt Timer
-//    SIM_SCGC6 |= SIM_SCGC6_PIT;											// Activates the clock for PIT0, PIT1 and PIT2
-//    PIT_MCR = 0x00;														// PIT Module Control Register (PIT_MCR) This register enables or disables the PIT timer clocks and controls the timers when the PIT enters the Debug mode.
-//
-//
-//    // PIT0 and PIT1 are used for outputting stepper (and peripherals) signals with the correct timing
-//    // PIT0 is used as a prescaler to divide the clock by (eg) 750,
-//    // PIT1 is chained to PIT0 and used to time the stepper signals
-//
-//    PIT_LDVAL0 = preScaler - 1;											// reloadValue of X results in a X+1 bus cycle period
-////	PIT_LDVAL0 = (preScaler*200) - 1;											// debugging only, slowing it down to 1 reload per second in wait..
-//    PIT_TCTRL0 = 0x1;													// Timer Control Register (PIT_TCTRLn) 	Start this timer, but don't do interrupts
-//
-//    PIT_LDVAL1 = defaultReload - 1;										// Timer Load Value Register (PIT_LDVALn) 	These registers select the timeout period for the timer interrupts.
-//    NVIC_ENABLE_IRQ(IRQ_PIT_CH1);										// Enable PIT1 interrupt in the vector-table
-//    PIT_TCTRL1 = 0x7;													// Timer Control Register (PIT_TCTRLn). Chain the timer to PIT0, Start the timer and enable interrupts
-//
-//
-//    // PIT2 is used with 5ms periodic interrupts for capturing buttons and limit switches
-//    PIT_LDVAL2 = (F_BUS / 200) - 1;										// Timer Load Value Register (PIT_LDVALn)
-////	PIT_LDVAL2 = F_BUS - 1;												// Timer Load Value Register (PIT_LDVALn)
-//    NVIC_ENABLE_IRQ(IRQ_PIT_CH2);										// Enable PIT2 interrupt in the vector-table
-//    PIT_TCTRL2 = 0x3;													// Timer Control Register (PIT_TCTRLn) 	These registers contain the control bits for each timer.start timer and enable interrupts
+#include "logging.h"
+#include <math.h>
 
 
-    // Hardware Pins for Moovr Motherboard
-    // OUTPUTS
-    // Step and Dir : PC[0..11]
-    // Enable for Motors [1..3] : PB18
-    // Enable for Motors [4..6] : PB19
-    // Peripherals [1..2] : PB[0..1]
-    // Peripherals [3..4] : PA[12..13]
-    // Peripherals [5] : PA[5]
-    // Peripherals [6] : PE[26]
+extern uLog theLog;
 
+motionCtrl::motionCtrl(eventBuffer &theEventBuffer, machineProperties &theMachineProperties, overrides &theOverrides, stepBuffer &theStepBuffer) : 
+    theEventBuffer(theEventBuffer), theMachineProperties(theMachineProperties), theOverrides(theOverrides), theStepBuffer(theStepBuffer) {
+}
 
-    // Setup the PortC which will output Step and Dir signals
-    //PORTC_PCR0 = PORT_PCR_MUX(1) | PORT_PCR_DSE;						// Set PortC0 into Alt 1, High Drive Strength
-    //PORTC_PCR1 = PORT_PCR_MUX(1) | PORT_PCR_DSE;						// Set PortC1 into Alt 1, High Drive Strength
-    //PORTC_PCR2 = PORT_PCR_MUX(1) | PORT_PCR_DSE;						// Set PortC2 into Alt 1, High Drive Strength
-    //PORTC_PCR3 = PORT_PCR_MUX(1) | PORT_PCR_DSE;						// Set PortC3 into Alt 1, High Drive Strength
-    //PORTC_PCR4 = PORT_PCR_MUX(1) | PORT_PCR_DSE;						// Set PortC4 into Alt 1, High Drive Strength
-    //PORTC_PCR5 = PORT_PCR_MUX(1) | PORT_PCR_DSE;						// Set PortC5 into Alt 1, High Drive Strength
-    //PORTC_PCR6 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
-    //PORTC_PCR7 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
-    //PORTC_PCR8 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
-    //PORTC_PCR9 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
-    //PORTC_PCR10 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
-    //PORTC_PCR11 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
-    //GPIOC_PDDR = (0x3F);												// Set PortC[5..0] as Output
-    //GPIOC_PDDR = 0x00000FFF;											// Set PortC[0..11] as Output
-
-
-    // buffer Driver Enable signals
-    //GPIOB_PDDR = 0x000C0000;											// Set PortB[18..19] as Output
-    //PORTB_PCR18 = PORT_PCR_MUX(1) | PORT_PCR_DSE;						// Set PortB[18..19] into Alt 1, High Drive Strength																		// Enable for Motors [1..3] : PB18
-    //PORTB_PCR19 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
-    //GPIOB_PDOR = 0;					// Enable Motors 123 and 456 ?
-    //GPIOB_PDOR = 0x40000;		// Disable Motors 123 Apparently driving the signal HIGH, Disables the motors, keeping it LOW enables them
-
-
-    //theOverrides.feedOverride = 1.0F;			// standard feedOverride is 100% of Gcode speed
-    //theOverrides.spindleOverride = 1.0F;		// idem for Spindle
-    }
-
-void MotionCtrl::append(gCodeParserResult &theParseResult)
-    {
-    if (!theMotionBuffer.isFull())
-        {
-		uint32_t newItemIndex = theMotionBuffer.push();																		// add an item to the buffer
-		theMotionBuffer.motionBuffer[newItemIndex].set(theParseResult, theMachineProperties, theStrategy, theOverrides);	// populate the motionItem from the results of the gCode parsing
-        }
-    else
-        {
+void motionCtrl::append(gCodeParserResult &theParseResult) {
+    if (!theMotionBuffer.isFull()) {
+        uint32_t newItemIndex = theMotionBuffer.push();                                                                         // add an item to the buffer
+        theMotionBuffer.motionBuffer[newItemIndex].set(theParseResult, theMachineProperties, theStrategy, theOverrides);        // populate the motionItem from the results of the gCode parsing
+    } else {
         // Error : motonBuffer overflow..
-		// TODO : send a critical error event to the mainController, as this should never happen..
-        }
+        // TODO : send a critical error event to the mainController, as this should never happen..
     }
+}
 
-void MotionCtrl::optimize()
-    {
+void motionCtrl::optimize() {
     //switch (motionBufferLevel)
     //    {
     //    case 0:									// empty motionBuffer - nothing to do as there is nothing to optimize
@@ -227,12 +152,11 @@ void MotionCtrl::optimize()
     //        motionBuffer[itemLeft].optimize(theStrategy, theOverrides, theMachineProperties);
     //        motionBuffer[itemRight].optimize(theStrategy, theOverrides, theMachineProperties);
     //    }
-    }
+}
 
-step MotionCtrl::getNextStep()
-    {
-	// temp code : needs to return something to make the compiler happy
-	return step {0,0};
+step motionCtrl::getNextStep() {
+    // temp code : needs to return something to make the compiler happy
+    return step{0, 0};
 
     //while (true)
     //    {
@@ -254,7 +178,7 @@ step MotionCtrl::getNextStep()
     //                motionBufferReadIndex = (motionBufferReadIndex + 1) % motionBufferLength;
     //                --motionBufferLevel;
 
-    //                //pushEvent(Event::limitSwitchXMaxOpened);	//fire a motionComplete event();
+    //                //pushEvent(event::limitSwitchXMaxOpened);	//fire a motionComplete event();
     //                continue;
     //                }
     //            else
@@ -351,84 +275,11 @@ step MotionCtrl::getNextStep()
     //    dirSetup = stepRise;
     //    stepRise = stepFall;
     //    }
+}
+
+void motionCtrl::run() {
+    while (theStepBuffer.needsFilling()) {
+        step aStep = getNextStep();        // get next step from Motion...
+        theStepBuffer.write(aStep);        // ... and pump it to buffer
     }
-
-void MotionCtrl::fill(step anItem)
-    {
-    //if (stepBufferLevel < bufferLength)																// only if buffer not full
-    //    {
-    //    uint16_t stepBufferWriteIndex;
-    //    //disable_interrups();		// lock
-    //    stepBufferTotalTime = stepBufferTotalTime + anItem.reload;										// adjust total time in buffer
-    //    if (stepBufferLevel > 2)																		// This is the normal case, as we try to keep the buffer filled with enough steps
-    //        {
-    //        stepBufferWriteIndex = (stepBufferReadIndex + stepBufferLevel - 2) % bufferLength;		// Calculate writeIndex for TimerReload as offset from readIndex. This is actually 2 positions back in the buffer
-    //        buffer[stepBufferWriteIndex].reload = anItem.reload;									// write the TimerReload
-    //        stepBufferWriteIndex = (stepBufferWriteIndex + 2) % bufferLength;						// Calculate writeIndex for Outputs
-    //        buffer[stepBufferWriteIndex].out = anItem.out;											// write the Output bits
-    //        stepBufferLevel++;																			// adjust the bufferLevel
-    //        }
-    //    else																							// This is the startup case, buffer is empty but we have motions to fill it
-    //        {
-    //        // this should never happen... but if it does how do we handle it
-    //        }
-    //    //enable_interrups();		// unlock
-    //    }
-    }
-
-void MotionCtrl::output()
-    {
-//    if (stepBufferLevel >= minBufferItems)
-//        {
-//#ifndef WIN32
-//        PIT_LDVAL1 = buffer[stepBufferReadIndex].reload;									// reload timer
-//        GPIOC_PDOR = buffer[stepBufferReadIndex].out;
-//
-//        //logger.log("output:");
-//        //logger.log(buffer[stepBufferReadIndex].out);
-//        //logger.logNow("\n");
-//
-//#endif
-////        stepBufferTotalTime = stepBufferTotalTime - buffer[stepBufferReadIndex].reload;		// adjust total time in buffer
-//        stepBufferReadIndex = (stepBufferReadIndex + 1) % bufferLength;						// adjust read pointer to next position
-//        stepBufferLevel--;																		// adjust stepBufferLevel to one less than before
-//        }
-//    else
-//        {
-//        // buffer underrun... should not happen
-//        }
-    }
-
-void MotionCtrl::run()
-    {
-//    // 1. Fill the buffer when needed
-//    while ((stepBufferLevel < minBufferItems) || ((stepBufferTotalTime < minStepBufferTotalTime) && (stepBufferLevel < bufferLength)))
-//        {
-//        stepperItem anItem = getNextStep();				// get next step from Motion...
-//        fill(anItem);									// ... and pump it to buffer
-//        }
-//
-//#ifdef WIN32
-//    // 2. Only in Windows, output from the buffer instead of bufferRead being triggered from timer interrupt
-//    while (stepBufferLevel >= minBufferItems)
-//        {
-//        output();
-//        }
-//#endif
-    }
-
-void MotionCtrl::toString()
-    {
-    //for (uint32_t i = 0; i < motionBufferLevel; i++)
-    //    {
-    //    motionBuffer[(motionBufferReadIndex + i) % motionBufferLength].toString();
-    //    }
-
-
-    //for (uint16_t i = 0; i < bufferLength; i++)
-    //    {
-    //    snprintf(logger.logLine, 127, "%x %d \n", buffer[i].out, buffer[i].reload);
-    //    logger.logNow();
-    //    }
-    }
-
+}

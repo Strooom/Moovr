@@ -3,7 +3,7 @@
 #include "gcodeparseresult.h"
 #include "motionitem.h"
 
-void MotionItem::set(const gCodeParserResult &theParseResult, const MachineProperties &theMachineProperties, const MotionStrategy &theStrategy, const Overrides &theOverrides)
+void MotionItem::set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const MotionStrategy &theStrategy, const overrides &theOverrides)
     {
     theType = theParseResult.motion.theMotionType;
     switch (theType)
@@ -104,7 +104,7 @@ float MotionItem::a(float time) const
         }
     }
 
-void MotionItem::optimize(MotionStrategy theStrategy, const Overrides &theOverrides)			// optimizes this motionItem's speed profile according to current strategy and overrides
+void MotionItem::optimize(MotionStrategy theStrategy, const overrides &theOverrides)			// optimizes this motionItem's speed profile according to current strategy and overrides
     {
     float vMid{ 0.0F };
     switch (theType)
@@ -234,7 +234,7 @@ void MotionItem::adjustRemaining()
     // some things don't change, such as arcCenter, axis, vFeed, vMax, ...
     }
 
-void MotionItem::limit(const MachineProperties &theMachineProperties)			// calculate vMax, aMax and dMax from trajectory and machine limits
+void MotionItem::limit(const machineProperties &theMachineProperties)			// calculate vMax, aMax and dMax from trajectory and machine limits
     {
     theSpeedProfile.vMax = largeValue;
     theSpeedProfile.aMax = largeValue;

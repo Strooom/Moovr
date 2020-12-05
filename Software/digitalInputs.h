@@ -1,3 +1,5 @@
+#pragma once
+
 // #############################################################################
 // ### This file is part of the source code for the Moovr CNC Controller     ###
 // ### https://github.com/Strooom/Moovr                                      ###
@@ -5,10 +7,8 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#pragma once
-
 #include <Arduino.h>
-#include "event.h"
+#include "eventbuffer.h"
 
 // -------------------------------
 // raw GPIO - hardware abstraction
@@ -42,17 +42,17 @@ class inputs {
 
 class debouncedInput {
   public:
-    debouncedInput(inputs &theInputs, uint32_t index, Event onOpen, Event onClose);        // constructor
+    debouncedInput(inputs &theInputs, uint32_t index, event onOpen, event onClose);        // constructor
     bool getState() const;                                                                 // get current state of the input
-    Event getEvent();                                                                      // get press or release event
+    event getEvent();                                                                      // get press or release event
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
     inputs &theInputs;           // reference to the HW inputs
     const uint32_t index;        // index into one of the bits of (HW) 'inputs' object
-    const Event onOpen;          // event to generate when this input opens
-    const Event onClose;         // event to generate when this input closes
+    const event onOpen;          // event to generate when this input opens
+    const event onClose;         // event to generate when this input closes
 
     static constexpr uint8_t debounceMaxCount = 4;            // sets the upper boundary for debounceCounter : 4 * 5ms = 20ms
     uint8_t debounceCounter                   = 0;            // counts up (input high) or down (input low) until it hits boundaries 0 or maxCount

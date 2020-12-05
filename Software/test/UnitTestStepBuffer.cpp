@@ -1,6 +1,6 @@
 #include "CppUnitTest.h"        // this gives you access to the C++ Unit Test framework
-#include "MCU.h"
-#include "src/logging.h"
+#include "machineproperties.h"
+#include "logging.h"
 #include "stepper.h"
 
 uLog theLog;
