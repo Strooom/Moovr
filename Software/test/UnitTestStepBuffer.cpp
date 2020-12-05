@@ -1,13 +1,13 @@
 #include "CppUnitTest.h"        // this gives you access to the C++ Unit Test framework
 #include "machineproperties.h"
 #include "logging.h"
-#include "stepper.h"
+#include "stepbuffer.h"
 
-uLog theLog;
+extern uLog theLog;
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace UnitTestEvent {
+namespace UnitTestStepBuffer {
 TEST_CLASS (C01_StepBuffer) {
   public:
     TEST_METHOD (T01_Construction) {

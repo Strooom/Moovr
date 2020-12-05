@@ -1,7 +1,9 @@
 #include "general.h"
 #include "machineproperties.h"
 #include "gcodeparseresult.h"
-#include "motionitem.h"
+#include "motion.h"
+
+#include "math.h"
 
 void motion::set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const MotionStrategy &theStrategy, const overrides &theOverrides)
     {
@@ -244,9 +246,9 @@ void motion::limit(const machineProperties &theMachineProperties)			// calculate
         {
         if ((i == (uint8_t) theTrajectory.arcAxis0) || (i == (uint8_t) theTrajectory.arcAxis1))										// for all Axis, except for the 2 of the arcPlane
             {
-            if (theSpeedProfile.vMax > sqrt(theMachineProperties.motors.aMax[i] * theTrajectory.radius))
+            if (theSpeedProfile.vMax > sqrtf(theMachineProperties.motors.aMax[i] * theTrajectory.radius))
                 {
-                theSpeedProfile.vMax = static_cast<float>(sqrt(theMachineProperties.motors.aMax[i] * theTrajectory.radius));
+                theSpeedProfile.vMax = static_cast<float>(sqrtf(theMachineProperties.motors.aMax[i] * theTrajectory.radius));
                 }
             }
 

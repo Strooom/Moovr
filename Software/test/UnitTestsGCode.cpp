@@ -3,42 +3,36 @@
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace gcodetests
-{
-TEST_CLASS(gCodeBlockTests)
-    {
-public:
-    TEST_METHOD(constructorInitialization)
-        {
+namespace UnitTestsGcode {
+TEST_CLASS (C01_gCodeBlock) {
+  public:
+    TEST_METHOD (T01_constructor) {
         gCodeBlock aBlock;
         Assert::IsTrue(0 == aBlock.nmbrWords);
-        }
-    TEST_METHOD(initialization)
-        {
+    }
+    TEST_METHOD (T02_initialization) {
         gCodeBlock aBlock;
         aBlock.nmbrWords = 1;
         aBlock.initialize();
         Assert::IsTrue(0 == aBlock.nmbrWords);
-        }
-    };
+    }
+};
 
-TEST_CLASS(gCodeParserTests)
-    {
-public:
-    TEST_METHOD(wordCount)
-        {
+TEST_CLASS (C02_gCodeParser) {
+  public:
+    TEST_METHOD (T01_wordCount) {
         gCode aParser;
         Assert::IsTrue(0 == aParser.theBlock.nmbrWords);
         aParser.getBlock("X100 G1");
         Assert::IsTrue(2 == aParser.theBlock.nmbrWords);
-        aParser.initialize();	// re-initialize
+        aParser.initialize();        // re-initialize
         aParser.getBlock("L9 X100 Y200 Z300 G1 I4 J5 K6 F700");
         Assert::IsTrue(9 == aParser.theBlock.nmbrWords);
-        }
-    TEST_METHOD(wordSearch)
-        {
+    }
+
+    TEST_METHOD (T02_wordSearch) {
         gCode aParser;
-        aParser.initialize();	// re-initialize
+        aParser.initialize();        // re-initialize
         Assert::IsTrue(-1 == aParser.searchWord('G', 10));
         aParser.getBlock("L9 X100 Y200 Z300 G1 I4 J5 K6 F700");
         Assert::IsTrue(4 == aParser.searchWord('G', 10));
@@ -48,9 +42,9 @@ public:
         aParser.removeWord(aParser.searchWord('F'));
         aParser.removeWord(aParser.searchWord('M'));
         Assert::IsTrue(6 == aParser.theBlock.nmbrWords);
-        }
-    TEST_METHOD(gCodeParseResultType)
-        {
+    }
+
+    TEST_METHOD (T03_gCodeParseResultType) {
         gCode aParser;
         gCodeParserResult theResult;
 
@@ -64,10 +58,9 @@ public:
         aParser.parseBlock(theResult);
         Assert::IsTrue(gCodeParserResult::ParseResultType::OkContextUpdateAndMotion == theResult.theParseResultType);
         Assert::IsTrue(MotionType::FeedLinear == theResult.motion.theMotionType);
-        }
+    }
 
-    TEST_METHOD(gCodeParseResultTraverse)
-        {
+    TEST_METHOD (T04_gCodeParseResultTraverse) {
         gCode aParser;
         gCodeParserResult theResult;
 
@@ -76,13 +69,12 @@ public:
         aParser.parseBlock(theResult);
         Assert::IsTrue(MotionType::Traverse == theResult.motion.theMotionType, L"001");
         Assert::IsTrue(1000.0 == theResult.motion.trajectory.length, L"002");
-        Assert::IsTrue(0.0 == theResult.motion.trajectory.startPosition[(uint8_t) axis::X], L"003");
-        Assert::IsTrue(1000.0 == theResult.motion.trajectory.delta[(uint8_t) axis::X], L"004");
+        Assert::IsTrue(0.0 == theResult.motion.trajectory.startPosition[(uint8_t)axis::X], L"003");
+        Assert::IsTrue(1000.0 == theResult.motion.trajectory.delta[(uint8_t)axis::X], L"004");
         Assert::IsTrue(1000 < theResult.motion.speedProfile.vFeed, L"005");
-        }
+    }
 
-    TEST_METHOD(gCodeParseResultFeedLinear)
-        {
+    TEST_METHOD (T05_gCodeParseResultFeedLinear) {
         gCode aParser;
         gCodeParserResult theResult;
 
@@ -92,12 +84,11 @@ public:
         Assert::IsTrue(MotionType::FeedLinear == theResult.motion.theMotionType);
         Assert::IsTrue(100.0 == theResult.motion.trajectory.length);
         Assert::IsTrue(0.0 == theResult.motion.trajectory.startPosition[(uint8_t)axis::X]);
-        Assert::IsTrue(100.0 == theResult.motion.trajectory.delta[(uint8_t) axis::X]);
+        Assert::IsTrue(100.0 == theResult.motion.trajectory.delta[(uint8_t)axis::X]);
         Assert::IsTrue(20.0 == theResult.motion.speedProfile.vFeed);
-        }
+    }
 
-    TEST_METHOD(gCodeParseResultError)
-        {
+    TEST_METHOD (T06_gCodeParseResultError) {
         gCode aParser;
         gCodeParserResult theResult;
 
@@ -112,7 +103,6 @@ public:
         aParser.parseBlock(theResult);
         Assert::IsTrue(gCodeParserResult::ParseResultType::Error == theResult.theParseResultType, L"011");
         Assert::IsTrue(gCodeParserResult::Error::ValueWordCollision == theResult.error, L"012");
-        }
-    };
-}
-
+    }
+};
+}        // namespace gcodetests

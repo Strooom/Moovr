@@ -15,7 +15,7 @@
 
 #include "motion.h"
 
-class MotionBuffer {
+class motionBuffer {
   public:
     static constexpr uint8_t bufferLength{32};        // Length should be a compromise : large enough to allow good speed-optimization. Not too large to consume ram and cpu in optimizing
     motion motionBuffer[bufferLength];            // The buffer holding all motions to be executed

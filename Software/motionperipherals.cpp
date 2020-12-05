@@ -1,4 +1,4 @@
-#include "motionitemperipherals.h"
+#include "motionperipherals.h"
 
 void motionPeripherals::print() const
     {

@@ -5,8 +5,7 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-
-#include "MotionItemTrajectory.h"
+#include "motiontrajectory.h"
 
 void motionTrajectory::print(const MotionType theType) const
     {

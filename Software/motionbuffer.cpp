@@ -7,15 +7,15 @@
 
 #include "motionbuffer.h"
 
-bool MotionBuffer::isEmpty() const {
+bool motionBuffer::isEmpty() const {
     return (0 == bufferLevel);
 }
 
-bool MotionBuffer::isFull() const {
+bool motionBuffer::isFull() const {
     return (bufferLevel >= bufferLength);
 }
 
-uint32_t MotionBuffer::push() {
+uint32_t motionBuffer::push() {
     // TODO : think about what to do when buffer is already full
     uint32_t writeIndex = ((readIndex + bufferLevel) % bufferLength);        // first free item at tail of motionBuffer
     bufferLevel++;                                                           // adjust level, as we have one more item now
@@ -25,7 +25,7 @@ uint32_t MotionBuffer::push() {
     return writeIndex;
 }
 
-void MotionBuffer::pop() {
+void motionBuffer::pop() {
     // TODO : think about what to do when buffer is empty
     readIndex = (readIndex + 1) % bufferLength;
     --bufferLevel;

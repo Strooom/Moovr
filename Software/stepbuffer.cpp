@@ -7,7 +7,7 @@
 
 // Note : in order to make this class threadsafe, initialize and fill have to disable interrupts to avoid collision with read
 
-#include "stepper.h"
+#include "stepbuffer.h"
 #include "logging.h"
 
 extern uLog theLog;

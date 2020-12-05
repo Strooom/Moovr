@@ -7,9 +7,9 @@
 #endif
 #include "gcodeparseresult.h"
 #include "machineproperties.h"
-#include "motionitemtrajectory.h"
-#include "motionitemspeedprofile.h"
-#include "motionitemperipherals.h"
+#include "motiontrajectory.h"
+#include "motionspeedprofile.h"
+#include "motionperipherals.h"
 
 class motion
     {

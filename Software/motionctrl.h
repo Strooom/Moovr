@@ -35,7 +35,7 @@ class motionCtrl {
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
-    MotionBuffer theMotionBuffer;                   // instance of the object
+    motionBuffer theMotionBuffer;                   // instance of the object
     eventBuffer &theEventBuffer;                    // reference to the eventBuffer of the parent mainController, so this class can push events there
     machineProperties &theMachineProperties;        // reference to all the pysical properties of the machine - to be read frm .cfg file
     overrides &theOverrides;                        // reference to override settings for feedrate and spindle-rpm

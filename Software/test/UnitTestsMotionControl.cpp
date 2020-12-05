@@ -1,15 +1,17 @@
 #include "CppUnitTest.h"        // this gives you access to the C++ Unit Test framework
 #include "logging.h"
 #include "machineproperties.h"
-#include "motionitemtrajectory.h"
-#include "motionitemspeedprofile.h"
-#include "motionitemperipherals.h"
+#include "motiontrajectory.h"
+#include "motionspeedprofile.h"
+#include "motionperipherals.h"
+#include "motion.h"
+#include "motionbuffer.h"
 
 uLog theLog;
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace UnitTestEvent {
+namespace UnitTestMotion {
 TEST_CLASS (C01_motionItemTrajectory) {
   public:
     TEST_METHOD (T01_Construction) {
@@ -35,13 +37,14 @@ TEST_CLASS (C03_motionItemPeripheral) {
 TEST_CLASS (C04_motionItem) {
   public:
     TEST_METHOD (T01_Construction) {
-        motionItem theMotionItem;
+        motion theMotion;
     }
 };
 
 TEST_CLASS (C05_motionBuffer) {
   public:
     TEST_METHOD (T01_Construction) {
+        motionBuffer theMotionBuffer;
     }
 };
 }        // namespace UnitTestEvent
