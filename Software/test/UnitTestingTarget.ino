@@ -59,7 +59,7 @@ void uart0_status_isr(void) {                               //
 
 void pit1_isr() {
     step theStep = theStepBuffer.read();        //
-    PIT_LDVAL1   = theStep.timeBefore;          // TODO : call member on the HW abstraction for this timer ?
+    PIT_LDVAL1   = theStep.timeBefore - 1;      // TODO : call member on the HW abstraction for this timer ?
     GPIOC_PDOR   = theStep.signals;             // TODO : call member on the HW abstraction for these motor outputs ?
     PIT_TFLG1    = 0x1;                         // clear timer interrupt flag
 }

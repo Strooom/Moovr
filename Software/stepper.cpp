@@ -8,7 +8,7 @@
 // Note : in order to make this class threadsafe, initialize and fill have to disable interrupts to avoid collision with read
 
 #include "stepper.h"
-#include "logging.h"
+#include "src/logging.h"
 
 extern uLog theLog;
 
@@ -21,19 +21,17 @@ void stepBuffer::initialize() {
     bufferHead        = 6;
     bufferTimeInTicks = 0;
 
-    //while (needsFilling()) {                                         // this buffer should never be empty, so let's add some minimal items to it
-    //    write(step{defaultReloadTime, defaultOutputSignals});        //
-    //}
-    write(step{100, 0});        //
-    write(step{101, 1});        //
-    write(step{102, 2});        //
-    write(step{103, 3});        //
+    while (needsFilling()) {                                         // this buffer should never be empty, so let's add some minimal items to it
+        write(step{defaultReloadTime, defaultOutputSignals});        //
+    }
 
     theLog.output(loggingLevel::Debug, "stepBuffer initialized");
 }
 
 void stepBuffer::write(step aStep) {
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     noInterrupts();
+#endif
     if (bufferLevel < bufferLength) {
         uint32_t writeIndex;
         writeIndex                    = (bufferLength + bufferHead + bufferLevel - 2) % bufferLength;        // TODO : explain
@@ -48,7 +46,9 @@ void stepBuffer::write(step aStep) {
             theLog.snprintf(loggingLevel::Debug, "item %d time = %d signals = %d", i, buffer[i].timeBefore, buffer[i].signals);
         }
     }
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     interrupts();
+#endif
 }
 
 step stepBuffer::read() {
@@ -75,8 +75,12 @@ uint32_t stepBuffer::getBufferLevel() const {
 }
 
 bool stepBuffer::needsFilling() const {
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     noInterrupts();
+#endif
     bool result = ((bufferLevel < minBufferLevel) || (bufferTimeInTicks < minStepBufferTotalTimeTicks));
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     interrupts();
+#endif
     return result;
 }
