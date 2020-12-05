@@ -7,12 +7,10 @@
 
 #include "machineproperties.h"
 
-void MachineProperties::load()
-    {
+void MachineProperties::load() {
     // Todo : load the properties from a Json file on SD card..
-    }
+}
 
-void MachineProperties::save()
-    {
+void MachineProperties::save() {
     // TODO : save the properties to an SD card or other stream
-    }
+}
