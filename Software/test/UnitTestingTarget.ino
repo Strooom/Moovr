@@ -15,7 +15,7 @@
 //#include "digitalInputs.h"
 //#include "hardwareTimers.h"
 #include "eventbuffer.h"
-#include "stepper.h"
+#include "stepbuffer.h"
 //#include "stepperMotorOutputs.h"
 #include "motionctrl.h"
 
