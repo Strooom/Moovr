@@ -1,13 +1,8 @@
 #pragma once
 
-#ifndef  WIN32
-#include <Arduino.h>
-#else
-#include <stdint.h>
-#endif
+#include <stdint.h>        // access to uintxx_t data types
 
-struct step
-    {
-    uint32_t out;						// bit signals to drive the Step / Dir signals. only 12 LSB are really use, driving 6 stepper motors
-    uint32_t reload;					// 32-bit value to write in Timer Reload register.
-    };
+struct step {
+    uint32_t timeBefore;        // timeBefore from previous step to this step
+    uint32_t signals;           // signals to drive the Step & Dir signals
+};
