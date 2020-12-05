@@ -9,12 +9,12 @@
 
 MotionCtrl::MotionCtrl(EventBuffer &theEventbuffer) : theEventBuffer(theEventBuffer), theMachineProperties(theMachineProperties), theOverrides(theOverrides)
     {
-//    // Initialize the stepBuffer with some default values
+//    // Initialize the buffer with some default values
 //    stepBufferReadIndex = 0;
-//    for (uint32_t i = 0; i < minStepBufferItems; i++)
+//    for (uint32_t i = 0; i < minBufferItems; i++)
 //        {
-//        stepBuffer[i].out = 0x00;
-//        stepBuffer[i].reload = defaultReload;
+//        buffer[i].out = 0x00;
+//        buffer[i].reload = defaultReload;
 //        stepBufferTotalTime = stepBufferTotalTime + defaultReload;
 //        stepBufferLevel++;
 //        }
@@ -74,7 +74,7 @@ MotionCtrl::MotionCtrl(EventBuffer &theEventbuffer) : theEventBuffer(theEventBuf
     //GPIOC_PDDR = 0x00000FFF;											// Set PortC[0..11] as Output
 
 
-    // Stepper Driver Enable signals
+    // buffer Driver Enable signals
     //GPIOB_PDDR = 0x000C0000;											// Set PortB[18..19] as Output
     //PORTB_PCR18 = PORT_PCR_MUX(1) | PORT_PCR_DSE;						// Set PortB[18..19] into Alt 1, High Drive Strength																		// Enable for Motors [1..3] : PB18
     //PORTB_PCR19 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
@@ -355,17 +355,17 @@ step MotionCtrl::getNextStep()
 
 void MotionCtrl::fill(step anItem)
     {
-    //if (stepBufferLevel < stepBufferLength)																// only if buffer not full
+    //if (stepBufferLevel < bufferLength)																// only if buffer not full
     //    {
     //    uint16_t stepBufferWriteIndex;
     //    //disable_interrups();		// lock
     //    stepBufferTotalTime = stepBufferTotalTime + anItem.reload;										// adjust total time in buffer
-    //    if (stepBufferLevel > 2)																		// This is the normal case, as we try to keep the stepBuffer filled with enough steps
+    //    if (stepBufferLevel > 2)																		// This is the normal case, as we try to keep the buffer filled with enough steps
     //        {
-    //        stepBufferWriteIndex = (stepBufferReadIndex + stepBufferLevel - 2) % stepBufferLength;		// Calculate writeIndex for TimerReload as offset from readIndex. This is actually 2 positions back in the buffer
-    //        stepBuffer[stepBufferWriteIndex].reload = anItem.reload;									// write the TimerReload
-    //        stepBufferWriteIndex = (stepBufferWriteIndex + 2) % stepBufferLength;						// Calculate writeIndex for Outputs
-    //        stepBuffer[stepBufferWriteIndex].out = anItem.out;											// write the Output bits
+    //        stepBufferWriteIndex = (stepBufferReadIndex + stepBufferLevel - 2) % bufferLength;		// Calculate writeIndex for TimerReload as offset from readIndex. This is actually 2 positions back in the buffer
+    //        buffer[stepBufferWriteIndex].reload = anItem.reload;									// write the TimerReload
+    //        stepBufferWriteIndex = (stepBufferWriteIndex + 2) % bufferLength;						// Calculate writeIndex for Outputs
+    //        buffer[stepBufferWriteIndex].out = anItem.out;											// write the Output bits
     //        stepBufferLevel++;																			// adjust the bufferLevel
     //        }
     //    else																							// This is the startup case, buffer is empty but we have motions to fill it
@@ -378,19 +378,19 @@ void MotionCtrl::fill(step anItem)
 
 void MotionCtrl::output()
     {
-//    if (stepBufferLevel >= minStepBufferItems)
+//    if (stepBufferLevel >= minBufferItems)
 //        {
 //#ifndef WIN32
-//        PIT_LDVAL1 = stepBuffer[stepBufferReadIndex].reload;									// reload timer
-//        GPIOC_PDOR = stepBuffer[stepBufferReadIndex].out;
+//        PIT_LDVAL1 = buffer[stepBufferReadIndex].reload;									// reload timer
+//        GPIOC_PDOR = buffer[stepBufferReadIndex].out;
 //
 //        //logger.log("output:");
-//        //logger.log(stepBuffer[stepBufferReadIndex].out);
+//        //logger.log(buffer[stepBufferReadIndex].out);
 //        //logger.logNow("\n");
 //
 //#endif
-////        stepBufferTotalTime = stepBufferTotalTime - stepBuffer[stepBufferReadIndex].reload;		// adjust total time in buffer
-//        stepBufferReadIndex = (stepBufferReadIndex + 1) % stepBufferLength;						// adjust read pointer to next position
+////        stepBufferTotalTime = stepBufferTotalTime - buffer[stepBufferReadIndex].reload;		// adjust total time in buffer
+//        stepBufferReadIndex = (stepBufferReadIndex + 1) % bufferLength;						// adjust read pointer to next position
 //        stepBufferLevel--;																		// adjust stepBufferLevel to one less than before
 //        }
 //    else
@@ -402,15 +402,15 @@ void MotionCtrl::output()
 void MotionCtrl::run()
     {
 //    // 1. Fill the buffer when needed
-//    while ((stepBufferLevel < minStepBufferItems) || ((stepBufferTotalTime < minStepBufferTotalTime) && (stepBufferLevel < stepBufferLength)))
+//    while ((stepBufferLevel < minBufferItems) || ((stepBufferTotalTime < minStepBufferTotalTime) && (stepBufferLevel < bufferLength)))
 //        {
 //        stepperItem anItem = getNextStep();				// get next step from Motion...
-//        fill(anItem);									// ... and pump it to stepBuffer
+//        fill(anItem);									// ... and pump it to buffer
 //        }
 //
 //#ifdef WIN32
 //    // 2. Only in Windows, output from the buffer instead of bufferRead being triggered from timer interrupt
-//    while (stepBufferLevel >= minStepBufferItems)
+//    while (stepBufferLevel >= minBufferItems)
 //        {
 //        output();
 //        }
@@ -425,9 +425,9 @@ void MotionCtrl::toString()
     //    }
 
 
-    //for (uint16_t i = 0; i < stepBufferLength; i++)
+    //for (uint16_t i = 0; i < bufferLength; i++)
     //    {
-    //    snprintf(logger.logLine, 127, "%x %d \n", stepBuffer[i].out, stepBuffer[i].reload);
+    //    snprintf(logger.logLine, 127, "%x %d \n", buffer[i].out, buffer[i].reload);
     //    logger.logNow();
     //    }
     }

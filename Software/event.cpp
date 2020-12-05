@@ -6,56 +6,62 @@
 // #############################################################################
 
 #include "event.h"
+#include "logging.h"
 
-void EventBuffer::pushEvent(Event theEvent)
-    {
+extern uLog theLog;
+
+void EventBuffer::pushEvent(Event theEvent) {
+    if (Event::none != theEvent) {
 #ifndef WIN32
-    cli();		// no Interrupts : this function can be called from main thread and fron interrupt handlers
+        cli();        // no Interrupts : this function can be called from main thread and fron interrupt handlers
 #endif
-    if (eventBufferLevel < eventBufferLength)
-        {
-        eventBuffer[(eventBufferReadIndex + eventBufferLevel) % eventBufferLength] = theEvent;		// write new event at next writeIndex = readIndex + Level
-        eventBufferLevel++;																			// adjust level to one item more
-        }
-    else
-        {
-        // Event buffer Overflow...
+        if (bufferLevel < eventBufferLength) {
+            eventBuffer[(bufferReadIndex + bufferLevel) % eventBufferLength] = theEvent;        // write new event at next writeIndex = readIndex + Level
+            bufferLevel++;                                                                      // adjust level to one item more
+            if (bufferLevel > bufferLevelMax) {
+                bufferLevelMax = bufferLevel;
+            }
+        } else {
+            theLog.output(loggingLevel::Error, "Eventbuffer Overflow");
         }
 #ifndef WIN32
-    sei(); // re-enable interrupts
+        sei();        // re-enable interrupts
 #endif
     }
+}
 
-Event EventBuffer::popEvent()
-    {
+Event EventBuffer::popEvent() {
     Event theEvent = Event::none;
 #ifndef WIN32
-    cli();		// no Interrupts : this function can be called from main thread and fron interrupt handlers
+    cli();        // no Interrupts : this function can be called from main thread and fron interrupt handlers
 #endif
-    if (eventBufferLevel > 0)
-        {
-        theEvent = eventBuffer[eventBufferReadIndex];							// read the oldest event
-        eventBufferReadIndex = (eventBufferReadIndex + 1) % eventBufferLength;	// advance readIndex to next position
-        eventBufferLevel--;														// adjust level to one item less
-        }
-    else
-        {
-        // Event buffer Underflow...
-        }
+    if (bufferLevel > 0) {
+        theEvent        = eventBuffer[bufferReadIndex];                     // read the oldest event
+        bufferReadIndex = (bufferReadIndex + 1) % eventBufferLength;        // advance readIndex to next position
+        bufferLevel--;                                                      // adjust level to one item less
+    } else {
+        theLog.output(loggingLevel::Error, "Eventbuffer Underflow");
+    }
 #ifndef WIN32
-    sei(); // re-enable interrupts
+    sei();        // re-enable interrupts
 #endif
     return theEvent;
-    }
+}
 
-bool EventBuffer::hasEvents()
-    {
+bool EventBuffer::hasEvents() {
 #ifndef WIN32
-    cli();						// critical section
+    cli();        // critical section
 #endif
-    bool hasEvents = (eventBufferLevel > 0);
+    bool hasEvents = (bufferLevel > 0);
 #ifndef WIN32
-    sei();						// end ciritical section
+    sei();        // end critical section
 #endif
     return hasEvents;
-    }
+}
+
+uint32_t EventBuffer::getBufferLevelMax() {
+    // TODO : check if we need to disable/re-enable interrupts here
+    uint32_t tmpLevel = bufferLevelMax;
+    bufferLevelMax    = 0;        // reset level when after reading it
+    return tmpLevel;
+}
