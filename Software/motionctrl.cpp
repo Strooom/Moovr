@@ -19,7 +19,7 @@ motionCtrl::motionCtrl(eventBuffer &theEventBuffer, machineProperties &theMachin
 void motionCtrl::append(gCodeParserResult &theParseResult) {
     if (!theMotionBuffer.isFull()) {
         uint32_t newItemIndex = theMotionBuffer.push();                                                                         // add an item to the buffer
-        theMotionBuffer.motionBuffer[newItemIndex].set(theParseResult, theMachineProperties, theStrategy, theOverrides);        // populate the motionItem from the results of the gCode parsing
+        theMotionBuffer.motionBuffer[newItemIndex].set(theParseResult, theMachineProperties, theStrategy, theOverrides);        // populate the motion from the results of the gCode parsing
     } else {
         // Error : motonBuffer overflow..
         // TODO : send a critical error event to the mainController, as this should never happen..
@@ -41,8 +41,8 @@ void motionCtrl::optimize() {
     //        // minimizing is done by taking the pairs from left to right = oldest to newest.
     //        // maximizing is done by taking the pairs from right to left = newest to oldest
     //        // As only the junction speed of a pair is modified (not the entry/exit speed of the pair) it takes several iterations over the complete buffer to arrive a full optimization
-    //        uint8_t itemLeft;					// index of the left MotionItem (oldest)
-    //        uint8_t itemRight;					// index of the right MotionItem (newest)
+    //        uint8_t itemLeft;					// index of the left motion (oldest)
+    //        uint8_t itemRight;					// index of the right motion (newest)
     //        float vJunction;					// exit-entry speed between the motion-pair after optimizing
     //        float v;							// local variable to calculate and test for speed conditions
 
@@ -103,14 +103,14 @@ void motionCtrl::optimize() {
     //                // calculate the maximal vEnd/vStart = vJunction, starting from a very large value, then restricting it down so it meets all kind of constraints
     //                vJunction = 999999999; // some large value to be restricted down... TODO : makes this cleaner eg using HUGE_VALF
 
-    //                // restrict to maximal vEnd for given vStart of the lefthand motionItem
+    //                // restrict to maximal vEnd for given vStart of the lefthand motion
     //                v = motionBuffer[itemLeft].calcOtherV(MotionStrategy::maximizeSpeed, true);
     //                if (v < vJunction)
     //                    {
     //                    vJunction = v;
     //                    }
 
-    //                // restrict to maximal vStart for given vEnd of the righthand motionItem
+    //                // restrict to maximal vStart for given vEnd of the righthand motion
     //                v = motionBuffer[itemRight].calcOtherV(MotionStrategy::maximizeSpeed, false);
     //                if (v < vJunction)
     //                    {
@@ -166,7 +166,7 @@ step motionCtrl::getNextStep() {
     //        {
     //        if (motionBufferLevel > 0)
     //            {
-    //            MotionItem* currentMotionItem = &motionBuffer[motionBufferReadIndex];		// pointer to active motion, speeds up accessing its members
+    //            motion* currentMotionItem = &motionBuffer[motionBufferReadIndex];		// pointer to active motion, speeds up accessing its members
     //            float timeInMotionFloat;													// equivalent in floating point seconds
     //            timeInMotionFloat = (float)timeInMotionTicks * timerTick;					// convert discrete time in timerticks to float time in seconds
 

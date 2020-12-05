@@ -13,12 +13,12 @@
 #include <stdint.h>
 #endif
 
-#include "motionitem.h"
+#include "motion.h"
 
 class MotionBuffer {
   public:
     static constexpr uint8_t bufferLength{32};        // Length should be a compromise : large enough to allow good speed-optimization. Not too large to consume ram and cpu in optimizing
-    MotionItem motionBuffer[bufferLength];            // The buffer holding all motions to be executed
+    motion motionBuffer[bufferLength];            // The buffer holding all motions to be executed
     bool isEmpty() const;                             //
     bool isFull() const;                              //
     uint32_t push();                                  // pushes 1 item on the buffer and returns an index to it..

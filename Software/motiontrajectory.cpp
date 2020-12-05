@@ -8,7 +8,7 @@
 
 #include "MotionItemTrajectory.h"
 
-void MotionItemTrajectory::print(const MotionType theType) const
+void motionTrajectory::print(const MotionType theType) const
     {
 #ifndef  WIN32
     switch (theType)
@@ -76,7 +76,7 @@ void MotionItemTrajectory::print(const MotionType theType) const
 #endif
     }
 
-void MotionItemTrajectory::set(const gCodeParserResult &theParseResult)
+void motionTrajectory::set(const gCodeParserResult &theParseResult)
     {
 	// Todo : handle this depending on the motion type...
 	// Lets set to zero all vars not used for a particular case, as this makes debugging cleaner..

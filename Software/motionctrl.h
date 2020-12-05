@@ -14,12 +14,12 @@
 
 #endif
 
-#include "eventBuffer.h"                   // needed for definition of eventBuffer : Motion can signal events back to the mainController
+#include "eventBuffer.h"             // needed for definition of eventBuffer : Motion can signal events back to the mainController
 #include "gcodeparseresult.h"        // motionControl received a gCodeParseResult parameter in append()
 #include "machineproperties.h"
 #include "motionbuffer.h"        // motionControl contains a motionBuffer
 #include "step.h"                // needed for definition of step, this is an output calculated by Motion
-#include "stepper.h"
+#include "stepbuffer.h"
 
 //#include "general.h"                  // needed for definition of eg. axis
 //#include "machineproperties.h"        // needed for definition of machineProperties : this is passed to Motion so it can include machine limitations eg. during speed calculations

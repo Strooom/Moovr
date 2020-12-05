@@ -11,13 +11,13 @@
 #include "motionitemspeedprofile.h"
 #include "motionitemperipherals.h"
 
-class motionItem
+class motion
     {
 	public:
 		void set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const MotionStrategy &theStrategy, const overrides &theOverrides);			// sets the properties of an Item based upon inputs from gcodeParseResult and machineProperties
 
 		void limit(const machineProperties &theMachineProperties);													// calculate vMax, aMax and dMax from trajectory and machine limits
-		void optimize(MotionStrategy theStrategy, const overrides &theOverrides);									// optimizes this motionItem
+		void optimize(MotionStrategy theStrategy, const overrides &theOverrides);									// optimizes this motion
 
 		void adjustRemaining();
 		float calcTriangular(const MotionStrategy theStrategy);
@@ -31,11 +31,11 @@ class motionItem
 		void plot(char type, float xMin, float xMax, uint32_t xSteps, float yMin, float yMax, uint32_t ySteps) const;		// plots a chart to Serial for evaluating and debugging. Type is 'a', 'v' or 's'
 
 		//float vMid2(overrides &theOverrides);				// calculates maximum vMid from vFeed, vLimit and feed overrides
-		//void fromParts(const SpeedProfileAccDec &left, const SpeedProfileAccDec &right, float d4, float len4);	// load the motionItem properties, from two MotionParts
+		//void fromParts(const SpeedProfileAccDec &left, const SpeedProfileAccDec &right, float d4, float len4);	// load the motion properties, from two MotionParts
 
     //private:
 		MotionType theType;
-		motionItemTrajectory theTrajectory;					// contains all properties for defining the trajectory in space
-		motionItemSpeedProfile theSpeedProfile;				// contains all properties for defining the speed over the trajectory in time
-		motionItemPeripherals thePeripherals;				// contains all settings for peripherals over this part of the trajectory
+		motionTrajectory theTrajectory;					// contains all properties for defining the trajectory in space
+		motionSpeedProfile theSpeedProfile;				// contains all properties for defining the speed over the trajectory in time
+		motionPeripherals thePeripherals;				// contains all settings for peripherals over this part of the trajectory
     };

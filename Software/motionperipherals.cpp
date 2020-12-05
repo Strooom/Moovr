@@ -1,13 +1,13 @@
-#include "motionitemperipheral.h"
+#include "motionitemperipherals.h"
 
-void MotionItemPeripheral::print() const
+void motionPeripherals::print() const
     {
 #ifndef  WIN32
     Serial.println("Peripheral  : ");
 #endif
     }
 
-void MotionItemPeripheral::set(const gCodeParserResult &theParseResult)
+void motionPeripherals::set(const gCodeParserResult &theParseResult)
     {
     spindledirection = theParseResult.motion.peripherals.spindledirection;
     spindleSpeed = static_cast<float>(theParseResult.motion.peripherals.spindleSpeed);

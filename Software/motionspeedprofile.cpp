@@ -1,10 +1,10 @@
 #include "MotionItemSpeedProfile.h"
 
-MotionItemSpeedProfile::MotionItemSpeedProfile()
+motionSpeedProfile::motionSpeedProfile()
     {
     }
 
-void MotionItemSpeedProfile::print() const
+void motionSpeedProfile::print() const
     {
 #ifndef  WIN32
     Serial.println("SpeedProfile  : ");
@@ -23,7 +23,7 @@ void MotionItemSpeedProfile::print() const
 #endif
     }
 
-void MotionItemSpeedProfile::setSpeed(const gCodeParserResult &theParseResult)
+void motionSpeedProfile::setSpeed(const gCodeParserResult &theParseResult)
     {
     vFeed = static_cast<float>(theParseResult.motion.speedProfile.vFeed);
     left.setMax(aMax, dMax, jMax);
@@ -32,7 +32,7 @@ void MotionItemSpeedProfile::setSpeed(const gCodeParserResult &theParseResult)
     right.setvEnd(0.0F);
     }
 
-void MotionItemSpeedProfile::setDuration(const gCodeParserResult &theParseResult)
+void motionSpeedProfile::setDuration(const gCodeParserResult &theParseResult)
     {
     duration = static_cast<float>(theParseResult.motion.speedProfile.duration);
     // TODO : set left, mid and right part of the profile
