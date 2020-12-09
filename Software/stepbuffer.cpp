@@ -22,7 +22,7 @@ void stepBuffer::initialize() {
     bufferTimeInTicks = 0;
 
     while (needsFilling()) {                                         // this buffer should never be empty, so let's add some minimal items to it
-        write(step{defaultReloadTime, defaultOutputSignals});        //
+        write(step{250, 0});        // TODO : fix these values
     }
 
     theLog.output(loggingLevel::Debug, "stepBuffer initialized");
@@ -62,7 +62,7 @@ step stepBuffer::read() {
         return aStep;
     } else {
         theLog.output(loggingLevel::Critical, "stepBufferUnderRun");
-        return (step{defaultReloadTime, defaultOutputSignals});
+        return (step{1000, 1000}); // Todo - fix these values
     }
 }
 

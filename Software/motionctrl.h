@@ -20,6 +20,7 @@
 #include "motionbuffer.h"        // motionControl contains a motionBuffer
 #include "step.h"                // needed for definition of step, this is an output calculated by Motion
 #include "stepbuffer.h"
+#include "stepsignals.h"
 
 //#include "general.h"                  // needed for definition of eg. axis
 //#include "machineproperties.h"        // needed for definition of machineProperties : this is passed to Motion so it can include machine limitations eg. during speed calculations
@@ -30,7 +31,6 @@ class motionCtrl {
     void run();                                            //
     void optimize();                                       //
     void append(gCodeParserResult &theParseResult);        //
-    step getNextStep();                                    //
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
@@ -40,12 +40,23 @@ class motionCtrl {
     machineProperties &theMachineProperties;        // reference to all the pysical properties of the machine - to be read frm .cfg file
     overrides &theOverrides;                        // reference to override settings for feedrate and spindle-rpm
     stepBuffer &theStepBuffer;
+    stepSignals theStepSignals;
+
+    static constexpr uint32_t maxTicksSinceLastOutput = minStepBufferTotalTimeTicks / minBufferLevel;
+
+    step getNextStep();
+    bool needStepForward(uint8_t axis);
+    bool needStepBackward(uint8_t axis);
+    void calcNextPositionInMm(uint8_t axis, float sNow, motion *currentMotion);
+    bool isTimedOut();
+    step output(uint32_t timeBefore);
 
     // StateMachine
     MotionState theMotionState = MotionState::ready;
     MotionStrategy theStrategy = MotionStrategy::maximizeSpeed;        // should the machine maximize or minimze speed ?
 
-    uint32_t timeInMotionTicks                              = 0;                // time elapsed in this motion, in discrete, integer timer ticks
+    uint32_t timeInMotionTicks{0};                                              // time elapsed in this motion, in discrete, integer timer ticks
+    uint32_t ticksSinceLastOutput{0};                                           //
     int32_t currentPositionInSteps[(uint8_t)axis::nmbrAxis] = {0, 0, 0};        // CAUTION, signed int!, could go negative during homing etc..
-    float nextPositionInMm[(uint8_t)axis::nmbrAxis];                            // ???
+    float nextPositionInMm[(uint8_t)axis::nmbrAxis]         = {0, 0, 0};        // TODO : how to deal with intialization if number of axis is different
 };

@@ -6,102 +6,75 @@
 // #############################################################################
 
 #include "motiontrajectory.h"
+#include <stdio.h>
 
-void motionTrajectory::print(const MotionType theType) const
-    {
-#ifndef  WIN32
-    switch (theType)
-        {
+uint32_t motionTrajectory::toString(char* output, const MotionType theType) const {
+    uint32_t outputLenght{0};
+
+    switch (theType) {
         case MotionType::Traverse:
         case MotionType::FeedLinear:
-            Serial.println("  Linear Trajectory : ");
-            Serial.print("    startPosition = ");
-            for (uint8_t x = 0; x < nmbrAxis; x++)
-                {
-                Serial.print(startPosition[x]);
-                Serial.print("  ");
-                }
-            Serial.println("mm");
-            Serial.print("    positionChange = ");
-            for (uint8_t x = 0; x < nmbrAxis; x++)
-                {
-                Serial.print(delta[x]);
-                Serial.print("  ");
-                }
-            Serial.println("mm");
+            outputLenght += sprintf(output + outputLenght, " Linear Trajectory : \n");
+            outputLenght += sprintf(output + outputLenght, "  startPosition = ");
+            for (uint8_t x = 0; x < nmbrAxis; x++) {
+                outputLenght += sprintf(output + outputLenght, "%f ", startPosition[x]);
+            }
+            outputLenght += sprintf(output + outputLenght, "mm\n");
 
-            Serial.print("    length = ");
-            Serial.print(length);
-            Serial.println(" mm");
+            outputLenght += sprintf(output + outputLenght, "  positionChange = ");
+            for (uint8_t x = 0; x < nmbrAxis; x++) {
+                outputLenght += sprintf(output + outputLenght, "%f ", delta[x]);
+            }
+            outputLenght += sprintf(output + outputLenght, "mm\n");
+            outputLenght += sprintf(output + outputLenght, "  length =  %f  mm\n", length);
+
             break;
         case MotionType::FeedHelicalCW:
         case MotionType::FeedHelicalCCW:
-            Serial.println("  Helical Trajectory : ");
-            Serial.print("    startPosition = ");
-            for (uint8_t x = 0; x < nmbrAxis; x++)
-                {
-                Serial.print(startPosition[x]);
-                Serial.print("  ");
-                }
-            Serial.println("mm");
+            outputLenght += sprintf(output + outputLenght, " Helical Trajectory : \n");
+            outputLenght += sprintf(output + outputLenght, "  startPosition = ");
+            for (uint8_t x = 0; x < nmbrAxis; x++) {
+                outputLenght += sprintf(output + outputLenght, "%f ", startPosition[x]);
+            }
+            outputLenght += sprintf(output + outputLenght, "mm\n");
 
-            Serial.print("    arcCenter = ");
-            Serial.print(arcCenter0);
-            Serial.print("  ");
-            Serial.print(arcCenter1);
-            Serial.println("mm");
-
-            Serial.print("    radius = ");
-            Serial.print(radius);
-            Serial.println(" mm");
-            Serial.print("    startAngle = ");
-            Serial.print(startAngle);
-            Serial.println(" rad");
-            Serial.print("    endAngle = ");
-            Serial.print(startAngle + deltaAngle);
-            Serial.println(" rad");
-            Serial.print("    length = ");
-            Serial.print(length);
-            Serial.println(" mm");
+            outputLenght += sprintf(output + outputLenght, "  arcCenter = %f %f mm\n", arcCenter0, arcCenter1);
+            outputLenght += sprintf(output + outputLenght, "  radius = %f mm, startAngle =  %f rad, endAngle =  %f rad\n", radius, startAngle, startAngle + deltaAngle);
+            outputLenght += sprintf(output + outputLenght, "  length =  %f  mm\n", length);
             break;
         case MotionType::PauseAndResume:
         case MotionType::Pause:
-            Serial.println("  Empty Trajectory : ");
+            outputLenght += sprintf(output + outputLenght, " Empty Trajectory : \n");
             break;
         default:
-            Serial.println("  Unknown Trajectory");
+            outputLenght += sprintf(output + outputLenght, " Unknown Trajectory : \n");
             break;
-        }
-#endif
     }
+    return outputLenght;
+}
 
-void motionTrajectory::set(const gCodeParserResult &theParseResult)
-    {
-	// Todo : handle this depending on the motion type...
-	// Lets set to zero all vars not used for a particular case, as this makes debugging cleaner..
-    arcAxis0 = theParseResult.motion.trajectory.arcAxis[0];
-    arcAxis1 = theParseResult.motion.trajectory.arcAxis[1];
+void motionTrajectory::set(const gCodeParserResult& theParseResult) {
+    // Todo : handle this depending on the motion type...
+    // Lets set to zero all vars not used for a particular case, as this makes debugging cleaner..
+    arcAxis0   = theParseResult.motion.trajectory.arcAxis[0];
+    arcAxis1   = theParseResult.motion.trajectory.arcAxis[1];
     arcCenter0 = static_cast<float>(theParseResult.motion.trajectory.arcCenter[0]);
     arcCenter1 = static_cast<float>(theParseResult.motion.trajectory.arcCenter[1]);
 
     startAngle = static_cast<float>(theParseResult.motion.trajectory.startAngle);
-    radius = static_cast<float>(theParseResult.motion.trajectory.radius);
+    radius     = static_cast<float>(theParseResult.motion.trajectory.radius);
 
     length = static_cast<float>(theParseResult.motion.trajectory.length);
 
-    for (uint8_t i = 0; i < nmbrAxis; ++i)
-        {
-        if ((i == (uint8_t) theParseResult.motion.trajectory.arcAxis[0]) || (i == (uint8_t) theParseResult.motion.trajectory.arcAxis[1]))
-            {
-            deltaRealTime[i] = static_cast<float>(theParseResult.motion.trajectory.deltaAngle / theParseResult.motion.trajectory.length);					// for the ARC part
-            directionUnitVector[i] = 1.0;																							// ### For circular moving Axis, we don't know the fraction, so we assume worst case
-            }
-        else
-            {
-            deltaRealTime[i] = static_cast<float>(theParseResult.motion.trajectory.delta[i] / theParseResult.motion.trajectory.length);					// for the LINEAR part
-            directionUnitVector[i] = static_cast<float>(theParseResult.motion.trajectory.delta[i] / theParseResult.motion.trajectory.length);			// ### For linear moving Axis, take into account that this Axis is doing only a fraction of the speed of the 3d-move - the projection part..
-            }
-        startPosition[i] = static_cast<float>(theParseResult.motion.trajectory.startPosition[i]);
-        delta[i] = static_cast<float>(theParseResult.motion.trajectory.delta[i]);
+    for (uint8_t i = 0; i < nmbrAxis; ++i) {
+        if ((i == (uint8_t)theParseResult.motion.trajectory.arcAxis[0]) || (i == (uint8_t)theParseResult.motion.trajectory.arcAxis[1])) {
+            deltaRealTime[i]       = static_cast<float>(theParseResult.motion.trajectory.deltaAngle / theParseResult.motion.trajectory.length);        // for the ARC part
+            directionUnitVector[i] = 1.0;                                                                                                              // ### For circular moving Axis, we don't know the fraction, so we assume worst case
+        } else {
+            deltaRealTime[i]       = static_cast<float>(theParseResult.motion.trajectory.delta[i] / theParseResult.motion.trajectory.length);        // for the LINEAR part
+            directionUnitVector[i] = static_cast<float>(theParseResult.motion.trajectory.delta[i] / theParseResult.motion.trajectory.length);        // ### For linear moving Axis, take into account that this Axis is doing only a fraction of the speed of the 3d-move - the projection part..
         }
+        startPosition[i] = static_cast<float>(theParseResult.motion.trajectory.startPosition[i]);
+        delta[i]         = static_cast<float>(theParseResult.motion.trajectory.delta[i]);
     }
+}

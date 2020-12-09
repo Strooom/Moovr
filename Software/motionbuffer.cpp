@@ -30,3 +30,7 @@ void motionBuffer::pop() {
     readIndex = (readIndex + 1) % bufferLength;
     --bufferLevel;
 }
+
+motion* motionBuffer::getCurrent() {
+    return &motionBuffer[readIndex];
+}

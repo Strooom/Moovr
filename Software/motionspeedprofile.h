@@ -32,7 +32,7 @@ class motionSpeedProfile {
     float jMax;            // jMax is always as set in machineProperties and cannot be changed but is copied here to make things simpler
     float duration;        // [s] total duration of the motion
 
-    void print() const;
+    uint32_t toString(char *output) const;
 
     //		float tStop;									// time at which the motion will come to a stop - for feedhold.. if no stop needed, then this points (1.0 s) beyond tMotion, so the time > tStop will never assert
 };

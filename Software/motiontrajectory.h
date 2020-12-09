@@ -15,9 +15,9 @@
 #include "gcodeparseresult.h"        // required as gCodeParseResult is passed as a parameter to some memberfunctions
 #include "general.h"                 // required for definition of MotionSpeedProfile
 
+
 class motionTrajectory {
   public:
-    void print(const MotionType theType) const;
     void set(const gCodeParserResult &theParseResult);
 
     //private:
@@ -40,4 +40,6 @@ class motionTrajectory {
     float length;                               // mm
     float deltaRealTime[nmbrAxis];              // mm
     float directionUnitVector[nmbrAxis];        // dimensionless
+
+    uint32_t toString(char* output, const MotionType theType) const;
 };

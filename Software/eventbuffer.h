@@ -35,7 +35,10 @@ enum class event : uint8_t {
     limitSwitchZMaxOpened,
     motionAdded,
     motionCompleted,
-    allMotionsCompleted
+    allMotionsCompleted,
+
+
+    motionBufferOverflow
 };
 
 class eventBuffer {

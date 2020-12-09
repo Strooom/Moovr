@@ -27,11 +27,11 @@ class stepBuffer {
     static constexpr uint32_t bufferLength = 256;        //
     step buffer[bufferLength];                           //
     uint32_t bufferLevel;                                //
-    static constexpr uint32_t minBufferLevel = 4;        // number of ITEMS we want AT LEAST in the buffer
+    //static constexpr uint32_t minBufferLevel = minBufferLevel;        // number of ITEMS we want AT LEAST in the buffer
     uint32_t bufferHead;                                 //
     uint32_t bufferTimeInTicks;                          // this keeps track of the total timeBefore off all items in the buffer
-    static constexpr uint32_t defaultReloadTime    = minStepBufferTotalTimeTicks / minBufferLevel;
-    static constexpr uint32_t defaultOutputSignals = 0x00;
+
+  public:
 };
 
 // -----------------------------------------------------------------------

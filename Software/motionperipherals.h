@@ -18,7 +18,8 @@
 class motionPeripherals
     {
 	public:
-		void print() const;
+    uint32_t toString(char *output) const;
+    ;
 		void set(const gCodeParserResult &theParseResult);
 		
 		rotationDirection spindledirection;

@@ -9,7 +9,8 @@
 // TODO : maybe it is enough to keep one adMax per part, rather than separate aMax and dMax
 
 #include "speedprofile.h"
-#include "math.h"
+#include <stdio.h>        // need sprintf
+#include "math.h"         // need sqrtf
 
 // A motionpart is consist of the acceleration OR deceleration part of a motion.
 // The mid / cruise part of a motion is not part of the motionpart
@@ -186,6 +187,26 @@ float SpeedProfileAccDec::s(float t) const {
     }
 }
 
+uint32_t SpeedProfileAccDec::toString(char* output) const {
+    uint32_t outputLenght{0};
+
+    outputLenght += sprintf(output + outputLenght, "  vStart   = %f mm/s\n", vStart);
+    outputLenght += sprintf(output + outputLenght, "  vEnd     = %f mm/s\n", vEnd);
+    outputLenght += sprintf(output + outputLenght, "  aMax     = %f mm/s^2\n", aMax);
+    outputLenght += sprintf(output + outputLenght, "  dMax     = %f mm/s^2\n", dMax);
+    outputLenght += sprintf(output + outputLenght, "  jMax     = %f mm/s^3\n", jMax);
+    outputLenght += sprintf(output + outputLenght, "  dV1      = %f mm/s\n", dV1);
+    outputLenght += sprintf(output + outputLenght, "  s1       = %f mm\n", s1);
+    outputLenght += sprintf(output + outputLenght, "  s2       = %f mm\n", s2);
+    outputLenght += sprintf(output + outputLenght, "  s3       = %f mm\n", s3);
+    outputLenght += sprintf(output + outputLenght, "  length   = %f mm\n", length);
+    outputLenght += sprintf(output + outputLenght, "  d1d3     = %f s\n", d1d3);
+    outputLenght += sprintf(output + outputLenght, "  d2       = %f s\n", d2);
+    outputLenght += sprintf(output + outputLenght, "  duration = %f s\n", duration);
+
+    return outputLenght;
+}
+
 SpeedProfileCruise::SpeedProfileCruise() : vMid{0.0F}, length{0.0F}, duration{0.0F} {
 }
 
@@ -207,4 +228,14 @@ float SpeedProfileCruise::v(float t) const {
 
 float SpeedProfileCruise::s(float t) const {
     return vMid * t;
+}
+
+uint32_t SpeedProfileCruise::toString(char* output) const {
+    uint32_t outputLenght{0};
+ 
+    outputLenght += sprintf(output + outputLenght, "  vMid     = %f mm/s\n", vMid);
+    outputLenght += sprintf(output + outputLenght, "  length   = %f mm\n", length);
+    outputLenght += sprintf(output + outputLenght, "  duration = %f s\n", duration);
+
+    return outputLenght;
 }

@@ -1,21 +1,20 @@
 #include "motionspeedprofile.h"
+#include <stdio.h>
 
-void motionSpeedProfile::print() const {
-#ifndef WIN32
-    Serial.println("SpeedProfile  : ");
+uint32_t motionSpeedProfile::toString(char *output) const {
+    uint32_t outputLenght{0};
+    outputLenght += sprintf(output + outputLenght, "SpeedProfile  :\n");
+    outputLenght += sprintf(output + outputLenght, " feedrate =  %f  mm/s\n", vFeed);
+    outputLenght += sprintf(output + outputLenght, " duration =  %f  s\n", duration);
 
-    Serial.print("  feedrate = ");
-    Serial.print(vFeed);
-    Serial.print(" mm/s\n");
+    outputLenght += sprintf(output + outputLenght, " left part :\n");
+    outputLenght += left.toString(output + outputLenght);
+    outputLenght += sprintf(output + outputLenght, " mid part :\n");
+    outputLenght += mid.toString(output + outputLenght);
+    outputLenght += sprintf(output + outputLenght, " right part :\n");
+    outputLenght += right.toString(output + outputLenght);
 
-    Serial.print("  duration = ");
-    Serial.print(duration);
-    Serial.print(" s\n");
-
-    ////left.print();
-    //mid.print();
-    //right.print();
-#endif
+    return outputLenght;
 }
 
 void motionSpeedProfile::setSpeed(const gCodeParserResult &theParseResult) {
