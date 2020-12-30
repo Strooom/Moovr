@@ -20,7 +20,7 @@ enum class event : uint8_t {
     feedHoldResumeButtonPressed,
     feedHoldResumeButtonReleased,
     probeSwitchClosed,
-    probeSwitchOpenend,
+    probeSwitchOpened,
     limitSwitchXMinClosed,
     limitSwitchYMinClosed,
     limitSwitchZMinClosed,
@@ -51,8 +51,8 @@ class eventBuffer {
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
-    static constexpr uint8_t eventBufferLength{32};
-    event eventBuffer[eventBufferLength];
+    static constexpr uint32_t bufferLength{32};
+    event theEventBuffer[bufferLength];
     uint32_t bufferReadIndex{0};
     uint32_t bufferLevel{0};
     uint32_t bufferLevelMax{0};

@@ -43,10 +43,10 @@ void SpeedProfileAccDec::setvEnd(float v) {
     vEnd = v;
 }
 
-void SpeedProfileAccDec::calculate(MotionSpeedProfileOrder theProfile) {
+void SpeedProfileAccDec::calculate(motionSpeedProfileOrder theProfile) {
     switch (theProfile) {
         default:
-        case MotionSpeedProfileOrder::firstOrder:
+        case motionSpeedProfileOrder::firstOrder:
             // all properties for the second order are set to zero
             d1d3 = 0.0F;
             s1   = 0.0F;
@@ -63,16 +63,17 @@ void SpeedProfileAccDec::calculate(MotionSpeedProfileOrder theProfile) {
             duration = d2;
             break;
 
-        case MotionSpeedProfileOrder::secondOrder:
+        case motionSpeedProfileOrder::secondOrder:
             float dV2;
             if (vStart < vEnd) {
+                // BUG : aMax here should be the motion aMax and not the speedProfile, as this may have been recalculated down due to overrides etc.. we always need to restart from a fresh aMax
                 d1d3 = aMax / jMax;                                // Maximal duration of phase 1 and 3
                 if ((jMax * d1d3 * d1d3) > (vEnd - vStart))        // Do we need a phase 2 ?
                 {
                     d1d3 = sqrtf((vEnd - vStart) / jMax);        // No, so adjust d1d3...
                     aMax = jMax * d1d3;
                     d2   = 0.0F;        // and no need for phase 2
-                    dV2  = 0.0F;
+                    dV2  = 0.0F;        // TODO : why is this needed ? dV2 is a local var not referenced further below ??
                 } else {
                     dV2 = (vEnd - vStart) - (jMax * d1d3 * d1d3);        // Yes, phase 1 and 3 are ok, but we need to add a phase 2
                     d2  = dV2 / aMax;
@@ -88,7 +89,7 @@ void SpeedProfileAccDec::calculate(MotionSpeedProfileOrder theProfile) {
                     d1d3 = sqrtf((vStart - vEnd) / jMax);        // No, so adjust d1d3...
                     dMax = -jMax * d1d3;
                     d2   = 0.0F;        // and no need for phase 2
-                    dV2  = 0.0F;
+                    dV2  = 0.0F;        // TODO : why is this needed ? dV2 is a local var not referenced further below ??
                 } else {
                     dV2 = (vEnd - vStart) + (jMax * d1d3 * d1d3);        // Yes, phase 1 and 3 are ok, but we need to add a phase 2
                     d2  = dV2 / dMax;
@@ -98,10 +99,10 @@ void SpeedProfileAccDec::calculate(MotionSpeedProfileOrder theProfile) {
                 s2  = (vStart + vEnd) * d2 * 0.5F;
                 s3  = (vEnd * d1d3) + jMax * d1d3 * d1d3 * d1d3 * oneSixth;
             }
+            length   = (vStart + vEnd) * (d1d3 + d2 + d1d3) * 0.5F;
+            duration = d1d3 + d2 + d1d3;
             break;
     }
-    length   = (vStart + vEnd) * (d1d3 + d2 + d1d3) * 0.5F;
-    duration = d1d3 + d2 + d1d3;
 }
 
 float SpeedProfileAccDec::calcSpeed() const        // Calculate the (exit) speed of a MotionPart given vStart, vEnd (just to indicate acceleration or deceleration) and length
@@ -109,6 +110,7 @@ float SpeedProfileAccDec::calcSpeed() const        // Calculate the (exit) speed
     float ad;
     ad = (vStart < vEnd) ? aMax : dMax;
     return sqrtf(vStart * vStart + 2 * ad * length);
+    // TODO : I think this might be redundant/overlap with vOut() function..
 }
 
 float SpeedProfileAccDec::a(float t) const {
@@ -214,10 +216,6 @@ void SpeedProfileCruise::set(float v) {
     vMid = v;
 }
 
-void SpeedProfileCruise::print() const {
-    // TODO : print properties
-}
-
 float SpeedProfileCruise::a(float t) const {
     return 0.0F;
 }
@@ -232,8 +230,20 @@ float SpeedProfileCruise::s(float t) const {
 
 uint32_t SpeedProfileCruise::toString(char* output) const {
     uint32_t outputLenght{0};
- 
+
     outputLenght += sprintf(output + outputLenght, "  vMid     = %f mm/s\n", vMid);
+    outputLenght += sprintf(output + outputLenght, "  length   = %f mm\n", length);
+    outputLenght += sprintf(output + outputLenght, "  duration = %f s\n", duration);
+
+    return outputLenght;
+}
+
+SpeedProfilePassed::SpeedProfilePassed() : length{0.0F}, duration{0.0F} {
+}
+
+uint32_t SpeedProfilePassed::toString(char* output) const {
+    uint32_t outputLenght{0};
+
     outputLenght += sprintf(output + outputLenght, "  length   = %f mm\n", length);
     outputLenght += sprintf(output + outputLenght, "  duration = %f s\n", duration);
 

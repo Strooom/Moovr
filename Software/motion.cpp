@@ -4,47 +4,65 @@
 #include "machineproperties.h"
 
 #include <stdio.h>        // using sprintf
-#include "math.h"         // usinf sqrtf, sinf and cosf
+#include "math.h"         // using sqrtf, sinf and cosf
 
-void motion::set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const MotionStrategy &theStrategy, const overrides &theOverrides) {
-    theType = theParseResult.motion.theMotionType;
-    switch (theType) {
-        case MotionType::Traverse:
-        case MotionType::FeedLinear:
-        case MotionType::FeedHelicalCW:
-        case MotionType::FeedHelicalCCW:
+#ifdef WIN32
+#include <fstream>
+#include <iostream>
+#endif
+
+void motion::set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const motionStrategy &theStrategy, const overrides &theOverrides) {
+    type = theParseResult.motion.theMotionType;
+    switch (type) {
+        case motionType::Traverse:
+        case motionType::FeedLinear:
+        case motionType::FeedHelicalCW:
+        case motionType::FeedHelicalCCW:
             // This case calculates from given length to a duration
-            theTrajectory.set(theParseResult);               // copy Trajectory properties from parseResult into this motion
-            limit(theMachineProperties);                     // limit the wanted speeds and accelerations to machine limitations for this trajectory
-            theSpeedProfile.setSpeed(theParseResult);        // copy SpeedProfile properties from parseResult into this motion
+            trajectory.set(theParseResult);               // copy Trajectory properties from parseResult into this motion
+            limit(theMachineProperties);                  // limit the wanted speeds and accelerations to machine limitations for this trajectory
+            speedProfile.setSpeed(theParseResult);        // copy SpeedProfile properties from parseResult into this motion
             optimize(theStrategy, theOverrides);
-            theSpeedProfile.duration = theSpeedProfile.left.duration + theSpeedProfile.mid.duration + theSpeedProfile.right.duration;
-            thePeripherals.set(theParseResult);        // copy Peripheral properties
+            peripherals.set(theParseResult);        // copy Peripheral properties
             break;
-        case MotionType::PauseAndResume:
-        case MotionType::Pause:
+        case motionType::PauseAndResume:
+        case motionType::Pause:
             // This case has duration given, and speeds are all zero
-            theTrajectory.set(theParseResult);                  // trajectory is empty
-            theSpeedProfile.setDuration(theParseResult);        // duration is an input
-            thePeripherals.set(theParseResult);
+            trajectory.set(theParseResult);                  // trajectory is empty
+            speedProfile.setDuration(theParseResult);        // duration is an input
+            peripherals.set(theParseResult);
             break;
-        case MotionType::None:
-            thePeripherals.set(theParseResult);
+        case motionType::None:
+            peripherals.set(theParseResult);
             break;
         default:
             break;
     }
 }
 
-float motion::calcTriangular(MotionStrategy theStrategy)        // Calculate the maximum speed for a triangular profile
+float motion::vTri(motionStrategy strategy) const        // Calculate the maximum speed for a triangular profile
 {
-    if (MotionStrategy::maximizeSpeed == theStrategy) {
+    if (motionStrategy::maximizeSpeed == strategy) {
         // For aMax > 0 and dMax < 0, the part under de sqrt is always positive
-        return sqrtf(((theSpeedProfile.right.vEnd * theSpeedProfile.right.vEnd * theSpeedProfile.aMax) - (theSpeedProfile.left.vStart * theSpeedProfile.left.vStart * theSpeedProfile.dMax) - (2 * theTrajectory.length * theSpeedProfile.aMax * theSpeedProfile.dMax)) / (theSpeedProfile.aMax - theSpeedProfile.dMax));
+        return sqrtf(((speedProfile.right.vEnd * speedProfile.right.vEnd * speedProfile.aMax) - (speedProfile.left.vStart * speedProfile.left.vStart * speedProfile.dMax) - (2 * trajectory.length * speedProfile.aMax * speedProfile.dMax)) / (speedProfile.aMax - speedProfile.dMax));
     } else {
-        float r = (2 * theTrajectory.length * theSpeedProfile.aMax * theSpeedProfile.dMax) - (theSpeedProfile.right.vEnd * theSpeedProfile.right.vEnd * theSpeedProfile.dMax) + (theSpeedProfile.left.vStart * theSpeedProfile.left.vStart * theSpeedProfile.aMax);
+        float r = (2 * trajectory.length * speedProfile.aMax * speedProfile.dMax) - (speedProfile.right.vEnd * speedProfile.right.vEnd * speedProfile.dMax) + (speedProfile.left.vStart * speedProfile.left.vStart * speedProfile.aMax);
         if (r >= 0.0F) {
-            return sqrtf(r / (theSpeedProfile.aMax - theSpeedProfile.dMax));
+            return sqrtf(r / (speedProfile.aMax - speedProfile.dMax));
+        } else {
+            return 0.0F;
+        }
+    }
+}
+
+float motion::vTri(float vStart, float vEnd, float aMax, float dMax, float length, motionStrategy strategy) const {
+    if (motionStrategy::maximizeSpeed == strategy) {
+        // For aMax > 0 and dMax < 0, the part under de sqrt is always positive
+        return sqrtf(((vEnd * vEnd * aMax) - (vStart * vStart * dMax) - (2 * length * aMax * dMax)) / (aMax - dMax));
+    } else {
+        float r = (2 * length * aMax * dMax) - (vEnd * vEnd * dMax) + (vStart * vStart * aMax);
+        if (r >= 0.0F) {
+            return sqrtf(r / (aMax - dMax));
         } else {
             return 0.0F;
         }
@@ -52,205 +70,301 @@ float motion::calcTriangular(MotionStrategy theStrategy)        // Calculate the
 }
 
 float motion::s(float time) const {
-    if (time <= theSpeedProfile.left.duration) {
-        return theSpeedProfile.left.s(time);
-    } else if (time <= theSpeedProfile.left.duration + theSpeedProfile.mid.duration) {
-        return (theSpeedProfile.left.length + theSpeedProfile.mid.s(time - theSpeedProfile.left.duration));
-    } else {
-        return (theSpeedProfile.left.length + theSpeedProfile.mid.length + theSpeedProfile.right.s(time - (theSpeedProfile.left.duration + theSpeedProfile.mid.duration)));
+    // TODO : could check for out of bounds values for time : <0 or >motion.duration
+    if (time <= speedProfile.done.duration) {
+        return speedProfile.done.length;
     }
+    time -= speedProfile.done.duration;
+    if (time <= speedProfile.left.duration) {
+        return (speedProfile.done.length + speedProfile.left.s(time));
+    }
+    time -= speedProfile.left.duration;
+    if (time <= speedProfile.mid.duration) {
+        return (speedProfile.done.length + speedProfile.left.length + speedProfile.mid.s(time));
+    }
+    time -= speedProfile.mid.duration;
+    return (speedProfile.done.length + speedProfile.left.length + speedProfile.mid.length + speedProfile.right.s(time));
 }
 
 float motion::v(float time) const {
-    if (time <= theSpeedProfile.left.duration) {
-        return theSpeedProfile.left.v(time);
-    } else if (time <= theSpeedProfile.left.duration + theSpeedProfile.mid.duration) {
-        return theSpeedProfile.mid.v(time - theSpeedProfile.left.duration);
-    } else {
-        return theSpeedProfile.right.v(time - (theSpeedProfile.left.duration + theSpeedProfile.mid.duration));
+    // TODO : could check for out of bounds values for time : <0 or >motion.duration
+    if (time <= speedProfile.done.duration) {
+        return speedProfile.left.v(0.0F);
     }
+    time -= speedProfile.done.duration;
+    if (time <= speedProfile.left.duration) {
+        return speedProfile.left.v(time);
+    }
+    time -= speedProfile.left.duration;
+    if (time <= speedProfile.mid.duration) {
+        return speedProfile.mid.v(time);
+    }
+    time -= speedProfile.mid.duration;
+    return speedProfile.right.v(time);
 }
 
 float motion::a(float time) const {
-    if (time <= theSpeedProfile.left.duration) {
-        return theSpeedProfile.left.a(time);
-    } else if (time <= theSpeedProfile.left.duration + theSpeedProfile.mid.duration) {
-        return theSpeedProfile.mid.a(time - theSpeedProfile.left.duration);
-    } else {
-        return theSpeedProfile.right.a(time - (theSpeedProfile.left.duration + theSpeedProfile.mid.duration));
+    // TODO : could check for out of bounds values for time : <0 or >motion.duration
+    if (time <= speedProfile.done.duration) {
+        return speedProfile.left.a(0.0F);
     }
+    time -= speedProfile.done.duration;
+    if (time <= speedProfile.left.duration) {
+        return speedProfile.left.a(time);
+    }
+    time -= speedProfile.left.duration;
+    if (time <= speedProfile.mid.duration) {
+        return speedProfile.mid.a(time);
+    }
+    time -= speedProfile.mid.duration;
+    return speedProfile.right.a(time);
 }
 
-void motion::optimize(MotionStrategy theStrategy, const overrides &theOverrides)        // optimizes this motion's speed profile according to current strategy and overrides
-{
+void motion::optimizeCurrent(motionStrategy theStrategy, const overrides &theOverrides, float tNow) {
+    speedProfile.left.setvStart(v(tNow));
+    speedProfile.done.length   = s(tNow);
+    speedProfile.done.duration = tNow;
+    optimize(theStrategy, theOverrides);
+}
+
+void motion::optimizeOld(const motionStrategy theStrategy, const overrides &theOverrides, const machineProperties &theMachineProperties) {
     float vMid{0.0F};
-    switch (theType) {
-        case MotionType::Traverse:
-        case MotionType::FeedLinear:
-        case MotionType::FeedHelicalCW:
-        case MotionType::FeedHelicalCCW:
-            if (MotionStrategy::maximizeSpeed == theStrategy) {
-                vMid = theSpeedProfile.vFeed * theOverrides.feedOverride;        // vFeed was set in gCode, overrides may yield new value, but new vMid must still be within machine limits
-                if (vMid > theSpeedProfile.vMax) {
-                    vMid = theSpeedProfile.vMax;
+    switch (type) {
+        case motionType::Traverse:
+        case motionType::FeedLinear:
+        case motionType::FeedHelicalCW:
+        case motionType::FeedHelicalCCW:
+            if (theStrategy == motionStrategy::maximizeSpeed) {
+                vMid = speedProfile.vFeed * theOverrides.feedOverride;        // vFeed was set in gCode, overrides may yield new value, but new vMid must still be within machine limits
+                if (vMid > speedProfile.vMax) {
+                    vMid = speedProfile.vMax;
+                }
+                speedProfile.left.setvEnd(vMid);
+                speedProfile.right.setvStart(vMid);
+                //speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
+                //speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
+                speedProfile.left.calculate(motionSpeedProfileOrder::secondOrder);
+                speedProfile.right.calculate(motionSpeedProfileOrder::secondOrder);
+                if ((speedProfile.left.length + speedProfile.right.length) <= (trajectory.length - speedProfile.done.length)) {
+                    // Add a non-zero constant speed mid phase
+                    speedProfile.mid.length = (trajectory.length - speedProfile.done.length) - (speedProfile.left.length + speedProfile.right.length);
+                    speedProfile.mid.set(vMid);
+                    speedProfile.mid.duration = speedProfile.mid.length / vMid;
+                } else {
+                    // Switch to a triangular T-profile
+                    vMid = vTri(theStrategy);
+                    speedProfile.left.setvEnd(vMid);
+                    speedProfile.right.setvStart(vMid);
+                    speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
+                    speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
+                    speedProfile.mid.length   = 0.0F;
+                    speedProfile.mid.duration = 0.0F;
+                }
+                speedProfile.duration = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
+                speedProfile.tStop    = std::numeric_limits<float>::infinity();
+            } else {
+                vMid = vTri(theStrategy);
+                // TODO : if 0.0F can be reached, it is worthwhile to try second order profile for smoother stopping
+                speedProfile.left.setvEnd(vMid);
+                speedProfile.right.setvStart(vMid);
+                //                speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
+                //                speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
+                speedProfile.left.calculate(motionSpeedProfileOrder::secondOrder);
+                speedProfile.right.calculate(motionSpeedProfileOrder::secondOrder);
+                speedProfile.mid.length   = 0.0F;
+                speedProfile.mid.duration = 0.0F;
+                speedProfile.duration     = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
+                if (vMid == 0.0F) {
+                    speedProfile.tStop = speedProfile.left.vStart / (-speedProfile.dMax);
+                } else {
+                    speedProfile.tStop = std::numeric_limits<float>::infinity();
                 }
             }
-            theSpeedProfile.left.setvEnd(vMid);
-            theSpeedProfile.right.setvStart(vMid);
-            theSpeedProfile.left.calculate(MotionSpeedProfileOrder::secondOrder);
-            theSpeedProfile.right.calculate(MotionSpeedProfileOrder::secondOrder);
-            if ((theSpeedProfile.left.length + theSpeedProfile.right.length) > theTrajectory.length) {
-                // Switch to a triangular T-profile
-                vMid = calcTriangular(theStrategy);
-                theSpeedProfile.left.setvEnd(vMid);
-                theSpeedProfile.right.setvStart(vMid);
-                theSpeedProfile.left.calculate(MotionSpeedProfileOrder::firstOrder);
-                theSpeedProfile.right.calculate(MotionSpeedProfileOrder::firstOrder);
-                theSpeedProfile.mid.length   = 0.0F;
-                theSpeedProfile.mid.duration = 0.0F;
-            } else {
-                // Add a non-zero constant speed mid phase
-                theSpeedProfile.mid.length = theTrajectory.length - (theSpeedProfile.left.length + theSpeedProfile.right.length);
-                theSpeedProfile.mid.set(vMid);
-                theSpeedProfile.mid.duration = theSpeedProfile.mid.length / vMid;
-            }
-
             break;
-        case MotionType::PauseAndResume:
-        case MotionType::Pause:
-        case MotionType::None:
-        default:
 
+        case motionType::PauseAndResume:
+        case motionType::Pause:
+        case motionType::None:
+        default:
             break;
     }
 }
 
-float motion::calcOtherV(MotionStrategy theStrategy, bool forward) {
-    // calculates the maximal / minimal entry/exit speed, given length (s), aMax or dMax (adMAx) and vStart or vEnd (v)
-    // theStrategy : determines if we want to maximize or minimize the vOther
-    // forward : determines if we have vStart as a given, calculating vEnd (true), or vEnd as a given, calculating vStart (false)
+void motion::optimize(const motionStrategy theStrategy, const overrides &theOverrides) {
+    switch (type) {
+        case motionType::Traverse:
+        case motionType::FeedLinear:
+        case motionType::FeedHelicalCW:
+        case motionType::FeedHelicalCCW: {
+            float vMid;
+            motionSpeedProfileOrder order = motionSpeedProfileOrder::secondOrder;
 
-    //float adMax;	// holds aMax or dMax, depending on the strategy and forward/backward
-    //float v;		// holds vStart or vEnd, depending on the forward/backward
+            if (theStrategy == motionStrategy::maximizeSpeed) {
+                vMid = speedProfile.vFeed * theOverrides.feedOverride;
+                if (vMid > speedProfile.vMax) {
+                    vMid = speedProfile.vMax;
+                }
+                float vMax = vTri(motionStrategy::maximizeSpeed);
+                if (vMid > vMax) {
+                    vMid  = vMax;
+                    order = motionSpeedProfileOrder::firstOrder;
+                }
+            } else {
+                vMid = 0.0F;
+            }
+            {
+                float vMin = vTri(motionStrategy::minimizeSpeed);
+                if (vMid < vMin) {
+                    vMid  = vMin;
+                    order = motionSpeedProfileOrder::firstOrder;
+                }
+            }
+            speedProfile.left.setMax(speedProfile.aMax, speedProfile.dMax, speedProfile.jMax);
+            speedProfile.left.setvEnd(vMid);
+            speedProfile.left.calculate(order);
+            speedProfile.right.setMax(speedProfile.aMax, speedProfile.dMax, speedProfile.jMax);
+            speedProfile.right.setvStart(vMid);
+            speedProfile.right.calculate(order);
+            speedProfile.mid.set(vMid);
 
-    //if (forward)
-    //    {
-    //    v = vStart;
-    //    }
-    //else
-    //    {
-    //    v = vEnd;
-    //    }
+            if ((trajectory.length - speedProfile.done.length) < (speedProfile.left.length + speedProfile.right.length)) {
+                order = motionSpeedProfileOrder::firstOrder;
+                speedProfile.left.setMax(speedProfile.aMax, speedProfile.dMax, speedProfile.jMax);
+                speedProfile.left.setvEnd(vMid);
+                speedProfile.left.calculate(order);
+                speedProfile.right.setMax(speedProfile.aMax, speedProfile.dMax, speedProfile.jMax);
+                speedProfile.right.setvStart(vMid);
+                speedProfile.right.calculate(order);
+                speedProfile.mid.set(vMid);
+            }
 
-    //switch (theStrategy)
-    //    {
-    //    case MotionStrategy::minimizeSpeed:
-    //        if (forward)
-    //            {
-    //            adMax = dMax;
-    //            }
-    //        else
-    //            {
-    //            adMax = -1 * aMax;
-    //            }
-    //        break;
+            speedProfile.mid.length   = (trajectory.length - speedProfile.done.length) - (speedProfile.left.length + speedProfile.right.length);
+            speedProfile.mid.duration = speedProfile.mid.length / vMid;
+            speedProfile.duration     = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
 
-    //    default:
-    //    case MotionStrategy::maximizeSpeed:
-    //        if (forward)
-    //            {
-    //            adMax = aMax;
-    //            }
-    //        else
-    //            {
-    //            adMax = -1 * dMax;
-    //            }
-    //        break;
-    //    }
+            if (vMid == 0.0F) {
+                speedProfile.tStop = speedProfile.done.duration + speedProfile.left.duration;
+            } else {
+                speedProfile.tStop = std::numeric_limits<float>::infinity();
+            }
+        } break;
 
-    //switch (theMotionProfile)
-    //    {
-    //    default:
-    //    case MotionSpeedProfile::firstOrder:
-    //        // in case we decelerate, will we reach vOther = 0 in less distance than s ??
-    //        float d;
-    //        d = (v * v) + (2.0F * sMotion * adMax);
-    //        if (d > 0.0F)
-    //            {
-    //            return sqrt(d);
-    //            }
-    //        else
-    //            {
-    //            return 0.0F;
-    //            }
-    //        break;
-
-    //    case MotionSpeedProfile::secondOrder:
-    //        // Todo
-    //        return 0.0F;
-    //        break;
-    //    }
-    return 0.0F;        //make compiler happy
+        case motionType::PauseAndResume:
+        case motionType::Pause:
+        case motionType::None:
+        default:
+            break;
+    }
 }
 
-void motion::adjustRemaining() {
-    // adjust the currently being executed motion to its remaining part, so it can be optimized properly with a new speedprofile
-    // TODO :
-    // vStart = v(now())
-    // length = lenght - s(now())
-    // etc..
-    // some things don't change, such as arcCenter, axis, vFeed, vMax, ...
+float motion::vOut(motionStrategy strategy, motionCalculateDirection direction) const {
+    float adMax;
+    float vIn;
+
+    if (motionCalculateDirection::forward == direction) {
+        vIn = speedProfile.left.vStart;
+        if (motionStrategy::maximizeSpeed == strategy) {
+            adMax = speedProfile.aMax;
+        } else {
+            adMax = speedProfile.dMax;
+        }
+    } else {
+        vIn = speedProfile.right.vEnd;
+        if (motionStrategy::maximizeSpeed == strategy) {
+            adMax = -1 * speedProfile.dMax;
+        } else {
+            adMax = -1 * speedProfile.aMax;
+        }
+    }
+
+    float d;
+    d = (vIn * vIn) + (2.0F * trajectory.length * adMax);
+    if (d > 0.0F) {
+        return sqrt(d);
+    } else {
+        return 0.0F;
+    }
+}
+
+float motion::vOut(float vIn, float aMax, float dMax, float length, motionStrategy strategy, motionCalculateDirection direction) const {
+    float adMax;
+
+    if (motionCalculateDirection::forward == direction) {
+        if (motionStrategy::maximizeSpeed == strategy) {
+            adMax = aMax;
+        } else {
+            adMax = dMax;
+        }
+    } else {
+        if (motionStrategy::maximizeSpeed == strategy) {
+            adMax = -1 * dMax;
+        } else {
+            adMax = -1 * aMax;
+        }
+    }
+
+    float d;
+    d = (vIn * vIn) + (2.0F * length * adMax);
+    if (d > 0.0F) {
+        return sqrt(d);
+    } else {
+        return 0.0F;
+    }
 }
 
 void motion::limit(const machineProperties &theMachineProperties)        // calculate vMax, aMax and dMax from trajectory and machine limits
 {
-    theSpeedProfile.vMax = largeValue;
-    theSpeedProfile.aMax = largeValue;
-    theSpeedProfile.dMax = -largeValue;
+    speedProfile.vMax = std::numeric_limits<float>::infinity();
+    speedProfile.aMax = std::numeric_limits<float>::infinity();
+    speedProfile.dMax = -std::numeric_limits<float>::infinity();
 
     for (uint8_t i = 0; i < nmbrAxis; ++i)        // iterate over all Axis
     {
-        if ((i == (uint8_t)theTrajectory.arcAxis0) || (i == (uint8_t)theTrajectory.arcAxis1))        // for all Axis, except for the 2 of the arcPlane
+        if ((i == (uint8_t)trajectory.arcAxis0) || (i == (uint8_t)trajectory.arcAxis1))        // for all Axis, except for the 2 of the arcPlane
         {
-            if (theSpeedProfile.vMax > sqrtf(theMachineProperties.motors.aMax[i] * theTrajectory.radius)) {
-                theSpeedProfile.vMax = static_cast<float>(sqrtf(theMachineProperties.motors.aMax[i] * theTrajectory.radius));
+            if (speedProfile.vMax > sqrtf(theMachineProperties.motors.aMax[i] * trajectory.radius)) {
+                speedProfile.vMax = static_cast<float>(sqrtf(theMachineProperties.motors.aMax[i] * trajectory.radius));
             }
         }
 
-        if (theSpeedProfile.vMax > fabs(theMachineProperties.motors.vMax[i] / theTrajectory.directionUnitVector[i]))        // it seems the floating point division understands 'infinity' and so this works without testing for div by zero
+        if (speedProfile.vMax > fabs(theMachineProperties.motors.vMax[i] / trajectory.directionUnitVector[i]))        // it seems the floating point division understands 'infinity' and so this works without testing for div by zero
         {
-            theSpeedProfile.vMax = static_cast<float>(fabs(theMachineProperties.motors.vMax[i] / theTrajectory.directionUnitVector[i]));        // restrict vMax, if this would result in exceeding vMax for any of the Axis
+            speedProfile.vMax = static_cast<float>(fabs(theMachineProperties.motors.vMax[i] / trajectory.directionUnitVector[i]));        // restrict vMax, if this would result in exceeding vMax for any of the Axis
         }
-        if (theSpeedProfile.aMax > fabs(theMachineProperties.motors.aMax[i] / theTrajectory.directionUnitVector[i])) {
-            theSpeedProfile.aMax = static_cast<float>(fabs(theMachineProperties.motors.aMax[i] / theTrajectory.directionUnitVector[i]));        // restrict aMax, if this would result in exceeding aMax for any of the Axis
+        if (speedProfile.aMax > fabs(theMachineProperties.motors.aMax[i] / trajectory.directionUnitVector[i])) {
+            speedProfile.aMax = static_cast<float>(fabs(theMachineProperties.motors.aMax[i] / trajectory.directionUnitVector[i]));        // restrict aMax, if this would result in exceeding aMax for any of the Axis
         }
-        if (fabs(theSpeedProfile.dMax) > fabs(theMachineProperties.motors.dMax[i] / theTrajectory.directionUnitVector[i])) {
-            theSpeedProfile.dMax = static_cast<float>(-1 * fabs(theMachineProperties.motors.dMax[i] / theTrajectory.directionUnitVector[i]));        // restrict dMax, if this would result in exceeding dMax for any of the Axis
+        if (fabs(speedProfile.dMax) > fabs(theMachineProperties.motors.dMax[i] / trajectory.directionUnitVector[i])) {
+            speedProfile.dMax = static_cast<float>(-1 * fabs(theMachineProperties.motors.dMax[i] / trajectory.directionUnitVector[i]));        // restrict dMax, if this would result in exceeding dMax for any of the Axis
         }
     }
-    theSpeedProfile.jMax = theMachineProperties.motors.jMax;
+    speedProfile.jMax = theMachineProperties.motors.jMax;
+}
+
+bool motion::isMoving(uint8_t axis) const {
+    return trajectory.deltaRealTime[axis] != 0.0F;
 }
 
 uint32_t motion::toString(char *output) const {
     uint32_t outputLenght{0};
-    outputLenght += sprintf(output + outputLenght, "MotionType : ");
-    switch (theType) {
-        case MotionType::Traverse:
+    outputLenght += sprintf(output + outputLenght, "motionType : ");
+    switch (type) {
+        case motionType::Traverse:
             outputLenght += sprintf(output + outputLenght, "Traverse\n");
             break;
-        case MotionType::FeedLinear:
+        case motionType::FeedLinear:
             outputLenght += sprintf(output + outputLenght, "FeedLinear\n");
             break;
-        case MotionType::FeedHelicalCW:
+        case motionType::FeedHelicalCW:
             outputLenght += sprintf(output + outputLenght, "FeedHelicalCW\n");
             break;
-        case MotionType::FeedHelicalCCW:
+        case motionType::FeedHelicalCCW:
             outputLenght += sprintf(output + outputLenght, "FeedHelicalCCW\n");
             break;
-        case MotionType::PauseAndResume:
+        case motionType::PauseAndResume:
             outputLenght += sprintf(output + outputLenght, "PauseAndResume\n");
             break;
-        case MotionType::Pause:
+        case motionType::Pause:
             outputLenght += sprintf(output + outputLenght, "Pause\n");
             break;
         default:
@@ -258,73 +372,52 @@ uint32_t motion::toString(char *output) const {
             break;
     }
 
-    outputLenght += theTrajectory.toString(output + outputLenght, theType);
-    outputLenght += theSpeedProfile.toString(output + outputLenght);
-    outputLenght += thePeripherals.toString(output + outputLenght);
+    outputLenght += trajectory.toString(output + outputLenght, type);
+    outputLenght += speedProfile.toString(output + outputLenght);
+    outputLenght += peripherals.toString(output + outputLenght);
 
     return outputLenght;
 }
 
-uint32_t motion::plot(char *output, char type, float xMin, float xMax, uint32_t nmbrXSteps, float yMin, float yMax, uint32_t nmbrYSteps) const {
-    uint32_t outputLenght{0};
+void motion::export2csv(const char *outputFilename, uint32_t nmbrDataPoints) {
+#ifdef WIN32
+    //    std::ofstream outputFile("C:\\Users\\Pascal\\Google Drive\\motionOutput.csv");
+    std::ofstream outputFile(outputFilename);
+    outputFile << "time, acceleration, speed, distance" << std::endl;
+    for (uint32_t i = 0; i <= nmbrDataPoints; i++) {
+        float t = (speedProfile.duration * static_cast<float>(i)) / static_cast<float>(nmbrDataPoints);
+        outputFile << t << "," << a(t) << "," << v(t) << "," << s(t) << std::endl;
+    }
+    outputFile.close();
+#endif
+}
 
-    float yStepSize = (yMax - yMin) / nmbrYSteps;
-    float xStepSize = (xMax - xMin) / nmbrXSteps;
+void motion::setForTest(uint32_t setNmbr) {
+    // This sets the motion parameters directly to a well defined value (whithout going through gCode parsing)
+    // in order to simplify unit testing the motionController
 
-    switch (type) {
-        case 'a':
-            outputLenght += sprintf(output + outputLenght, "plotting a(t)\n");
+    switch (setNmbr) {
+        case 0U:
+            type                        = motionType::FeedLinear;
+            trajectory.delta[0]         = 1.0F;
+            trajectory.length           = 1.0F;
+            trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
+            speedProfile.duration       = 1000.F * minStepBufferTotalTime;
+            speedProfile.mid.vMid       = 1 / (1000.F * minStepBufferTotalTime);
+            speedProfile.mid.duration   = 1000.F * minStepBufferTotalTime;
+
             break;
-        case 'v':
-            outputLenght += sprintf(output + outputLenght, "plotting v(t)\n");
+        case 1U:
+            type                        = motionType::FeedLinear;
+            trajectory.delta[0]         = 1.0F;
+            trajectory.length           = 1.0F;
+            trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
+            speedProfile.duration       = minStepBufferTotalTime;
+            speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
+            speedProfile.mid.duration   = minStepBufferTotalTime;
             break;
-        case 's':
+
         default:
-            outputLenght += sprintf(output + outputLenght, "plotting s(t)\n");
             break;
     }
-    outputLenght += sprintf(output + outputLenght, "=========");
-    for (float x = xMin; x <= xMax; x += xStepSize) {
-        outputLenght += sprintf(output + outputLenght, "=");
-    }
-    outputLenght += sprintf(output + outputLenght, "\n");
-
-    for (float y = yMax; y >= yMin; y -= yStepSize) {
-        outputLenght += sprintf(output + outputLenght, "%+08.2f ", y);
-        for (float x = xMin; x <= xMax; x += xStepSize) {
-            float value;
-            switch (type) {
-                case 'a':
-                    value = a(x);
-                    break;
-                case 'v':
-                    value = v(x);
-                    break;
-                case 's':
-                default:
-                    value = s(x);
-                    break;
-            }
-            if ((value >= y) && (value < y + yStepSize)) {
-                outputLenght += sprintf(output + outputLenght, "*");
-            } else {
-                if (((x <= theSpeedProfile.left.duration) && ((x + xStepSize) > theSpeedProfile.left.duration)) || ((x <= (theSpeedProfile.left.duration + theSpeedProfile.mid.duration)) && ((x + xStepSize) > (theSpeedProfile.left.duration + theSpeedProfile.mid.duration)))) {
-                    outputLenght += sprintf(output + outputLenght, "|");
-                } else {
-                    outputLenght += sprintf(output + outputLenght, " ");
-                }
-            }
-        }
-        outputLenght += sprintf(output + outputLenght, "\n");
-    }
-    outputLenght += sprintf(output + outputLenght, "=========");
-    for (float x = xMin; x <= xMax; x += xStepSize) {
-        outputLenght += sprintf(output + outputLenght, "=");
-    }
-    outputLenght += sprintf(output + outputLenght, "\n");
-    return outputLenght;
-}
-
-bool motion::isMoving(uint8_t axis) const {
-    return theTrajectory.deltaRealTime[axis] != 0.0F;
 }

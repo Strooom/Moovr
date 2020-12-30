@@ -21,18 +21,19 @@ class motionSpeedProfile {
     void setSpeed(const gCodeParserResult &theParseResult);           // length and vFeed are inputs, and speedProfile is calculated
     void setDuration(const gCodeParserResult &theParseResult);        // duration is input, speed is zero
 
+    SpeedProfilePassed done;         //  part already executed, in case the current motion needs to be recalculated
     SpeedProfileAccDec left;         // left part, usually the acceleration
     SpeedProfileCruise mid;          // mid part, the cruise
     SpeedProfileAccDec right;        // right part, usually the deceleration
 
-    float vFeed;           // this is the (max) speed as 'wanted' by the GCode
-    float vMax;            // this is the max speed as limited by machine constraints and overrides
-    float aMax;            // this is the max acceleration as limited by machine constraints [mm/s^2], >=0
-    float dMax;            // this is the max decelerationspeed as limited by machine constraints [mm/s^2], <=0
-    float jMax;            // jMax is always as set in machineProperties and cannot be changed but is copied here to make things simpler
-    float duration;        // [s] total duration of the motion
+    float vFeed{};           // this is the (max) speed as 'wanted' by the GCode
+    float vMax{};            // this is the max speed as limited by machine constraints and overrides
+    float aMax{};            // this is the max acceleration as limited by machine constraints [mm/s^2], >=0
+    float dMax{};            // this is the max decelerationspeed as limited by machine constraints [mm/s^2], <=0
+    float jMax{};            // jMax is always as set in machineProperties and cannot be changed but is copied here to make things simpler
+    float duration{};        // [s] total duration of the motion
 
     uint32_t toString(char *output) const;
 
-    //		float tStop;									// time at which the motion will come to a stop - for feedhold.. if no stop needed, then this points (1.0 s) beyond tMotion, so the time > tStop will never assert
+    float tStop{std::numeric_limits<float>::infinity()};        // time at which the motion will come to a stop - for feedhold.. if no stop needed, then this holds infinity
 };

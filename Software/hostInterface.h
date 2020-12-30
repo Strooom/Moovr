@@ -7,7 +7,11 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#include <Arduino.h>											// giving us access to Arduino stuff and dataTypes
+#ifndef WIN32
+#include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 
 // --------------------------------------------------------------------------------------------------------------------
 // Base class for a HostInterface. actual HW implementation could be UART, USBSerial, USBRAW, Ethernet, CAN, whatever..

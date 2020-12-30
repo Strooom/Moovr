@@ -5,277 +5,100 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#include "event.h"
-#include "mainController.h"
-#include "HostInterface.h"
+#include "maincontroller.h"
+#include "eventbuffer.h"
+#include "hostinterface.h"
 
-MainController::MainController()
-    {
-    // INPUTS
-    // Inputs [0..7] : PD[0..7]
-    // Inputs [8..9] : PE[24..25]
-    // Inputs [10..11] : PA[16..17]
+mainController::mainController(eventBuffer &anEventBuffer, HostInterfaceUart &aHostInterface, stepBuffer &aStepBuffer) : theEventBuffer(anEventBuffer), theHostInterface(aHostInterface), theStepBuffer(aStepBuffer) {
+}
 
-    PORTD_PCR0 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    PORTD_PCR1 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    PORTD_PCR2 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    PORTD_PCR3 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    PORTD_PCR4 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    PORTD_PCR5 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    //PORTD_PCR6 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    //PORTD_PCR7 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    GPIOD_PDDR = 0x000C0000;
+void mainController::run() {
+    theMotionCtrl.run();
+    theMotionCtrl.optimize();
+    handleEvents();              // handle all events such as buttons pressed, limit switches triggering, motions being completed..
+    handleMessages();            // handle all input from the external hostInterface
+}
 
-    PORTE_PCR24 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    PORTE_PCR25 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    GPIOE_PDDR = 0x03000000;
-
-    PORTA_PCR16 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    //PORTA_PCR17 = PORT_PCR_MUX(1) | PORT_PCR_PE | PORT_PCR_PS;
-    GPIOA_PDDR = 0x00030000;
-
-
-    for (uint8_t i = 0; i <= ButtonSwitch::debounceMaxCount; i++)		// initialize the input switches by running them a number of cycles
-        {
-        switchesAndButtons[(uint8_t) limitSwitchButton::xMin].run(GPIOD_PDIR & 0x00000001);
-        switchesAndButtons[(uint8_t) limitSwitchButton::xMax].run(GPIOD_PDIR & 0x00000002);
-        switchesAndButtons[(uint8_t) limitSwitchButton::yMin].run(GPIOD_PDIR & 0x00000004);
-        switchesAndButtons[(uint8_t) limitSwitchButton::yMax].run(GPIOD_PDIR & 0x00000008);
-        switchesAndButtons[(uint8_t) limitSwitchButton::zMin].run(GPIOD_PDIR & 0x00000010);
-        switchesAndButtons[(uint8_t) limitSwitchButton::zMax].run(GPIOD_PDIR & 0x00000020);
-
-        switchesAndButtons[(uint8_t) limitSwitchButton::stop].run(GPIOE_PDIR & 0x01000000);
-        switchesAndButtons[(uint8_t) limitSwitchButton::hold].run(GPIOE_PDIR & 0x02000000);
-        switchesAndButtons[(uint8_t) limitSwitchButton::probe].run(GPIOA_PDIR & 0x00010000);
-        }
-
-    theHostInterface.sendMessage("Moovr V0.2 - https://github.com/Strooom/Moovr\n");
-    }
-
-void MainController::run()
-    {
-    theMotion.run();				// calculate steps from the motion = filling the stepBuffer from the motionBuffer
-    theMotion.optimize();			// optimize the Motion, to maximize speed, or decelerate to stop/pause, or adjust feedrates from overrides..
-    handleEvents();					// handle all events such as buttons pressed, limit switches triggering, motions being completed..
-    handleMessages();				// handle all input from the external hostInterface
-    }
-
-void MainController::serialInterrupt()
-    {
-    uint8_t status;
-    status = UART0_S1;						// read status register. Interrupt-flag is cleared after reading this register AND reading/writing the UART0_D register until they are empty/full
-    if (status & UART_S1_RDRF)				// Transmit ready or Receive event ?
-        {
-        theHostInterface.rxReady();			// Handle ' byte received' event
-        }
-    if (status & UART_S1_TDRE)				// Transmit ready event ?
-        {
-        theHostInterface.txReady();			// Handle 'byte sent' event
-        }
-    }
-
-void MainController::pit1Interrupt()
-    {
-    theMotion.output();  // output stepper signals to the motors
-    }
-
-void MainController::pit2Interrupt()
-    {
-    // read the inputs, debounce them and if any ButtonEvents, translate then into a mainController event..
-    ButtonEvent theEvent;
-
-    theEvent =  switchesAndButtons[(uint8_t) limitSwitchButton::xMin].run(GPIOD_PDIR & 0x00000001);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-            theEventBuffer.pushEvent(Event::limitSwitchXMinClosed);
-            GPIOB_PDOR = 0;					// Enable Motors 123 and 456 ?
-
-			logger.logNow("motors enabled\n");
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::limitSwitchXMinOpened);
-            GPIOB_PDOR = 0x40000;		// Disable Motors 123 Apparently driving the signal HIGH, Disables the motors, keeping it LOW enables them
-            logger.logNow("motors disabled\n");
-            break;
-        }
-
-    theEvent = switchesAndButtons[(uint8_t) limitSwitchButton::xMax].run(GPIOD_PDIR & 0x00000002);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-			theEventBuffer.pushEvent(Event::limitSwitchXMaxClosed);
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::limitSwitchXMaxOpened);
-            break;
-        }
-
-    theEvent = switchesAndButtons[(uint8_t) limitSwitchButton::yMin].run(GPIOD_PDIR & 0x00000004);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-			theEventBuffer.pushEvent(Event::limitSwitchYMinClosed);
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::limitSwitchYMinOpened);
-            break;
-        }
-
-    theEvent = switchesAndButtons[(uint8_t) limitSwitchButton::yMax].run(GPIOD_PDIR & 0x00000008);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-			theEventBuffer.pushEvent(Event::limitSwitchYMaxClosed);
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::limitSwitchYMaxOpened);
-            break;
-        }
-
-    theEvent = switchesAndButtons[(uint8_t) limitSwitchButton::zMin].run(GPIOD_PDIR & 0x00000010);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-			theEventBuffer.pushEvent(Event::limitSwitchZMinClosed);
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::limitSwitchZMinOpened);
-            break;
-        }
-
-    theEvent = switchesAndButtons[(uint8_t) limitSwitchButton::zMax].run(GPIOD_PDIR & 0x00000020);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-			theEventBuffer.pushEvent(Event::limitSwitchZMaxClosed);
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::limitSwitchZMaxOpened);
-            break;
-        }
-
-    theEvent = switchesAndButtons[(uint8_t) limitSwitchButton::stop].run(GPIOE_PDIR & 0x01000000);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-			theEventBuffer.pushEvent(Event::emergencyStopButtonPressed);
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::emergencyStopButtonReleased);
-            break;
-        }
-
-    theEvent = switchesAndButtons[(uint8_t) limitSwitchButton::hold].run(GPIOE_PDIR & 0x02000000);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-			theEventBuffer.pushEvent(Event::feedHoldResumeButtonPressed);
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::feedHoldResumeButtonReleased);
-            break;
-        }
-
-    theEvent = switchesAndButtons[(uint8_t) limitSwitchButton::probe].run(GPIOA_PDIR & 0x00010000);
-    switch (theEvent)
-        {
-        case ButtonEvent::closed:
-			theEventBuffer.pushEvent(Event::probeSwitchClosed);
-            break;
-        case ButtonEvent::opened:
-			theEventBuffer.pushEvent(Event::probeSwitchOpenend);
-            break;
-        }
-    }
-
-void MainController::handleMessages()
-    {
-    if (theHostInterface.hasMessage())
-        {
+void mainController::handleMessages() {
+    if (theHostInterface.hasMessage()) {
         theHostInterface.getMessage(commandLine);
 
-        Command command;
+        command command;
 
-        if (ESC == commandLine[0])
-            {
-            command = (Command)commandLine[1];		// non gCode commands
-            }
-        else
-            {
-            command = Command::gCode;				// gCode
-            }
+        if (ESC == commandLine[0]) {
+            command = (command)commandLine[1];        // non gCode commands
+        } else {
+            command = command::gCode;        // gCode
+        }
 
-        switch (mainState)								// first, depending on the state...
-            {
-            case MainState::Ready:
-                switch (command)						// then , depending on the command...
-                    {
-                    case Command::gCode:
-                        theParser.getBlock(commandLine);	// Parse the line of gCode text into a gCodeBlock
-                        while (theParser.getNmbrWords() > 0)
-                            {
-                            theParser.parseBlock(theParseResult);							// Parse the gCode Block into a gCode state update and/or a gCodeMotion
-                            switch (theParseResult.theParseResultType)
-                                {
+        switch (mainState)        // first, depending on the state...
+        {
+            case mainState::Ready:
+                switch (command)        // then , depending on the command...
+                {
+                    case command::gCode:
+                        theParser.getBlock(commandLine);        // Parse the line of gCode text into a gCodeBlock
+                        while (theParser.getNmbrWords() > 0) {
+                            theParser.parseBlock(theParseResult);        // Parse the gCode Block into a gCode state update and/or a gCodeMotion
+                            switch (theParseResult.theParseResultType) {
                                 case gCodeParserResult::ParseResultType::OkContextUpdateOnly:
                                     break;
                                 case gCodeParserResult::ParseResultType::OkContextUpdateAndMotion:
                                     theMotion.append(theParseResult);
-                                    //mainState = MainState::RUNNING;
+                                    //mainState = mainState::RUNNING;
                                     break;
                                 case gCodeParserResult::ParseResultType::Error:
                                     break;
                                 default:
                                     break;
-                                }
                             }
+                        }
                         break;
 
-                    case Command::cancel:
+                    case command::cancel:
                         break;
 
                         // Cancel in Ready state -> reboot or restart ?
                         break;
 
-                    case Command::uploadFile:
+                    case command::uploadFile:
                         break;
 
-                    case Command::doHome:
-                    case Command::doProbe:
-                    case Command::jog:
-                    case Command::executeFile:
-                    case Command::override:
-                        //theHostInterface.sendMessage("invalid Command\n");
+                    case command::doHome:
+                    case command::doProbe:
+                    case command::jog:
+                    case command::executeFile:
+                    case command::override:
+                        //theHostInterface.sendMessage("invalid command\n");
                         // unsupported commands in this state...
                         break;
 
                     default:
                         // undefined command codes...
                         break;
-                    }
+                }
                 break;
 
-            case MainState::Loading:
-                switch (command)						// then , depending on the command...
-                    {
-                    case Command::gCode:
-                    case Command::doHome:
-                    case Command::doProbe:
-                    case Command::jog:
-                    case Command::uploadFile:
-                    case Command::executeFile:
-                    case Command::override:
-                        //theHostInterface.sendMessage("invalid Command\n");
+            case mainState::Loading:
+                switch (command)        // then , depending on the command...
+                {
+                    case command::gCode:
+                    case command::doHome:
+                    case command::doProbe:
+                    case command::jog:
+                    case command::uploadFile:
+                    case command::executeFile:
+                    case command::override:
+                        //theHostInterface.sendMessage("invalid command\n");
                         // unsupported commands in this state...
                         break;
                     default:
                         // undefined command codes...
                         break;
-                    }
+                }
             default:
                 break;
-            }
+        }
 
         //responseMsg[0] = 0x0;	// clear the responseString
         //theHostInterface.getStatus(responseMsg, 0xFF);
@@ -288,158 +111,147 @@ void MainController::handleMessages()
         //responseMsg[0] = 0x0;	// clear the responseString
         //theMotion.getState(responseMsg, 0xFF);	// This will return the motionBufferLevel, which is needed for the sndr to do its flowControl
         //theHostInterface.sendMessage(responseMsg);
-        }
     }
+}
 
-void MainController::handleEvents()
-    {
-    while (theEventBuffer.hasEvents())
-        {
-        Event theEvent = theEventBuffer.popEvent();
+void mainController::handleEvents() {
+    while (theEventBuffer.hasEvents()) {
+        event theEvent = theEventBuffer.popEvent();
 
-        switch (mainState)
-            {
-            case MainState::Ready:
-                switch (theEvent)
-                    {
-                    case Event::emergencyStopButtonPressed:
-//                        logger.logNow("Emergency Stop pressed");
+        switch (mainState) {
+            case mainState::Ready:
+                switch (theEvent) {
+                    case event::emergencyStopButtonPressed:
                         break;
-                    case Event::emergencyStopButtonReleased:
-//                        logger.logNow("Emergency Stop released");
+                    case event::emergencyStopButtonReleased:
                         break;
-                    case Event::feedHoldResumeButtonPressed:
+                    case event::feedHoldResumeButtonPressed:
                         break;
-                    case Event::feedHoldResumeButtonReleased:
+                    case event::feedHoldResumeButtonReleased:
                         break;
-                    case Event::limitSwitchXMinClosed:
-                        logger.logNow("Motors enabled\n");
+                    case event::limitSwitchXMinClosed:
                         break;
-                    case Event::limitSwitchYMinClosed:
+                    case event::limitSwitchYMinClosed:
                         break;
-                    case Event::limitSwitchZMinClosed:
+                    case event::limitSwitchZMinClosed:
                         break;
-                    case Event::limitSwitchXMaxClosed:
+                    case event::limitSwitchXMaxClosed:
                         break;
-                    case Event::limitSwitchYMaxClosed:
+                    case event::limitSwitchYMaxClosed:
                         break;
-                    case Event::limitSwitchZMaxClosed:
+                    case event::limitSwitchZMaxClosed:
                         break;
-                    case Event::limitSwitchXMinOpened:
-                        logger.logNow("Motors disabled\n");
+                    case event::limitSwitchXMinOpened:
                         break;
-                    case Event::limitSwitchYMinOpened:
+                    case event::limitSwitchYMinOpened:
                         break;
-                    case Event::limitSwitchZMinOpened:
+                    case event::limitSwitchZMinOpened:
                         break;
-                    case Event::limitSwitchXMaxOpened:
+                    case event::limitSwitchXMaxOpened:
                         break;
-                    case Event::limitSwitchYMaxOpened:
+                    case event::limitSwitchYMaxOpened:
                         break;
-                    case Event::limitSwitchZMaxOpened:
+                    case event::limitSwitchZMaxOpened:
                         break;
-                    case Event::motionCompleted:
+                    case event::motionCompleted:
                         break;
-                    }
-            case MainState::Homing:
-                switch (theEvent)
-                    {
-                    case Event::emergencyStopButtonPressed:
+                }
+            case mainState::Homing:
+                switch (theEvent) {
+                    case event::emergencyStopButtonPressed:
                         break;
-                    case Event::emergencyStopButtonReleased:
+                    case event::emergencyStopButtonReleased:
                         break;
-                    case Event::feedHoldResumeButtonPressed:
+                    case event::feedHoldResumeButtonPressed:
                         break;
-                    case Event::feedHoldResumeButtonReleased:
+                    case event::feedHoldResumeButtonReleased:
                         break;
-                    case Event::probeSwitchClosed:
+                    case event::probeSwitchClosed:
                         break;
-                    case Event::probeSwitchOpenend:
+                    case event::probeSwitchOpened:
                         break;
-                    case Event::limitSwitchXMinClosed:
+                    case event::limitSwitchXMinClosed:
                         break;
-                    case Event::limitSwitchYMinClosed:
+                    case event::limitSwitchYMinClosed:
                         break;
-                    case Event::limitSwitchZMinClosed:
+                    case event::limitSwitchZMinClosed:
                         break;
-                    case Event::limitSwitchXMaxClosed:
+                    case event::limitSwitchXMaxClosed:
                         break;
-                    case Event::limitSwitchYMaxClosed:
+                    case event::limitSwitchYMaxClosed:
                         break;
-                    case Event::limitSwitchZMaxClosed:
+                    case event::limitSwitchZMaxClosed:
                         break;
-                    case Event::limitSwitchXMinOpened:
+                    case event::limitSwitchXMinOpened:
                         break;
-                    case Event::limitSwitchYMinOpened:
+                    case event::limitSwitchYMinOpened:
                         break;
-                    case Event::limitSwitchZMinOpened:
+                    case event::limitSwitchZMinOpened:
                         break;
-                    case Event::limitSwitchXMaxOpened:
+                    case event::limitSwitchXMaxOpened:
                         break;
-                    case Event::limitSwitchYMaxOpened:
+                    case event::limitSwitchYMaxOpened:
                         break;
-                    case Event::limitSwitchZMaxOpened:
+                    case event::limitSwitchZMaxOpened:
                         break;
-                    case Event::motionAdded:
+                    case event::motionAdded:
                         break;
-                    case Event::motionCompleted:
+                    case event::motionCompleted:
                         break;
-                    case Event::allMotionsCompleted:
+                    case event::allMotionsCompleted:
                         break;
-                    }
+                }
                 break;
-            case MainState::Jogging:
+            case mainState::Jogging:
                 break;
-            case MainState::Probing:
+            case mainState::Probing:
                 break;
-            case MainState::Running:
-                switch (theEvent)
-                    {
-                    case Event::emergencyStopButtonPressed:
+            case mainState::Running:
+                switch (theEvent) {
+                    case event::emergencyStopButtonPressed:
                         break;
-                    case Event::emergencyStopButtonReleased:
+                    case event::emergencyStopButtonReleased:
                         break;
-                    case Event::feedHoldResumeButtonPressed:
+                    case event::feedHoldResumeButtonPressed:
                         break;
-                    case Event::feedHoldResumeButtonReleased:
+                    case event::feedHoldResumeButtonReleased:
                         break;
-                    case Event::limitSwitchXMinClosed:
+                    case event::limitSwitchXMinClosed:
                         break;
-                    case Event::limitSwitchYMinClosed:
+                    case event::limitSwitchYMinClosed:
                         break;
-                    case Event::limitSwitchZMinClosed:
+                    case event::limitSwitchZMinClosed:
                         break;
-                    case Event::limitSwitchXMaxClosed:
+                    case event::limitSwitchXMaxClosed:
                         break;
-                    case Event::limitSwitchYMaxClosed:
+                    case event::limitSwitchYMaxClosed:
                         break;
-                    case Event::limitSwitchZMaxClosed:
+                    case event::limitSwitchZMaxClosed:
                         break;
-                    case Event::limitSwitchXMinOpened:
+                    case event::limitSwitchXMinOpened:
                         break;
-                    case Event::limitSwitchYMinOpened:
+                    case event::limitSwitchYMinOpened:
                         break;
-                    case Event::limitSwitchZMinOpened:
+                    case event::limitSwitchZMinOpened:
                         break;
-                    case Event::limitSwitchXMaxOpened:
+                    case event::limitSwitchXMaxOpened:
                         break;
-                    case Event::limitSwitchYMaxOpened:
+                    case event::limitSwitchYMaxOpened:
                         break;
-                    case Event::limitSwitchZMaxOpened:
+                    case event::limitSwitchZMaxOpened:
                         break;
-                    case Event::motionCompleted:
+                    case event::motionCompleted:
                         break;
-                    }
+                }
                 break;
-            case MainState::Pausing:
+            case mainState::Pausing:
                 break;
-            case MainState::Loading:
+            case mainState::Loading:
                 break;
-            case MainState::Error:
+            case mainState::Error:
                 break;
             default:
                 break;
-            }
         }
     }
-
+}

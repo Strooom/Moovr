@@ -14,23 +14,31 @@
 
 #endif
 
-#include "eventBuffer.h"             // needed for definition of eventBuffer : Motion can signal events back to the mainController
-#include "gcodeparseresult.h"        // motionControl received a gCodeParseResult parameter in append()
-#include "machineproperties.h"
-#include "motionbuffer.h"        // motionControl contains a motionBuffer
-#include "step.h"                // needed for definition of step, this is an output calculated by Motion
-#include "stepbuffer.h"
-#include "stepsignals.h"
-
-//#include "general.h"                  // needed for definition of eg. axis
-//#include "machineproperties.h"        // needed for definition of machineProperties : this is passed to Motion so it can include machine limitations eg. during speed calculations
+#include "eventbuffer.h"              // needed for definition of eventBuffer : Motion can signal events back to the mainController
+#include "gcodeparseresult.h"         // motionControl received a gCodeParseResult parameter in append()
+#include "machineproperties.h"        //
+#include "motionbuffer.h"             // motionControl contains a motionBuffer
+#include "step.h"                     // needed for definition of step, this is an output calculated by Motion
+#include "stepbuffer.h"               //
+#include "stepsignals.h"              //
 
 class motionCtrl {
   public:
     motionCtrl(eventBuffer &theEventBuffer, machineProperties &theMachineProperties, overrides &theOverrides, stepBuffer &theStepBuffer);
-    void run();                                            //
-    void optimize();                                       //
-    void append(gCodeParserResult &theParseResult);        //
+    void run();                                                                        //
+    void optimize();                                                                   //
+    void optimizePair(int32_t junctionIndex);                                          //
+    void append(gCodeParserResult &theParseResult);                                    //
+
+    float vJunction(uint32_t left, uint32_t right) const;                              //
+    motionStrategy strategy() const;                                                   //
+    float sampleTime() const;                                                          //
+    step nextStep();                                                                   //
+    bool needStepForward(uint8_t axis);                                                //
+    bool needStepBackward(uint8_t axis);                                               //
+    void calcNextPositionInMm(uint8_t axis, float sNow, motion *currentMotion);        //
+    bool isTimedOut();                                                                 //
+    step output(uint32_t timeBefore);                                                  //
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
@@ -42,20 +50,11 @@ class motionCtrl {
     stepBuffer &theStepBuffer;
     stepSignals theStepSignals;
 
-    static constexpr uint32_t maxTicksSinceLastOutput = minStepBufferTotalTimeTicks / minBufferLevel;
+    motionState theState = motionState::ready;
 
-    step getNextStep();
-    bool needStepForward(uint8_t axis);
-    bool needStepBackward(uint8_t axis);
-    void calcNextPositionInMm(uint8_t axis, float sNow, motion *currentMotion);
-    bool isTimedOut();
-    step output(uint32_t timeBefore);
-
-    // StateMachine
-    MotionState theMotionState = MotionState::ready;
-    MotionStrategy theStrategy = MotionStrategy::maximizeSpeed;        // should the machine maximize or minimze speed ?
-
-    uint32_t timeInMotionTicks{0};                                              // time elapsed in this motion, in discrete, integer timer ticks
+    bool isOptimal{false};
+    uint32_t sampleIndex{0};                                                    // zero based number of the sample
+    float sampleZeroOffset{0.0F};                                               // time [s] between start of motion and first (index == 0) sample
     uint32_t ticksSinceLastOutput{0};                                           //
     int32_t currentPositionInSteps[(uint8_t)axis::nmbrAxis] = {0, 0, 0};        // CAUTION, signed int!, could go negative during homing etc..
     float nextPositionInMm[(uint8_t)axis::nmbrAxis]         = {0, 0, 0};        // TODO : how to deal with intialization if number of axis is different

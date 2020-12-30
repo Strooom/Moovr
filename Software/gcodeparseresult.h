@@ -29,7 +29,7 @@ class gCodeParserResult
             } theParseResultType;
         struct Motion
             {
-            MotionType theMotionType;
+            motionType theMotionType;
             struct Trajectory
                 {
                 double length;										// length of the motion [mm] - either as linear or as helical

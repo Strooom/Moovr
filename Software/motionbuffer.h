@@ -23,12 +23,14 @@ class motionBuffer {
     bool isFull() const;                              //
     uint32_t push();                                  // pushes 1 item on the buffer and returns an index to it..
     void pop();                                       // pops the oldest item on from the buffer and adjusts indexes and level
-    motion* getCurrent();
+    motion* current();                             //
+    uint32_t level();                        //
+    uint32_t readIndex{0};             // First-to-be-executed or currently-being-executed motion
+    void export2csv(const char* outputFilename);
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
-    uint32_t readIndex{0};             // First-to-be-executed or currently-being-executed motion
     uint32_t bufferLevel{0};           // number of motions in the buffer
     uint32_t bufferLevelMax{0};        // keeps track of maximum bufferlevel, as a help to dimension it
 };

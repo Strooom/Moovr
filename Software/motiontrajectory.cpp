@@ -8,12 +8,12 @@
 #include "motiontrajectory.h"
 #include <stdio.h>
 
-uint32_t motionTrajectory::toString(char* output, const MotionType theType) const {
+uint32_t motionTrajectory::toString(char* output, const motionType type) const {
     uint32_t outputLenght{0};
 
-    switch (theType) {
-        case MotionType::Traverse:
-        case MotionType::FeedLinear:
+    switch (type) {
+        case motionType::Traverse:
+        case motionType::FeedLinear:
             outputLenght += sprintf(output + outputLenght, " Linear Trajectory : \n");
             outputLenght += sprintf(output + outputLenght, "  startPosition = ");
             for (uint8_t x = 0; x < nmbrAxis; x++) {
@@ -29,8 +29,8 @@ uint32_t motionTrajectory::toString(char* output, const MotionType theType) cons
             outputLenght += sprintf(output + outputLenght, "  length =  %f  mm\n", length);
 
             break;
-        case MotionType::FeedHelicalCW:
-        case MotionType::FeedHelicalCCW:
+        case motionType::FeedHelicalCW:
+        case motionType::FeedHelicalCCW:
             outputLenght += sprintf(output + outputLenght, " Helical Trajectory : \n");
             outputLenght += sprintf(output + outputLenght, "  startPosition = ");
             for (uint8_t x = 0; x < nmbrAxis; x++) {
@@ -42,8 +42,8 @@ uint32_t motionTrajectory::toString(char* output, const MotionType theType) cons
             outputLenght += sprintf(output + outputLenght, "  radius = %f mm, startAngle =  %f rad, endAngle =  %f rad\n", radius, startAngle, startAngle + deltaAngle);
             outputLenght += sprintf(output + outputLenght, "  length =  %f  mm\n", length);
             break;
-        case MotionType::PauseAndResume:
-        case MotionType::Pause:
+        case motionType::PauseAndResume:
+        case motionType::Pause:
             outputLenght += sprintf(output + outputLenght, " Empty Trajectory : \n");
             break;
         default:

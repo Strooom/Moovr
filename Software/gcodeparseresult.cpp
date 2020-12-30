@@ -16,35 +16,35 @@ void gCodeParserResult::print(char* destBuffer)
 
     //        switch (motion.theMotionType)
     //            {
-    //            case MotionType::Traverse:
+    //            case motionType::Traverse:
     //                strcat(destBuffer, " Traverse\n");
     //                break;
-    //            case MotionType::FeedLinear:
+    //            case motionType::FeedLinear:
     //                strcat(destBuffer, " FeedLinear\n");
     //                break;
-    //            case MotionType::FeedHelicalCW:
+    //            case motionType::FeedHelicalCW:
     //                strcat(destBuffer, " FeedHelicalCW\n");
     //                break;
-    //            case MotionType::FeedHelicalCCW:
+    //            case motionType::FeedHelicalCCW:
     //                strcat(destBuffer, " FeedHelicalCCW\n");
     //                break;
-    //            case MotionType::PauseAndResume:
+    //            case motionType::PauseAndResume:
     //                strcat(destBuffer, " PauseAndResume\n");
     //                break;
-    //            case MotionType::Pause:
+    //            case motionType::Pause:
     //                strcat(destBuffer, " Pause\n");
     //                break;
     //            default:
-    //                strcat(destBuffer, "*** ERROR : unknown MotionType ***\n");
+    //                strcat(destBuffer, "*** ERROR : unknown motionType ***\n");
     //                break;
     //            }
 
     //        switch (motion.theMotionType)
     //            {
-    //            case MotionType::Traverse:
-    //            case MotionType::FeedLinear:
-    //            case MotionType::FeedHelicalCW:
-    //            case MotionType::FeedHelicalCCW:
+    //            case motionType::Traverse:
+    //            case motionType::FeedLinear:
+    //            case motionType::FeedHelicalCW:
+    //            case motionType::FeedHelicalCCW:
     //                strcat(destBuffer, "  length = ");
     //                strcat(destBuffer, motion.trajectory.length);
     //                strcat(destBuffer, " mm\n");
@@ -71,8 +71,8 @@ void gCodeParserResult::print(char* destBuffer)
 
     //        switch (motion.theMotionType)
     //            {
-    //            case MotionType::FeedHelicalCW:
-    //            case MotionType::FeedHelicalCCW:
+    //            case motionType::FeedHelicalCW:
+    //            case motionType::FeedHelicalCCW:
     //                strcat(destBuffer, "  radius = ");
     //                strcat(destBuffer, motion.trajectory.radius);
     //                strcat(destBuffer, " mm\n");

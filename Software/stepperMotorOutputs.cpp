@@ -5,9 +5,13 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#include "stepperMotorOutputs.h"
+#ifndef WIN32
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 #include "logging.h"
+#include "stepperMotorOutputs.h"
 
 extern uLog theLog;
 
@@ -45,6 +49,12 @@ stepperMotorOutputs::stepperMotorOutputs() {
     PORTB_PCR19 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
 #endif
     theLog.output(loggingLevel::Debug, "stepperMotorOutputs initialized");
+}
+
+void stepperMotorOutputs::write(uint32_t value) {
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    GPIOC_PDOR = value;
+#endif
 }
 
 void stepperMotorOutputs::enableMotors123(bool onOff) {

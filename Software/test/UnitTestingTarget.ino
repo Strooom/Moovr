@@ -92,6 +92,8 @@ void uart0_status_isr(void) {                               //
     //theMainController.serialInterrupt();                    // handle Serial event interrupts
 }
 
+// TODO : check how we can give this interrupt higher priority than all others.. to make timing more accurate..
+
 void pit1_isr() {
     step theStep = theStepBuffer.read();          //
     PIT_LDVAL1   = theStep.timeBefore - 1;        // TODO : call member on the HW abstraction for this timer ?

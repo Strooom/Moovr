@@ -7,11 +7,16 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
+#ifndef WIN32
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 
 class stepperMotorOutputs {
   public:
     stepperMotorOutputs();
+    void write(uint32_t value);
     void enableMotors123(bool onOff);
     void enableMotors456(bool onOff);
 };

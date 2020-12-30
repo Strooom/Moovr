@@ -1,6 +1,10 @@
 #pragma once
 
+#ifndef WIN32
 #include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 
 // This class provides hardware abstraction for the hardware timers needed in Moovr :
 // 1. one timer is needed to sample all input buttons and switches every xx ms

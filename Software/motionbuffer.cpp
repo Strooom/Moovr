@@ -6,6 +6,10 @@
 // #############################################################################
 
 #include "motionbuffer.h"
+#ifdef WIN32
+#include <fstream>
+#include <iostream>
+#endif
 
 bool motionBuffer::isEmpty() const {
     return (0 == bufferLevel);
@@ -31,6 +35,24 @@ void motionBuffer::pop() {
     --bufferLevel;
 }
 
-motion* motionBuffer::getCurrent() {
+motion* motionBuffer::current() {
     return &motionBuffer[readIndex];
+}
+
+uint32_t motionBuffer::level() {
+    return bufferLevel;
+}
+
+void motionBuffer::export2csv(const char* outputFilename) {
+#ifdef WIN32
+
+    std::ofstream outputFile(outputFilename);
+    for (uint32_t i = 0; i < bufferLevel; i++) {
+        for (uint32_t j = 0; j < 100; j++) {
+            float t = (motionBuffer[(readIndex + i) % bufferLength].speedProfile.duration * static_cast<float>(j)) / static_cast<float>(100);
+            outputFile << motionBuffer[(readIndex + i) % bufferLength].v(t) << std::endl;
+        }
+    }
+    outputFile.close();
+#endif
 }

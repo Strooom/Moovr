@@ -1,6 +1,10 @@
 #pragma once
 
-#include "Arduino.h"
+#ifndef WIN32
+#include <Arduino.h>
+#else
+#include <stdint.h>
+#endif
 
 enum class peripheralOutputType : uint8_t {
     digital,
@@ -10,7 +14,7 @@ enum class peripheralOutputType : uint8_t {
 
 class peripheralOutput {
   public:
-    explicit peripheralOutput(peripheralOutputType theType);
+    explicit peripheralOutput(peripheralOutputType type);
     void set(bool onOff);
     void set(uint8_t value);
 

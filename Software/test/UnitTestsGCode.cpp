@@ -57,7 +57,7 @@ TEST_CLASS (C02_gCodeParser) {
         aParser.getBlock("G1 X100 F1200");
         aParser.parseBlock(theResult);
         Assert::IsTrue(gCodeParserResult::ParseResultType::OkContextUpdateAndMotion == theResult.theParseResultType);
-        Assert::IsTrue(MotionType::FeedLinear == theResult.motion.theMotionType);
+        Assert::IsTrue(motionType::FeedLinear == theResult.motion.theMotionType);
     }
 
     TEST_METHOD (T04_gCodeParseResultTraverse) {
@@ -67,7 +67,7 @@ TEST_CLASS (C02_gCodeParser) {
         aParser.initialize();
         aParser.getBlock("G0 X1000");
         aParser.parseBlock(theResult);
-        Assert::IsTrue(MotionType::Traverse == theResult.motion.theMotionType, L"001");
+        Assert::IsTrue(motionType::Traverse == theResult.motion.theMotionType, L"001");
         Assert::IsTrue(1000.0 == theResult.motion.trajectory.length, L"002");
         Assert::IsTrue(0.0 == theResult.motion.trajectory.startPosition[(uint8_t)axis::X], L"003");
         Assert::IsTrue(1000.0 == theResult.motion.trajectory.delta[(uint8_t)axis::X], L"004");
@@ -81,7 +81,7 @@ TEST_CLASS (C02_gCodeParser) {
         aParser.initialize();
         aParser.getBlock("G1 X100 F1200");
         aParser.parseBlock(theResult);
-        Assert::IsTrue(MotionType::FeedLinear == theResult.motion.theMotionType);
+        Assert::IsTrue(motionType::FeedLinear == theResult.motion.theMotionType);
         Assert::IsTrue(100.0 == theResult.motion.trajectory.length);
         Assert::IsTrue(0.0 == theResult.motion.trajectory.startPosition[(uint8_t)axis::X]);
         Assert::IsTrue(100.0 == theResult.motion.trajectory.delta[(uint8_t)axis::X]);

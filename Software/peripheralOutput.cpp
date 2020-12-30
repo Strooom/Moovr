@@ -1,6 +1,6 @@
 #include "peripheralOutput.h"
 
-peripheralOutput::peripheralOutput(peripheralOutputType theType) : type(theType) {
+peripheralOutput::peripheralOutput(peripheralOutputType type) : type(type) {
 }
 
 void peripheralOutput::set(bool onOff) {

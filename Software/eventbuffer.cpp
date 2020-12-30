@@ -10,13 +10,15 @@
 
 extern uLog theLog;
 
+// TODO : check if this threadprotection is needed... Where do we post events from other threads ?
+
 void eventBuffer::pushEvent(event theEvent) {
     if (event::none != theEvent) {
-#ifndef WIN32
-        cli();        // no Interrupts : this function can be called from main thread and fron interrupt handlers
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+        noInterrupts();
 #endif
-        if (bufferLevel < eventBufferLength) {
-            eventBuffer[(bufferReadIndex + bufferLevel) % eventBufferLength] = theEvent;        // write new event at next writeIndex = readIndex + Level
+        if (bufferLevel < bufferLength) {
+            theEventBuffer[(bufferReadIndex + bufferLevel) % bufferLength] = theEvent;        // write new event at next writeIndex = readIndex + Level
             bufferLevel++;                                                                      // adjust level to one item more
             if (bufferLevel > bufferLevelMax) {
                 bufferLevelMax = bufferLevel;
@@ -24,37 +26,37 @@ void eventBuffer::pushEvent(event theEvent) {
         } else {
             theLog.output(loggingLevel::Error, "Eventbuffer Overflow");
         }
-#ifndef WIN32
-        sei();        // re-enable interrupts
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+        interrupts();
 #endif
     }
 }
 
 event eventBuffer::popEvent() {
     event theEvent = event::none;
-#ifndef WIN32
-    cli();        // no Interrupts : this function can be called from main thread and fron interrupt handlers
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    noInterrupts();
 #endif
     if (bufferLevel > 0) {
-        theEvent        = eventBuffer[bufferReadIndex];                     // read the oldest event
-        bufferReadIndex = (bufferReadIndex + 1) % eventBufferLength;        // advance readIndex to next position
+        theEvent        = theEventBuffer[bufferReadIndex];                     // read the oldest event
+        bufferReadIndex = (bufferReadIndex + 1) % bufferLength;        // advance readIndex to next position
         bufferLevel--;                                                      // adjust level to one item less
     } else {
         theLog.output(loggingLevel::Error, "Eventbuffer Underflow");
     }
-#ifndef WIN32
-    sei();        // re-enable interrupts
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    interrupts();
 #endif
     return theEvent;
 }
 
 bool eventBuffer::hasEvents() {
-#ifndef WIN32
-    cli();        // critical section
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    noInterrupts();
 #endif
     bool hasEvents = (bufferLevel > 0);
-#ifndef WIN32
-    sei();        // end critical section
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    interrupts();
 #endif
     return hasEvents;
 }

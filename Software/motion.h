@@ -13,14 +13,17 @@
 
 class motion {
   public:
-    void set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const MotionStrategy &theStrategy, const overrides &theOverrides);        // sets the properties of an Item based upon inputs from gcodeParseResult and machineProperties
+    void set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const motionStrategy &theStrategy, const overrides &theOverrides);        // sets the properties of an Item based upon inputs from gcodeParseResult and machineProperties
 
-    void limit(const machineProperties &theMachineProperties);                       // calculate vMax, aMax and dMax from trajectory and machine limits
-    void optimize(MotionStrategy theStrategy, const overrides &theOverrides);        // optimizes this motion
+    void limit(const machineProperties &theMachineProperties);                                                                               // calculate vMax, aMax and dMax from trajectory and machine limits
+    void optimizeCurrent(const motionStrategy theStrategy, const overrides &theOverrides, float tNow);                                       // optimizes this motion
+    void optimizeOld(const motionStrategy theStrategy, const overrides &theOverrides, const machineProperties &theMachineProperties);        // optimizes this motion
+    void optimize(const motionStrategy theStrategy, const overrides &theOverrides);                                                          // optimizes this motion
 
-    void adjustRemaining();
-    float calcTriangular(const MotionStrategy theStrategy);
-    float calcOtherV(const MotionStrategy theStrategy, bool forward);
+    float vTri(motionStrategy strategy) const;
+    float vTri(float vStart, float vEnd, float aMax, float dMax, float length, motionStrategy strategy) const;
+    float vOut(motionStrategy strategy, motionCalculateDirection direction) const;
+    float vOut(float vIn, float aMax, float dMax, float length, motionStrategy strategy, motionCalculateDirection direction) const;
 
     float s(float t) const;        // calculates s : distance travelled along the trajectory on time t
     float v(float t) const;        // calculates v : speed along the trajectory on time t
@@ -28,15 +31,16 @@ class motion {
 
     bool isMoving(uint8_t axis) const;
 
-    uint32_t toString(char *output) const;                                                                                                                 // prints a diagram to Serial for evaluating and debugging
-    uint32_t motion::plot(char *output, char type, float xMin, float xMax, uint32_t nmbrXSteps, float yMin, float yMax, uint32_t nmbrYSteps) const;        // plots a chart to Serial for evaluating and debugging. Type is 'a', 'v' or 's'
+    uint32_t toString(char *output) const;        // prints a diagram to Serial for evaluating and debugging
+    void export2csv(const char *outputFilename, uint32_t nmbrDataPoints);
+    void setForTest(uint32_t type);
 
     //float vMid2(overrides &theOverrides);				// calculates maximum vMid from vFeed, vLimit and feed overrides
     //void fromParts(const SpeedProfileAccDec &left, const SpeedProfileAccDec &right, float d4, float len4);	// load the motion properties, from two MotionParts
 
     //private:
-    MotionType theType;
-    motionTrajectory theTrajectory;            // contains all properties for defining the trajectory in space
-    motionSpeedProfile theSpeedProfile;        // contains all properties for defining the speed over the trajectory in time
-    motionPeripherals thePeripherals;          // contains all settings for peripherals over this part of the trajectory
+    motionType type{motionType::None};
+    motionTrajectory trajectory;            // contains all properties for defining the trajectory in space
+    motionSpeedProfile speedProfile;        // contains all properties for defining the speed over the trajectory in time
+    motionPeripherals peripherals;          // contains all settings for peripherals over this part of the trajectory
 };
