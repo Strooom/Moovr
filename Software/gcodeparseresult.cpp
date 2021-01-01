@@ -1,5 +1,8 @@
 #include "gcodeparseresult.h"
 
+gCodeParserResult::gCodeParserResult() : theParseResultType(ParseResultType::EmptyBlock), motion(), error(Error::None) {
+}
+
 void gCodeParserResult::print(char* destBuffer)
     {
     //strcat(destBuffer, "gCodeParserResult:\n");

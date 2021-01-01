@@ -12,6 +12,8 @@ extern uLog theLog;
 
 // TODO : check if this threadprotection is needed... Where do we post events from other threads ?
 
+eventBuffer::eventBuffer() {}
+
 void eventBuffer::pushEvent(event theEvent) {
     if (event::none != theEvent) {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
@@ -19,7 +21,7 @@ void eventBuffer::pushEvent(event theEvent) {
 #endif
         if (bufferLevel < bufferLength) {
             theEventBuffer[(bufferReadIndex + bufferLevel) % bufferLength] = theEvent;        // write new event at next writeIndex = readIndex + Level
-            bufferLevel++;                                                                      // adjust level to one item more
+            bufferLevel++;                                                                    // adjust level to one item more
             if (bufferLevel > bufferLevelMax) {
                 bufferLevelMax = bufferLevel;
             }
@@ -37,10 +39,10 @@ event eventBuffer::popEvent() {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     noInterrupts();
 #endif
-    if (bufferLevel > 0) {
-        theEvent        = theEventBuffer[bufferReadIndex];                     // read the oldest event
-        bufferReadIndex = (bufferReadIndex + 1) % bufferLength;        // advance readIndex to next position
-        bufferLevel--;                                                      // adjust level to one item less
+    if (bufferLevel > 0U) {
+        theEvent        = theEventBuffer[bufferReadIndex];              // read the oldest event
+        bufferReadIndex = (bufferReadIndex + 1U) % bufferLength;        // advance readIndex to next position
+        bufferLevel--;                                                  // adjust level to one item less
     } else {
         theLog.output(loggingLevel::Error, "Eventbuffer Underflow");
     }
@@ -54,7 +56,7 @@ bool eventBuffer::hasEvents() {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     noInterrupts();
 #endif
-    bool hasEvents = (bufferLevel > 0);
+    bool hasEvents = (bufferLevel > 0U);
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     interrupts();
 #endif
@@ -63,7 +65,7 @@ bool eventBuffer::hasEvents() {
 
 uint32_t eventBuffer::getBufferLevelMax() {
     // TODO : check if we need to disable/re-enable interrupts here
-    uint32_t tmpLevel = bufferLevelMax;
-    bufferLevelMax    = 0;        // reset level when after reading it
+    uint32_t tmpLevel = bufferLevelMax;        //
+    bufferLevelMax    = 0U;                    // reset level when after reading it
     return tmpLevel;
 }

@@ -37,12 +37,12 @@ enum class event : uint8_t {
     motionCompleted,
     allMotionsCompleted,
 
-
     motionBufferOverflow
 };
 
 class eventBuffer {
   public:
+    eventBuffer();
     void pushEvent(event);               // push an event onto the eventBuffer
     event popEvent();                    // pop an event from the eventbuffer
     bool hasEvents();                    // check if there are any events
@@ -51,8 +51,8 @@ class eventBuffer {
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
-    static constexpr uint32_t bufferLength{32};
-    event theEventBuffer[bufferLength];
+    static constexpr uint32_t bufferLength{32U};
+    event theEventBuffer[bufferLength]{};
     uint32_t bufferReadIndex{0};
     uint32_t bufferLevel{0};
     uint32_t bufferLevelMax{0};

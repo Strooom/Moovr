@@ -73,7 +73,7 @@ void SpeedProfileAccDec::calculate(motionSpeedProfileOrder theProfile) {
                     d1d3 = sqrtf((vEnd - vStart) / jMax);        // No, so adjust d1d3...
                     aMax = jMax * d1d3;
                     d2   = 0.0F;        // and no need for phase 2
-                    dV2  = 0.0F;        // TODO : why is this needed ? dV2 is a local var not referenced further below ??
+                    // dV2  = 0.0F;        // TODO : why is this needed ? dV2 is a local var not referenced further below ??
                 } else {
                     dV2 = (vEnd - vStart) - (jMax * d1d3 * d1d3);        // Yes, phase 1 and 3 are ok, but we need to add a phase 2
                     d2  = dV2 / aMax;
@@ -89,7 +89,7 @@ void SpeedProfileAccDec::calculate(motionSpeedProfileOrder theProfile) {
                     d1d3 = sqrtf((vStart - vEnd) / jMax);        // No, so adjust d1d3...
                     dMax = -jMax * d1d3;
                     d2   = 0.0F;        // and no need for phase 2
-                    dV2  = 0.0F;        // TODO : why is this needed ? dV2 is a local var not referenced further below ??
+                    // dV2  = 0.0F;        // TODO : why is this needed ? dV2 is a local var not referenced further below ??
                 } else {
                     dV2 = (vEnd - vStart) + (jMax * d1d3 * d1d3);        // Yes, phase 1 and 3 are ok, but we need to add a phase 2
                     d2  = dV2 / dMax;

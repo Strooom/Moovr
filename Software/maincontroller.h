@@ -12,11 +12,11 @@
 #else
 #include <stdint.h>
 #endif
-
-#include "eventbuffer.h"          // mainController contains an eventBuffer
-#include "gcode.h"                // mainController contains a GCodeParser
-#include "hostinterface.h"        // mainController contains a hostInterface
-#include "motionctrl.h"           // mainController contains a motionController
+#include "eventbuffer.h"              // mainController contains a reference to an eventBuffer
+#include "gcode.h"                    // mainController contains a GCodeParser
+#include "hostinterface.h"            // mainController contains a reference to a hostInterface
+#include "machineproperties.h"        // mainController contains a reference to machineProperties
+#include "motionctrl.h"               // mainController contains a motionController
 
 #ifdef WIN32
 const char ESC = '?';        /// ASCII Escape, all non GCode commands need ESC as first character on the line
@@ -50,23 +50,20 @@ enum class mainState : uint8_t {
 };
 
 enum class homingState : uint8_t {
-    Lost,        // machine's home position is unknown : inject GCODE to search for closing the limitswitch
-
+    Lost,            // machine's home position is unknown : inject GCODE to search for closing the limitswitch
     ClosingZ,        // machine is busy searching for Z limitswitch to close, wait for close event
     ClosedZ,         // Z switch is closed -> stopping the motion by changing optimization strategy, wait for stop event
     OpeningZ,        // Z axis is stopped, inject GCODE to reopen limit switch, wait for open event
     OpenedZ,         // Z switch is opened -> stop the motion, wait for stop event
-    // Z axis is stopped -> Zero is found, proceed with next axis..
-    CLOSING_Y,
-    CLOSED_Y,
-    OPENING_Y,
-    OPENED_Y,
-    CLOSING_X,
-    CLOSED_X,
-    OPENING_X,
-    OPENED_X,
-
-    FOUND        //< machine has found it's X position -> fully homed.
+    ClosingY,        // Z axis is stopped -> Zero is found, proceed with next axis..
+    ClosedY,         //
+    OpeningY,        //
+    OpenedY,         //
+    ClosingX,        //
+    ClosedX,         //
+    OpeningX,        //
+    OpenedX,         //
+    Found            //  machine has found it's X position -> fully homed.
 };
 
 enum class probingState : uint8_t {
@@ -77,39 +74,33 @@ enum class probingState : uint8_t {
 
 class mainController {
   public:
-    mainController(eventBuffer &theEventBuffer, HostInterfaceUart &theHostInterface, stepBuffer &theStepBuffer);
-    void run();              // read all inputs, process, generate outputs and statechange in an endless loop
+    mainController(machineProperties &theMachineProperties, eventBuffer &theEventBuffer, HostInterfaceUart &theHostInterface, stepBuffer &theStepBuffer);
+    void run();        // read all inputs, process, generate outputs and statechange in an endless loop
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
+    machineProperties &theMachineProperties;
     eventBuffer &theEventBuffer;
     HostInterfaceUart &theHostInterface;
     stepBuffer &theStepBuffer;
 
     // SubComponents objects
-    machineProperties theMachineProperties;
     overrides theOverrides;
-    gCode aParser;
+    gCode theParser;
     gCodeParserResult theResult;
     motionCtrl theMotionCtrl = motionCtrl(theEventBuffer, theMachineProperties, theOverrides, theStepBuffer);
 
     // StateMachines
-    mainState mainState       = mainState::Ready;          // instance to keep track of the main state of the FSM
-    homingState homingState   = homingState::Lost;         // instance keeping track of the homing sequence
-    probingState probingState = probingState::Lost;        // instance keeping track of the probing sequence
+    mainState theMainState       = mainState::Ready;          // instance to keep track of the main state of the FSM
+    homingState theHomingState   = homingState::Lost;         // instance keeping track of the homing sequence
+    probingState theProbingState = probingState::Lost;        // instance keeping track of the probing sequence
 
     // IO Objects
-    char commandLine[512];        // string to store message ready at host computer receiver interface
-    char responseMsg[512];        // string to build message to report back to host computer
-
+    uint8_t commandLine[512]{};        // string to store message ready at host computer receiver interface
+    uint8_t responseMsg[512]{};        // string to build message to report back to host computer
 
     // Methods
     void handleEvents();          // handles the events such as switch close/open and end-of-motion
     void handleMessages();        // handles messages from hostInterface
 };
-
-//motionCtrl::motionCtrl(eventBuffer &theEventBuffer, machineProperties &theMachineProperties, overrides &theOverrides, stepBuffer &theStepBuffer) : theEventBuffer(theEventBuffer), theMachineProperties(theMachineProperties), theOverrides(theOverrides), theStepBuffer(theStepBuffer) {
-//    }
-//
-//motionCtrl(eventBuffer &theEventBuffer, machineProperties &theMachineProperties, overrides &theOverrides, stepBuffer &theStepBuffer);

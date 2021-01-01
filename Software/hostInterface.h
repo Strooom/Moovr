@@ -34,12 +34,12 @@ class HostInterface
 		static constexpr uint32_t txBufferLength = 256;				// what is the length of the largest msg you want to report back..
 
     protected:
-        uint8_t rxBuffer[rxBufferLength];							// Receive buffer
+        uint8_t rxBuffer[rxBufferLength]{};                         // Receive buffer
         uint32_t rxBufferHead = 0;									// Position of oldest byte received
         volatile uint32_t rxBufferLevel = 0;						// Number of bytes in the receive buffer
         volatile uint32_t rxBufferLines = 0;						// Number of 'lines' in the receive buffer - a line is terminted with a linefeed = \n = 0x0A
 
-        uint8_t txBuffer[txBufferLength];							// Transmit buffer
+        uint8_t txBuffer[txBufferLength]{};                         // Transmit buffer
         uint32_t txBufferHead = 0;									// Position of next byte to be transmitted
         volatile uint32_t txBufferLevel = 0;						// Number of bytes in the transmit buffer
     };
@@ -57,6 +57,6 @@ class HostInterfaceUart : public HostInterface
         void sendMessage(const uint8_t *);
         void getMessage(uint8_t *);
 
-        void rxReady();
-        void txReady();
+        void rxReady() override;
+        void txReady() override;
     };

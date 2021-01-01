@@ -27,7 +27,7 @@ class gCode {
     void saveState();           // Save the state of the Parser, so we can do some interim stuff and afterwards restore the state back to what is was..
     void restoreState();        // Restore the state from previous saveState
 
-    void getBlock(const char *);                               // Read a line of input and process as gCode block - This is the input of this module.. it receives a c-style zero terminated string
+    void getBlock(const uint8_t *commandLine);                 // Read a line of input and process as gCode block - This is the input of this module.. it receives a c-style zero terminated string
     void parseBlock(gCodeParserResult &theParseResult);        // Process all words in block, update gCode context and spawn a motion if the block contains one..
     void calcMotion(gCodeParserResult &theParseResult);        // calculate all the details for a motion resulting from a G0, G1, G2, G3, G4 block..
 
@@ -37,7 +37,7 @@ class gCode {
     static constexpr double pi{3.141592653589793238463};        // constant for calculations in radians
     static constexpr double inches2mm{25.4};                    // 25.4 mm/inch
 
-    char gCodeLine[256];
+    char gCodeLine[256]{};
 
     gCodeBlock theBlock;
     gCodeState theState;        // gCode parser context : current position, value of all modal groups, etc.

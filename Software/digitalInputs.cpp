@@ -45,7 +45,7 @@ inputs::inputs() {
 
 bool inputs::get(uint32_t index) {
     ready = false;
-    if (index > 31) {
+    if (index > 31U) {
         return false;
     } else {
         return (static_cast<bool>(theInputs & (0x1 << index)));
@@ -53,13 +53,13 @@ bool inputs::get(uint32_t index) {
 }
 
 void inputs::sample() {
-#if defined(__MK64FX512__) || defined(__MK66FX1M0__)          // Teensy 3.5 || Teensy 3.6
-    theInputs = (GPIOD_PDIR & 0x00'00'00'FF);                 // Bits 0..7 from portD
-    theInputs |= ((GPIOE_PDIR & 0x01'00'00'00) >> 15);        // Bit 24 from portE Note : I accidentaly swapped PE24 and PE25 on the PCB due to an error in a non official pinout excel.. :-(
-    theInputs |= ((GPIOE_PDIR & 0x02'00'00'00) >> 17);        // Bit 25 from portE
-    theInputs |= ((GPIOA_PDIR & 0x00'03'00'00) >> 6);         // Bits 16..17 from portA
-    theInputs = theInputs ^ inputMask;                        // takes care of inversions of certain inputs if needed
-    ready     = true;                                         // indicates we have new samples, ready to be debounced etc..
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)           // Teensy 3.5 || Teensy 3.6
+    theInputs = (GPIOD_PDIR & 0x00'00'00'FF);                  // Bits 0..7 from portD
+    theInputs |= ((GPIOE_PDIR & 0x01'00'00'00) >> 15U);        // Bit 24 from portE Note : I accidentaly swapped PE24 and PE25 on the PCB due to an error in a non official pinout excel.. :-(
+    theInputs |= ((GPIOE_PDIR & 0x02'00'00'00) >> 17U);        // Bit 25 from portE
+    theInputs |= ((GPIOA_PDIR & 0x00'03'00'00) >> 6U);         // Bits 16..17 from portA
+    theInputs = theInputs ^ inputMask;                         // takes care of inversions of certain inputs if needed
+    ready     = true;                                          // indicates we have new samples, ready to be debounced etc..
 #endif
 }
 
@@ -94,7 +94,7 @@ event debouncedInput::getEvent() {
             }
         }
     } else {
-        if (debounceCounter > 0) {
+        if (debounceCounter > 0U) {
             --debounceCounter;
         } else {
             currentState = false;

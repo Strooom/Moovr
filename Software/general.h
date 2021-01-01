@@ -55,9 +55,8 @@ enum class motionState : uint8_t {
 
 enum class motionStrategy : uint8_t {
     minimizeSpeed,
-    maximizeSpeed,
-    nmbrStrategies
-};        // Strategy for optimizing the motion
+    maximizeSpeed
+};
 
 enum class motionSpeedProfileOrder : uint8_t {
     firstOrder,

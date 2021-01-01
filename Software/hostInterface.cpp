@@ -122,6 +122,8 @@ void HostInterfaceUart::rxReady() {
 
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     byteReceived = UART0_D;
+#else
+    byteReceived = 0x00;
 #endif
 
     if (rxBufferLevel < (rxBufferLength))        // if buffer NOT full...

@@ -9,42 +9,40 @@
 #include "eventbuffer.h"
 #include "hostinterface.h"
 
-mainController::mainController(eventBuffer &anEventBuffer, HostInterfaceUart &aHostInterface, stepBuffer &aStepBuffer) : theEventBuffer(anEventBuffer), theHostInterface(aHostInterface), theStepBuffer(aStepBuffer) {
+mainController::mainController(machineProperties &someMachineProperties, eventBuffer &anEventBuffer, HostInterfaceUart &aHostInterface, stepBuffer &aStepBuffer) : theMachineProperties(someMachineProperties), theEventBuffer(anEventBuffer), theHostInterface(aHostInterface), theStepBuffer(aStepBuffer) {
 }
 
 void mainController::run() {
     theMotionCtrl.run();
     theMotionCtrl.optimize();
-    handleEvents();              // handle all events such as buttons pressed, limit switches triggering, motions being completed..
-    handleMessages();            // handle all input from the external hostInterface
+    handleEvents();          // handle all events such as buttons pressed, limit switches triggering, motions being completed..
+    handleMessages();        // handle all input from the external hostInterface
 }
 
 void mainController::handleMessages() {
     if (theHostInterface.hasMessage()) {
         theHostInterface.getMessage(commandLine);
 
-        command command;
+        command aCommand;
 
         if (ESC == commandLine[0]) {
-            command = (command)commandLine[1];        // non gCode commands
+            aCommand = (command)commandLine[1];        // non gCode commands
         } else {
-            command = command::gCode;        // gCode
+            aCommand = command::gCode;        // gCode
         }
 
-        switch (mainState)        // first, depending on the state...
-        {
+        switch (theMainState) {
             case mainState::Ready:
-                switch (command)        // then , depending on the command...
-                {
+                switch (aCommand) {
                     case command::gCode:
                         theParser.getBlock(commandLine);        // Parse the line of gCode text into a gCodeBlock
                         while (theParser.getNmbrWords() > 0) {
-                            theParser.parseBlock(theParseResult);        // Parse the gCode Block into a gCode state update and/or a gCodeMotion
-                            switch (theParseResult.theParseResultType) {
+                            theParser.parseBlock(theResult);        // Parse the gCode Block into a gCode state update and/or a gCodeMotion
+                            switch (theResult.theParseResultType) {
                                 case gCodeParserResult::ParseResultType::OkContextUpdateOnly:
                                     break;
                                 case gCodeParserResult::ParseResultType::OkContextUpdateAndMotion:
-                                    theMotion.append(theParseResult);
+                                    theMotionCtrl.append(theResult);
                                     //mainState = mainState::RUNNING;
                                     break;
                                 case gCodeParserResult::ParseResultType::Error:
@@ -57,30 +55,21 @@ void mainController::handleMessages() {
 
                     case command::cancel:
                         break;
-
-                        // Cancel in Ready state -> reboot or restart ?
-                        break;
-
                     case command::uploadFile:
                         break;
-
                     case command::doHome:
                     case command::doProbe:
                     case command::jog:
                     case command::executeFile:
                     case command::override:
-                        //theHostInterface.sendMessage("invalid command\n");
-                        // unsupported commands in this state...
                         break;
-
                     default:
-                        // undefined command codes...
                         break;
                 }
                 break;
 
             case mainState::Loading:
-                switch (command)        // then , depending on the command...
+                switch (aCommand)        // then , depending on the command...
                 {
                     case command::gCode:
                     case command::doHome:
@@ -118,7 +107,7 @@ void mainController::handleEvents() {
     while (theEventBuffer.hasEvents()) {
         event theEvent = theEventBuffer.popEvent();
 
-        switch (mainState) {
+        switch (theMainState) {
             case mainState::Ready:
                 switch (theEvent) {
                     case event::emergencyStopButtonPressed:
@@ -154,6 +143,8 @@ void mainController::handleEvents() {
                     case event::limitSwitchZMaxOpened:
                         break;
                     case event::motionCompleted:
+                        break;
+                    default:
                         break;
                 }
             case mainState::Homing:
@@ -200,6 +191,8 @@ void mainController::handleEvents() {
                         break;
                     case event::allMotionsCompleted:
                         break;
+                    default:
+                        break;
                 }
                 break;
             case mainState::Jogging:
@@ -241,6 +234,8 @@ void mainController::handleEvents() {
                     case event::limitSwitchZMaxOpened:
                         break;
                     case event::motionCompleted:
+                        break;
+                    default:
                         break;
                 }
                 break;

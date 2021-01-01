@@ -28,9 +28,9 @@ class inputs {
     bool isReady() const;
 
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
-    static constexpr uint32_t nmbrInputs{12};                // how many inputs does this particular HW have
+    static constexpr uint32_t nmbrInputs{12U};              // how many inputs does this particular HW have
 #else
-    static constexpr uint32_t nmbrInputs{12};
+    static constexpr uint32_t nmbrInputs{12U};
 #endif
 
 #ifndef UnitTesting
@@ -60,8 +60,8 @@ class debouncedInput {
     const event onOpen;          // event to generate when this input opens
     const event onClose;         // event to generate when this input closes
 
-    static constexpr uint32_t debounceMaxCount = 4;            // sets the upper boundary for debounceCounter : 4 * 5ms = 20ms
-    uint32_t debounceCounter                   = 0;            // counts up (input high) or down (input low) until it hits boundaries 0 or maxCount
-    bool currentState                         = false;        // after debouncing : true : button is pressed, false : button is not pressed
-    bool previousState                        = false;        // remembers previous state, to detect flanks
+    static constexpr uint32_t debounceMaxCount = 4U;           // sets the upper boundary for debounceCounter : 4 * 5ms = 20ms
+    uint32_t debounceCounter                   = 0U;           // counts up (input high) or down (input low) until it hits boundaries 0 or maxCount
+    bool currentState                          = false;        // after debouncing : true : button is pressed, false : button is not pressed
+    bool previousState                         = false;        // remembers previous state, to detect flanks
 };

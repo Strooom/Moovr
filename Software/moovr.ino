@@ -6,20 +6,19 @@
 // #############################################################################
 
 #include <Arduino.h>
-#include "digitalInputs.h"
-#include "eventbuffer.h"
-#include "gcode.h"
-#include "hardwareTimers.h"
 #include "logging.h"
-#include "machineproperties.h"
-#include "maincontroller.h"
-#include "motionctrl.h"
-#include "stepbuffer.h"
-#include "stepperMotorOutputs.h"
 #include "version.h"
+#include "machineproperties.h"
+#include "hardwaretimers.h"
+#include "digitalinputs.h"
+#include "eventbuffer.h"
+#include "stepbuffer.h"
+#include "steppermotoroutputs.h"
+#include "maincontroller.h"
 
 uLog theLog;
 version theVersion(0, 0, 2);
+machineProperties theMachineProperties;
 hardwareTimers theHWtimers;
 
 inputs theHardwareInputs;
@@ -63,15 +62,16 @@ stepBuffer theStepBuffer;
 
 HostInterfaceUart theHostInterface;
 
-mainController theMainCtrl = mainController(theEventBuffer, theHostInterface, theStepBuffer);
+mainController theMainCtrl = mainController(theMachineProperties, theEventBuffer, theHostInterface, theStepBuffer);
 
 void setup() {
     Serial.begin(115200);
     Serial.flush();
     theLog.setOutputIsAvailable(true);
     theLog.flush();
-
-    //theHostInterface.sendMessage("Moovr V0.2 - https://github.com/Strooom/Moovr\n");
+    theLog.output(loggingLevel::Info, "Moovr V0.2 - https://github.com/Strooom/Moovr");
+    theHWtimers.enableInputTimer(true);
+    theHWtimers.enableOutputTimer(true);
 }
 
 void loop() {
