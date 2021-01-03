@@ -29,7 +29,7 @@ void motionCtrl::optimize() {
             isOptimal = true;
             break;
         case 1:
-            theMotionBuffer.current()->optimizeCurrent(strategy(), theOverrides, 0.0F);        // ToDo : add a real time here, so we properly optimize the current motion
+            theMotionBuffer.current()->optimizeCurrent(strategy(), theOverrides, (float)sampleIndex * minStepPulseWidth);        // ToDo : add a real time here, so we properly optimize the current motion
             break;
         default:
             switch (strategy()) {

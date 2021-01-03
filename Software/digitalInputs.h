@@ -48,7 +48,7 @@ class inputs {
 
 class debouncedInput {
   public:
-    debouncedInput(inputs &theInputs, uint32_t index, event onOpen, event onClose);        // constructor
+    debouncedInput(inputs &someInputs, uint32_t index, event onOpen, event onClose);        // constructor
     bool getState() const;                                                                 // get current state of the input
     event getEvent();                                                                      // get press or release event
 

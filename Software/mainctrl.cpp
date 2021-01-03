@@ -5,7 +5,7 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#include "maincontroller.h"
+#include "mainctrl.h"
 #include "eventbuffer.h"
 #include "hostinterface.h"
 

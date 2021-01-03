@@ -24,21 +24,22 @@
 
 class motionCtrl {
   public:
-    motionCtrl(eventBuffer &theEventBuffer, machineProperties &theMachineProperties, overrides &theOverrides, stepBuffer &theStepBuffer);
-    void run();                                                                        //
-    void optimize();                                                                   //
-    void optimizePair(int32_t junctionIndex);                                          //
-    void append(gCodeParserResult &theParseResult);                                    //
+    motionCtrl(eventBuffer &anEventBuffer, machineProperties &someMachineProperties, overrides &someOverrides, stepBuffer &aStepBuffer);
+    void run();                                          //
+    void optimize();                                     //
+    void optimizePair(int32_t junctionIndex);            //
+    void append(gCodeParserResult &aParseResult);        //
 
-    float vJunction(uint32_t left, uint32_t right) const;                              //
-    motionStrategy strategy() const;                                                   //
-    float sampleTime() const;                                                          //
-    step nextStep();                                                                   //
-    bool needStepForward(uint8_t axis);                                                //
-    bool needStepBackward(uint8_t axis);                                               //
-    void calcNextPositionInMm(uint8_t axis, float sNow, motion *currentMotion);        //
-    bool isTimedOut();                                                                 //
-    step output(uint32_t timeBefore);                                                  //
+    float vJunction(uint32_t left, uint32_t right) const;                                //
+    motionStrategy strategy() const;                                                     //
+    float sampleTime() const;                                                            //
+    step nextStep();                                                                     //
+    bool needStepForward(uint8_t anAxis);                                                //
+    bool needStepBackward(uint8_t anAxis);                                               //
+    void calcNextPositionInMm(uint8_t anAxis, float sNow, motion *currentMotion);        //
+    bool isTimedOut();                                                                   //
+    step output(uint32_t timeBefore);                                                    //
+    motionState theState = motionState::running;
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
@@ -49,8 +50,6 @@ class motionCtrl {
     overrides &theOverrides;                        // reference to override settings for feedrate and spindle-rpm
     stepBuffer &theStepBuffer;
     stepSignals theStepSignals;
-
-    motionState theState = motionState::ready;
 
     bool isOptimal{false};
     uint32_t sampleIndex{0};                                                    // zero based number of the sample

@@ -35,12 +35,11 @@ class motion {
     void export2csv(const char *outputFilename, uint32_t nmbrDataPoints);
     void setForTest(uint32_t type);
 
-    //float vMid2(overrides &theOverrides);				// calculates maximum vMid from vFeed, vLimit and feed overrides
-    //void fromParts(const SpeedProfileAccDec &left, const SpeedProfileAccDec &right, float d4, float len4);	// load the motion properties, from two MotionParts
-
-    //private:
-    motionType type{motionType::None};
-    motionTrajectory trajectory;            // contains all properties for defining the trajectory in space
-    motionSpeedProfile speedProfile;        // contains all properties for defining the speed over the trajectory in time
-    motionPeripherals peripherals;          // contains all settings for peripherals over this part of the trajectory
+#ifndef UnitTesting                           //
+  private:                                    // commented out during unit testing
+#endif                                        //
+    motionType type{motionType::None};        //
+    motionTrajectory trajectory;              // contains all properties for defining the trajectory in space
+    motionSpeedProfile speedProfile;          // contains all properties for defining the speed over the trajectory in time
+    motionPeripherals peripherals;            // contains all settings for peripherals over this part of the trajectory
 };

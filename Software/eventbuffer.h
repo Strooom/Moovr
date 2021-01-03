@@ -43,10 +43,10 @@ enum class event : uint8_t {
 class eventBuffer {
   public:
     eventBuffer();
-    void pushEvent(event);               // push an event onto the eventBuffer
-    event popEvent();                    // pop an event from the eventbuffer
-    bool hasEvents();                    // check if there are any events
-    uint32_t getBufferLevelMax();        // this allows to get the maximum number of items in the buffer, to help dimensioning it
+    void pushEvent(event anEvent);        // push an event onto the eventBuffer
+    event popEvent();                     // pop an event from the eventbuffer
+    bool hasEvents();                     // check if there are any events
+    uint32_t getBufferLevelMax();         // this allows to get the maximum number of items in the buffer, to help dimensioning it
 
 #ifndef UnitTesting
   private:        // commented out during unit testing

@@ -232,6 +232,9 @@ void gCode::getBlock(const uint8_t *commandLine) {
             ++theBlock.nmbrWords;
         }
     }
+}
+void gCode::getBlock(const char *commandLine) {
+    getBlock(reinterpret_cast<const uint8_t *>(commandLine));
 };
 
 int32_t gCode::searchWord(uint8_t aLetter, uint32_t anIntNumber) const {

@@ -28,6 +28,7 @@ class gCode {
     void restoreState();        // Restore the state from previous saveState
 
     void getBlock(const uint8_t *commandLine);                 // Read a line of input and process as gCode block - This is the input of this module.. it receives a c-style zero terminated string
+    void getBlock(const char *commandLine);                    // Read a line of input and process as gCode block - This is the input of this module.. it receives a c-style zero terminated string
     void parseBlock(gCodeParserResult &theParseResult);        // Process all words in block, update gCode context and spawn a motion if the block contains one..
     void calcMotion(gCodeParserResult &theParseResult);        // calculate all the details for a motion resulting from a G0, G1, G2, G3, G4 block..
 

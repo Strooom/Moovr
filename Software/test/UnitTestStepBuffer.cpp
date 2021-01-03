@@ -21,9 +21,9 @@ TEST_CLASS (C01_StepSignals) {
     TEST_METHOD (T02_StepForward) {
         stepSignals theSignals;
         theSignals.stepForward(0);
-        Assert::IsTrue(theSignals.dirSetup == 0b10);
-        Assert::IsTrue(theSignals.stepRise == 0b11);
-        Assert::IsTrue(theSignals.stepFall == 0b10);
+        Assert::IsTrue(theSignals.dirSetup == 0b00);
+        Assert::IsTrue(theSignals.stepRise == 0b01);
+        Assert::IsTrue(theSignals.stepFall == 0b00);
     }
 
     TEST_METHOD (T03_StepForwardMultipleAxis) {
@@ -31,17 +31,17 @@ TEST_CLASS (C01_StepSignals) {
         theSignals.stepForward(0);
         theSignals.stepForward(1);
         theSignals.stepForward(2);
-        Assert::IsTrue(theSignals.dirSetup == 0b00101010);
-        Assert::IsTrue(theSignals.stepRise == 0b00111111);
-        Assert::IsTrue(theSignals.stepFall == 0b00101010);
+        Assert::IsTrue(theSignals.dirSetup == 0b00000000);
+        Assert::IsTrue(theSignals.stepRise == 0b00010101);
+        Assert::IsTrue(theSignals.stepFall == 0b00000000);
     }
 
     TEST_METHOD (T04_StepBackward) {
         stepSignals theSignals;
         theSignals.stepBackward(0);
-        Assert::IsTrue(theSignals.dirSetup == 0b00);
-        Assert::IsTrue(theSignals.stepRise == 0b01);
-        Assert::IsTrue(theSignals.stepFall == 0b00);
+        Assert::IsTrue(theSignals.dirSetup == 0b10);
+        Assert::IsTrue(theSignals.stepRise == 0b11);
+        Assert::IsTrue(theSignals.stepFall == 0b10);
     }
 
     TEST_METHOD (T05_StepBackwardMultipleAxis) {
@@ -49,9 +49,9 @@ TEST_CLASS (C01_StepSignals) {
         theSignals.stepBackward(0);
         theSignals.stepBackward(1);
         theSignals.stepBackward(2);
-        Assert::IsTrue(theSignals.dirSetup == 0b00000000);
-        Assert::IsTrue(theSignals.stepRise == 0b00010101);
-        Assert::IsTrue(theSignals.stepFall == 0b00000000);
+        Assert::IsTrue(theSignals.dirSetup == 0b00101010);
+        Assert::IsTrue(theSignals.stepRise == 0b00111111);
+        Assert::IsTrue(theSignals.stepFall == 0b00101010);
     }
 
     TEST_METHOD (T06_Shifting) {

@@ -50,41 +50,28 @@ void setup() {
     theHWtimers.enableOutputTimer(true);
 
     aParser.initialize();
-    aParser.getBlock("G1 X100 F2400");
+    //aParser.getBlock("G2 X100 Y100 I0 J100 F2400 Z40");
+        aParser.getBlock("G1 X800 F2400");
     aParser.parseBlock(theResult);
     theMotionController.append(theResult);
-    aParser.getBlock("Y100");
+    //aParser.getBlock("G3 X0 Y0 I-100 J0 F2400 Z0");
+        aParser.getBlock("X0");
     aParser.parseBlock(theResult);
     theMotionController.append(theResult);
-    aParser.getBlock("Z100");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-    aParser.getBlock("Y0");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-    aParser.getBlock("X0");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-    aParser.getBlock("Y100");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-    aParser.getBlock("Z0");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-    aParser.getBlock("Y0");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-    aParser.getBlock("F4000 X100 Y50 Z25");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-    aParser.getBlock("X0 Y0 Z0");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
+  
 };
 
 
 void loop() {
     theMotionController.run();
+    if (5000 == millis()) {
+        theMotionController.theState = motionState::stopping;
+        theMotionController.optimize();
+    }
+    if (10000 == millis()) {
+        theMotionController.theState = motionState::running;
+        theMotionController.optimize();
+    }
 }
 
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6 Interrupt Handlers

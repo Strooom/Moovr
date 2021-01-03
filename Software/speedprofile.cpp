@@ -9,6 +9,7 @@
 // TODO : maybe it is enough to keep one adMax per part, rather than separate aMax and dMax
 
 #include "speedprofile.h"
+#include "machineproperties.h"
 #include <stdio.h>        // need sprintf
 #include "math.h"         // need sqrtf
 

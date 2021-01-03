@@ -6,15 +6,15 @@
 // #############################################################################
 
 #include <Arduino.h>
-#include "logging.h"
-#include "version.h"
-#include "machineproperties.h"
-#include "hardwaretimers.h"
 #include "digitalinputs.h"
 #include "eventbuffer.h"
+#include "hardwaretimers.h"
+#include "logging.h"
+#include "machineproperties.h"
+#include "mainctrl.h"
 #include "stepbuffer.h"
 #include "steppermotoroutputs.h"
-#include "maincontroller.h"
+#include "version.h"
 
 uLog theLog;
 version theVersion(0, 0, 2);
@@ -72,6 +72,8 @@ void setup() {
     theLog.output(loggingLevel::Info, "Moovr V0.2 - https://github.com/Strooom/Moovr");
     theHWtimers.enableInputTimer(true);
     theHWtimers.enableOutputTimer(true);
+
+    theStepperMotorOutputs.enableMotors123(true);
 }
 
 void loop() {

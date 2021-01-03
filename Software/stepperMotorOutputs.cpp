@@ -48,6 +48,8 @@ stepperMotorOutputs::stepperMotorOutputs() {
     PORTB_PCR18 = PORT_PCR_MUX(1) | PORT_PCR_DSE;        // Set PortB[18..19] into Alt 1, High Drive Strength		// Enable for Motors [1..3] : PB18
     PORTB_PCR19 = PORT_PCR_MUX(1) | PORT_PCR_DSE;
 #endif
+    enableMotors123(false);
+    enableMotors456(false);
     theLog.output(loggingLevel::Debug, "stepperMotorOutputs initialized");
 }
 

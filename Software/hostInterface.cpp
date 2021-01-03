@@ -19,7 +19,9 @@ HostInterface::HostInterface(){};
 void HostInterface::getMessage(uint8_t* destinationBuffer) {
     uint32_t byteReceived;
     uint32_t bytesRead = 0;
-    cli();        // begin critical section
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    noInterrupts();
+#endif
     while (rxBufferLevel > 0) {
         byteReceived = rxBuffer[rxBufferHead];                     //	read a byte from the rxBuffer
         rxBufferHead = (rxBufferHead + 1) % rxBufferLength;        //  increment the bufferHead pointer
@@ -33,7 +35,9 @@ void HostInterface::getMessage(uint8_t* destinationBuffer) {
             return;
         }
     }
-    sei();        // end critical section
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    interrupts();
+#endif
     theLog.output(loggingLevel::Error, "hostInterface::readWhenNoMessage");
     destinationBuffer[bytesRead] = 0x00;        // anyway... terminate string copied to destination
 };
@@ -45,8 +49,10 @@ void HostInterface::sendMessage(const uint8_t* sourceBuffer) {
 
     uint32_t length;
     for (length = 0; 0 != sourceBuffer[length]; ++length)
-        ;                                                  // determine length of string to be sent in sourceBuffer
-    cli();                                                 // begin critical section
+        ;                                                   // determine length of string to be sent in sourceBuffer
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    noInterrupts();
+#endif
     if (length <= (txBufferLength - txBufferLevel))        // If there's enough free space in txBuffer for this String
     {
         for (uint32_t index = 0; index < length; index++)        // Copy it - EXcluding terminating 0x00
@@ -57,7 +63,9 @@ void HostInterface::sendMessage(const uint8_t* sourceBuffer) {
     } else {
         theLog.output(loggingLevel::Critical, "hostInterface::txBufferOverflow");
     }
-    sei();        // end critical section
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    interrupts();
+#endif
 };
 
 void HostInterface::initialize() {
