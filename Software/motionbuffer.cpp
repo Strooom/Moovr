@@ -39,7 +39,7 @@ motion* motionBuffer::current() {
     return &motionBuffer[readIndex];
 }
 
-uint32_t motionBuffer::level() {
+uint32_t motionBuffer::level() const {
     return bufferLevel;
 }
 

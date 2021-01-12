@@ -29,7 +29,7 @@ void motionCtrl::optimize() {
             isOptimal = true;
             break;
         case 1:
-            theMotionBuffer.current()->optimizeCurrent(strategy(), theOverrides, (float)sampleIndex * minStepPulseWidth);        // ToDo : add a real time here, so we properly optimize the current motion
+            theMotionBuffer.current()->optimizeCurrent(strategy(), theOverrides, theSampleTime.timeInMotionFloat);        // ToDo : add a real time here, so we properly optimize the current motion
             break;
         default:
             switch (strategy()) {
@@ -66,67 +66,77 @@ void motionCtrl::optimizePair(int32_t junctionIndex) {
     theMotionBuffer.motionBuffer[right].optimize(strategy(), theOverrides);
 }
 
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6 Interrupt Handlers
+FASTRUN
+#endif
 step motionCtrl::nextStep() {
     while (true) {
-        if ((motionState::ready == theState) || (motionState::stopped == theState)) {
-            return output(maxTicksSinceLastOutput);
-        } else {
-            sampleIndex++;
-            ticksSinceLastOutput++;
-            theStepSignals.shift();
-
+        theStepSignals.next();
+        if (isRunning()) {
+            theSampleTime.next();
             while (true) {
-                if (theMotionBuffer.isEmpty()) {
-                    sampleIndex = 0;
-                    return output(maxTicksSinceLastOutput);
-                } else {
-                    motion *currentMotion   = theMotionBuffer.current();
-                    float timeInMotionFloat = (float)sampleIndex * minStepPulseWidth;
-                    if (timeInMotionFloat <= currentMotion->speedProfile.duration) {
-                        float sNow = currentMotion->s(timeInMotionFloat);
-                        for (uint8_t anAxis = 0; anAxis < (uint8_t)axis::nmbrAxis; ++anAxis) {
-                            if (currentMotion->isMoving(anAxis)) {
-                                calcNextPositionInMm(anAxis, sNow, currentMotion);
-                                if (needStepForward(anAxis)) {
-                                    theStepSignals.stepForward(anAxis);
-                                    currentPositionInSteps[anAxis]++;
-                                } else if (needStepBackward(anAxis)) {
-                                    theStepSignals.stepBackward(anAxis);
-                                    currentPositionInSteps[anAxis]--;
-                                }
-                            }
-                        }
-                        if (theStepSignals.isModified()) {
-                            return output(ticksSinceLastOutput);
-                        }
-                        if (isTimedOut()) {
-                            return output(maxTicksSinceLastOutput);
-                        }
-                        break;
-                    } else {
-                        sampleIndex = sampleIndex - (uint32_t)((currentMotion->speedProfile.duration) * outputTimerFrequency);
-                        theMotionBuffer.pop();
-                        theEventBuffer.pushEvent(event::motionCompleted);
-                        theLog.output(loggingLevel::Debug, "motion Completed");
-                        if (theMotionBuffer.isEmpty()) {
-                            theEventBuffer.pushEvent(event::allMotionsCompleted);
-                            theLog.output(loggingLevel::Debug, "all Motions Completed");
-                        }
-                    }
+                if (theSampleTime.isBeyondStop()) {
+                    stop();
                 }
+                if (theSampleTime.isBeyondEndOfMotion()) {
+                    next();
+                    if (theMotionBuffer.isEmpty()) {
+                        stop();
+                        theSampleTime.reset();
+                        break;
+                    }
+                } else {
+                    calcStepSignals();
+                    break;
+                }
+            }
+        }
+        if (theStepSignals.isModified()) {
+            return theStepSignals.output();
+        }
+        if (theStepSignals.isTimedOut()) {
+            return theStepSignals.outputDefault();
+        }
+    }
+}
+
+void motionCtrl::calcStepSignals() {
+    // TODO : could maybe optimize by storing local copy of theMotionBuffer.current()
+    float sNow = theMotionBuffer.current()->s(theSampleTime.timeInMotionFloat);
+    for (uint8_t anAxis = 0; anAxis < (uint8_t)axis::nmbrAxis; ++anAxis) {
+        if (theMotionBuffer.current()->isMoving(anAxis)) {
+            calcNextPositionInMm(anAxis, sNow, theMotionBuffer.current());
+            if (needStepForward(anAxis)) {
+                theStepSignals.stepForward(anAxis);
+                currentPositionInSteps[anAxis]++;
+            } else if (needStepBackward(anAxis)) {
+                theStepSignals.stepBackward(anAxis);
+                currentPositionInSteps[anAxis]--;
             }
         }
     }
 }
 
-step motionCtrl::output(uint32_t timeBefore) {
-    theStepSignals.lastOutput = theStepSignals.dirSetup;
-    ticksSinceLastOutput      = 0;
-    return step{timeBefore, theStepSignals.dirSetup};
+bool motionCtrl::isRunning() const {
+    return ((motionState::running == theState) || (motionState::stopping == theState));
 }
 
-float motionCtrl::sampleTime() const {
-    return sampleZeroOffset + ((float)sampleIndex * minStepPulseWidth);
+bool motionCtrl::isStopped() const {
+    return ((motionState::ready == theState) || (motionState::stopped == theState));
+}
+
+void motionCtrl::stop() {
+    theState = motionState::stopped;
+    theEventBuffer.pushEvent(event::motionStopped);
+}
+
+void motionCtrl::next() {
+    theSampleTime.nextMotion();
+    theMotionBuffer.pop();
+    theEventBuffer.pushEvent(event::motionCompleted);
+    if (theMotionBuffer.isEmpty()) {
+        theEventBuffer.pushEvent(event::allMotionsCompleted);
+    }
 }
 
 motionStrategy motionCtrl::strategy() const {
@@ -229,8 +239,4 @@ void motionCtrl::calcNextPositionInMm(uint8_t axis, float sNow, motion *currentM
     } else {
         nextPositionInMm[axis] = (currentMotion->trajectory.startPosition[axis] + currentMotion->trajectory.deltaRealTime[axis] * sNow);
     }
-}
-
-bool motionCtrl::isTimedOut() {
-    return (ticksSinceLastOutput >= maxTicksSinceLastOutput);
 }

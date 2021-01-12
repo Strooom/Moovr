@@ -61,16 +61,15 @@ class SpeedProfileCruise {
     float a(float t) const;        // calculated acceleration at time t
     float v(float t) const;        // calculated speed at time t
     float s(float t) const;        // calculated distance travelled at time t
+    float vMid{};                  // speed during the motion mid part [mm/s]
+    float length{};                // total length of the motionPart [mm]
+    float duration{};              // duration of motionPart [s]
 
     uint32_t toString(char *output) const;
 
-#ifndef UnitTesting          //
-  private:                   // commented out during unit testing
-#endif                       // \
-                             //
-    float vMid{};            // speed during the motion mid part [mm/s]
-    float length{};          // total length of the motionPart [mm]
-    float duration{};        // duration of motionPart [s]
+#ifndef UnitTesting        //
+  private:                 // commented out during unit testing
+#endif                     //
 };
 
 class SpeedProfilePassed {

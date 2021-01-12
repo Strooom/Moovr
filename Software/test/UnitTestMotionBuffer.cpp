@@ -1,9 +1,10 @@
 #include "CppUnitTest.h"
 #include "motionbuffer.h"
+#include "sampletime.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace UnitTestsMotionBuffer {
+namespace MotionBuffer {
 TEST_CLASS (C01_MotionBuffer) {
   public:
     TEST_METHOD (T01_constructor) {
@@ -42,4 +43,36 @@ TEST_CLASS (C01_MotionBuffer) {
         Assert::IsTrue(theMotionBuffer.isEmpty());
     }
 };
-}        // namespace UnitTestsMotionBuffer
+
+TEST_CLASS (C02_sampleTime) {
+  public:
+    TEST_METHOD (T01_constructor) {
+        motionBuffer theBuffer;
+        sampleTime theSampleTime = sampleTime(theBuffer);
+
+        Assert::AreEqual(0U, theSampleTime.sampleIndex);
+        Assert::AreEqual(0.0F, theSampleTime.sampleZeroOffset);
+        Assert::AreEqual(0.0F, theSampleTime.timeInMotionFloat);
+    }
+
+    TEST_METHOD (T02_next) {
+        motionBuffer theBuffer;
+        sampleTime theSampleTime = sampleTime(theBuffer);
+        Assert::AreEqual(0U, theSampleTime.sampleIndex);
+    }
+
+    TEST_METHOD (T03_reset) {
+        motionBuffer theBuffer;
+        sampleTime theSampleTime = sampleTime(theBuffer);
+        Assert::AreEqual(0U, theSampleTime.sampleIndex);
+        Assert::AreEqual(0.0F, theSampleTime.sampleZeroOffset);
+        Assert::AreEqual(0.0F, theSampleTime.timeInMotionFloat);
+    }
+
+    TEST_METHOD (T04_adjust) {
+        motionBuffer theBuffer;
+        sampleTime theSampleTime = sampleTime(theBuffer);
+        Assert::Fail();
+    }
+};
+}        // namespace MotionBuffer

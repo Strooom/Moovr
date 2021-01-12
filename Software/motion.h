@@ -35,11 +35,12 @@ class motion {
     void export2csv(const char *outputFilename, uint32_t nmbrDataPoints);
     void setForTest(uint32_t type);
 
-#ifndef UnitTesting                           //
-  private:                                    // commented out during unit testing
-#endif                                        //
     motionType type{motionType::None};        //
     motionTrajectory trajectory;              // contains all properties for defining the trajectory in space
     motionSpeedProfile speedProfile;          // contains all properties for defining the speed over the trajectory in time
     motionPeripherals peripherals;            // contains all settings for peripherals over this part of the trajectory
+
+#ifndef UnitTesting        //
+  private:                 // commented out during unit testing
+#endif                     //
 };

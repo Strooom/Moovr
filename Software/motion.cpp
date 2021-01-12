@@ -44,9 +44,9 @@ float motion::vTri(motionStrategy strategy) const        // Calculate the maximu
 {
     if (motionStrategy::maximizeSpeed == strategy) {
         // For aMax > 0 and dMax < 0, the part under de sqrt is always positive
-        return sqrtf(((speedProfile.right.vEnd * speedProfile.right.vEnd * speedProfile.aMax) - (speedProfile.left.vStart * speedProfile.left.vStart * speedProfile.dMax) - (2 * trajectory.length * speedProfile.aMax * speedProfile.dMax)) / (speedProfile.aMax - speedProfile.dMax));
+        return sqrtf(((speedProfile.right.vEnd * speedProfile.right.vEnd * speedProfile.aMax) - (speedProfile.left.vStart * speedProfile.left.vStart * speedProfile.dMax) - (2 * (trajectory.length - speedProfile.done.length) * speedProfile.aMax * speedProfile.dMax)) / (speedProfile.aMax - speedProfile.dMax));
     } else {
-        float r = (2 * trajectory.length * speedProfile.aMax * speedProfile.dMax) - (speedProfile.right.vEnd * speedProfile.right.vEnd * speedProfile.dMax) + (speedProfile.left.vStart * speedProfile.left.vStart * speedProfile.aMax);
+        float r = (2 * (trajectory.length - speedProfile.done.length) * speedProfile.aMax * speedProfile.dMax) - (speedProfile.right.vEnd * speedProfile.right.vEnd * speedProfile.dMax) + (speedProfile.left.vStart * speedProfile.left.vStart * speedProfile.aMax);
         if (r >= 0.0F) {
             return sqrtf(r / (speedProfile.aMax - speedProfile.dMax));
         } else {
@@ -415,6 +415,38 @@ void motion::setForTest(uint32_t setNmbr) {
             speedProfile.duration       = minStepBufferTotalTime;
             speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
             speedProfile.mid.duration   = minStepBufferTotalTime;
+            break;
+
+        case 2U:
+            type                  = motionType::FeedLinear;
+            trajectory.length     = 1.0F;
+            speedProfile.duration = minStepPulseWidth * 0.25F;
+            //trajectory.delta[0]         = 1.0F;
+            //trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
+            //speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
+            //speedProfile.mid.duration   = minStepBufferTotalTime;
+            break;
+
+        case 3U:
+            type                  = motionType::FeedLinear;
+            trajectory.length     = 1.0F;
+            speedProfile.duration = minStepPulseWidth * 1.5F;
+            //trajectory.delta[0]         = 1.0F;
+            //trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
+            //speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
+            //speedProfile.mid.duration   = minStepBufferTotalTime;
+            break;
+
+        case 4U:
+            type                  = motionType::FeedLinear;
+            trajectory.length     = 1.0F;
+            speedProfile.duration = minStepPulseWidth * 10.0F;
+            speedProfile.tStop    = minStepPulseWidth * 2.5F;
+
+            //trajectory.delta[0]         = 1.0F;
+            //trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
+            //speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
+            //speedProfile.mid.duration   = minStepBufferTotalTime;
             break;
 
         default:

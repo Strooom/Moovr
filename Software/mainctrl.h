@@ -76,6 +76,7 @@ class mainController {
   public:
     mainController(machineProperties &theMachineProperties, eventBuffer &theEventBuffer, HostInterfaceUart &theHostInterface, stepBuffer &theStepBuffer);
     void run();        // read all inputs, process, generate outputs and statechange in an endless loop
+    void initialize();
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
@@ -106,4 +107,5 @@ class mainController {
     void homing(event anEvent);
     void probing(event anEvent);
     void discovery(event anEvent);
+    const char *toString() const;        // translate state code to string
 };

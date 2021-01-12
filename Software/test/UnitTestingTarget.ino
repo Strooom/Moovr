@@ -9,69 +9,91 @@
 
 #include <Arduino.h>
 #include <unitTest.h>
-#include "logging.h"
-#include "machineproperties.h"
 #include "version.h"
-//#include "digitalInputs.h"
+#include "digitalInputs.h"
 #include "eventbuffer.h"
 #include "gcode.h"
 #include "hardwareTimers.h"
+#include "logging.h"
+#include "machineproperties.h"
 #include "motionctrl.h"
 #include "stepbuffer.h"
 #include "stepperMotorOutputs.h"
+#include "hostinterface.h"
+#include "mainctrl.h"
 
 uLog theLog;
-version theVersion(0, 0, 2);
+version theVersion(0, 0, 3);
 
 stepperMotorOutputs theStepperMotorOutputs;
 hardwareTimers theHWtimers;
-//inputs theHardwareInputs;
-//debouncedInput limitSwitch1(theHardwareInputs, 0, Event::limitSwitchXMaxClosed, Event::limitSwitchXMaxOpened);
-//debouncedInput button1(theHardwareInputs, 10, Event::limitSwitchXMaxClosed, Event::limitSwitchXMaxOpened);
+
+inputs theHardwareInputs;
+enum class buttonSwitch : uint32_t {
+    limitSwitchXmin,
+    limitSwitchXmax,
+    limitSwitchYmin,
+    limitSwitchYmax,
+    limitSwitchZmin,
+    limitSwitchZmax,
+    buttonEmergencyStop,
+    buttonFeedHoldResume,
+    switchProbeZ,
+    nmbrButtonSwitches
+};
+static constexpr uint32_t nmbrInputs = 9U;
+debouncedInput myInputs[nmbrInputs]  = {
+    debouncedInput(theHardwareInputs, 0U, event::limitSwitchXMinClosed, event::limitSwitchXMinOpened),
+    debouncedInput(theHardwareInputs, 1U, event::limitSwitchXMaxClosed, event::limitSwitchXMaxOpened),
+    debouncedInput(theHardwareInputs, 2U, event::limitSwitchYMinClosed, event::limitSwitchYMinOpened),
+    debouncedInput(theHardwareInputs, 3U, event::limitSwitchYMaxClosed, event::limitSwitchYMaxOpened),
+    debouncedInput(theHardwareInputs, 4U, event::limitSwitchZMinClosed, event::limitSwitchZMinOpened),
+    debouncedInput(theHardwareInputs, 5U, event::limitSwitchZMaxClosed, event::limitSwitchZMaxOpened),
+    debouncedInput(theHardwareInputs, 6U, event::emergencyStopButtonPressed, event::emergencyStopButtonReleased),
+    debouncedInput(theHardwareInputs, 7U, event::feedHoldResumeButtonPressed, event::feedHoldResumeButtonReleased),
+    debouncedInput(theHardwareInputs, 8U, event::probeSwitchClosed, event::probeSwitchOpened)};
+
+eventBuffer theEventBuffer;
+
+void handleInputs() {
+    if (theHardwareInputs.isReady()) {
+        for (uint32_t i = 0; i < nmbrInputs; i++) {
+            event anEvent = myInputs[i].getEvent();
+            if (event::none != anEvent) {
+                theEventBuffer.pushEvent(anEvent);
+            }
+        }
+    }
+}
 
 unitTest theTest;
 
-eventBuffer theEventBuffer;
 stepBuffer theStepBuffer;
 machineProperties theMachineProperties;
-overrides theOverrides;
-gCode aParser;
-gCodeParserResult theResult;
 
-motionCtrl theMotionController(theEventBuffer, theMachineProperties, theOverrides, theStepBuffer);
+HostInterfaceUart theHostInterface;
+mainController theMainCtrl = mainController(theMachineProperties, theEventBuffer, theHostInterface, theStepBuffer);
 
 void setup() {
     Serial.begin(115200);
     Serial.flush();
+    Serial.print("\n\n\n\n");
     delay(1000);
     theLog.setOutputIsAvailable(true);
     theLog.flush();
 
+    NVIC_SET_PRIORITY(IRQ_PIT_CH1, 10);        // giving the PIT1 a high priority, higher than all others.. to make output stepsignals timing more accurate.
+
+    theHWtimers.enableInputTimer(true);
     theHWtimers.enableOutputTimer(true);
 
-    aParser.initialize();
-    //aParser.getBlock("G2 X100 Y100 I0 J100 F2400 Z40");
-        aParser.getBlock("G1 X800 F2400");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-    //aParser.getBlock("G3 X0 Y0 I-100 J0 F2400 Z0");
-        aParser.getBlock("X0");
-    aParser.parseBlock(theResult);
-    theMotionController.append(theResult);
-  
+    theStepperMotorOutputs.enableMotors123(true);
+    theMainCtrl.initialize();
 };
 
-
 void loop() {
-    theMotionController.run();
-    if (5000 == millis()) {
-        theMotionController.theState = motionState::stopping;
-        theMotionController.optimize();
-    }
-    if (10000 == millis()) {
-        theMotionController.theState = motionState::running;
-        theMotionController.optimize();
-    }
+    theMainCtrl.run();
+    handleInputs();
 }
 
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6 Interrupt Handlers
@@ -79,23 +101,15 @@ void uart0_status_isr(void) {                               //
     //theMainController.serialInterrupt();                    // handle Serial event interrupts
 }
 
-// TODO : check how we can give this interrupt higher priority than all others.. to make timing more accurate..
-
-void pit1_isr() {
-    step theStep = theStepBuffer.read();          //
-    PIT_LDVAL1   = theStep.timeBefore - 1;        // TODO : call member on the HW abstraction for this timer ?
-    GPIOC_PDOR   = theStep.signals;               // TODO : call member on the HW abstraction for these motor outputs ?
-    PIT_TFLG1    = 0x1;                           // clear timer interrupt flag
+FASTRUN void pit1_isr() {
+    step theStep = theStepBuffer.read();                             // read step from the stepBuffer
+    theHWtimers.setOutputTimerReload(theStep.timeBefore - 1);        // reload timer
+    theStepperMotorOutputs.write(theStep.signals);                   // set output-pins
+    PIT_TFLG1 = 0x1;                                                 // clear timer interrupt flag
 }
 
-void pit2_isr() {
-    //theHardwareInputs.sample();
-    //if (Event::none != limitSwitch1.getEvent()) {
-    //    theLog.output(loggingLevel::Debug, "limitSwitch event");
-    //}
-    //if (Event::none != button1.getEvent()) {
-    //    theLog.output(loggingLevel::Debug, "button event");
-    //}
-    PIT_TFLG2 = 0x1;        // clear timer interrupt flag
+FASTRUN void pit2_isr() {
+    theHardwareInputs.sample();        // read HW inputs
+    PIT_TFLG2 = 0x1;                   // clear timer interrupt flag
 }
 #endif

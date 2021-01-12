@@ -8,14 +8,16 @@ extern uLog theLog;
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
-namespace UnitTestStepSignals {
+namespace StepSignals {
 TEST_CLASS (C01_StepSignals) {
   public:
-    TEST_METHOD (T01_Construction) {
+    TEST_METHOD (T01_ConstructionInitialization) {
         stepSignals theSignals;
-        Assert::IsTrue(theSignals.dirSetup == 0);
-        Assert::IsTrue(theSignals.stepRise == 0);
-        Assert::IsTrue(theSignals.stepFall == 0);
+        Assert::AreEqual(theSignals.dirSetup, 0U);
+        Assert::AreEqual(theSignals.stepRise, 0U);
+        Assert::AreEqual(theSignals.stepFall, 0U);
+        Assert::AreEqual(theSignals.lastOutput, 0U);
+        Assert::AreEqual(theSignals.ticksSinceLastOutput, 0U);
     }
 
     TEST_METHOD (T02_StepForward) {
@@ -59,11 +61,11 @@ TEST_CLASS (C01_StepSignals) {
         theSignals.dirSetup = 0x1;
         theSignals.stepRise = 0x2;
         theSignals.stepFall = 0x3;
-        theSignals.shift();
+        theSignals.next();
         Assert::IsTrue(theSignals.dirSetup == 2);
         Assert::IsTrue(theSignals.stepRise == 3);
         Assert::IsTrue(theSignals.stepFall == 3);
-        theSignals.shift();
+        theSignals.next();
         Assert::IsTrue(theSignals.dirSetup == 3);
         Assert::IsTrue(theSignals.stepRise == 3);
         Assert::IsTrue(theSignals.stepFall == 3);
@@ -71,7 +73,7 @@ TEST_CLASS (C01_StepSignals) {
 };
 }        // namespace UnitTestStepSignals
 
-namespace UnitTestStepBuffer {
+namespace StepBuffer {
 TEST_CLASS (C01_StepBuffer) {
   public:
     TEST_METHOD (T01_Construction) {

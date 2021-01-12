@@ -16,6 +16,8 @@ eventBuffer::eventBuffer() {}
 
 void eventBuffer::pushEvent(event theEvent) {
     if (event::none != theEvent) {
+        theLog.snprintf(loggingLevel::Debug, "push event : %s", toString(theEvent));
+
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
         noInterrupts();
 #endif
@@ -49,6 +51,7 @@ event eventBuffer::popEvent() {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     interrupts();
 #endif
+    theLog.snprintf(loggingLevel::Debug, "pop event : %s", toString(theEvent));
     return theEvent;
 }
 
@@ -68,4 +71,86 @@ uint32_t eventBuffer::getBufferLevelMax() {
     uint32_t tmpLevel = bufferLevelMax;        //
     bufferLevelMax    = 0U;                    // reset level when after reading it
     return tmpLevel;
+}
+
+
+const char * eventBuffer::toString(event anEvent) const {
+    switch (anEvent) {
+        case event::none:
+            return "none";
+            break;
+        case event::emergencyStopButtonPressed:
+            return "";
+            break;
+        case event::emergencyStopButtonReleased:
+            break;
+        case event::feedHoldResumeButtonPressed:
+            return "feed Hold/Resume button pressed";
+            break;
+        case event::feedHoldResumeButtonReleased:
+            return "feed Hold/Resume button released";
+            break;
+        case event::probeSwitchClosed:
+            return "";
+            break;
+        case event::probeSwitchOpened:
+            return "";
+            break;
+        case event::limitSwitchXMinClosed:
+            return "";
+            break;
+        case event::limitSwitchYMinClosed:
+            return "";
+            break;
+        case event::limitSwitchZMinClosed:
+            return "";
+            break;
+        case event::limitSwitchXMaxClosed:
+            return "";
+            break;
+        case event::limitSwitchYMaxClosed:
+            return "";
+            break;
+        case event::limitSwitchZMaxClosed:
+            return "";
+            break;
+        case event::limitSwitchXMinOpened:
+            return "";
+            break;
+        case event::limitSwitchYMinOpened:
+            return "";
+            break;
+        case event::limitSwitchZMinOpened:
+            return "";
+            break;
+        case event::limitSwitchXMaxOpened:
+            return "";
+            break;
+        case event::limitSwitchYMaxOpened:
+            return "";
+            break;
+        case event::limitSwitchZMaxOpened:
+            return "";
+            break;
+        case event::motionAdded:
+            return "";
+            break;
+        case event::motionCompleted:
+            return "motion completed";
+            break;
+        case event::allMotionsCompleted:
+            return "all motions completed";
+            break;
+        case event::motionStarted:
+            return "";
+            break;
+        case event::motionStopped:
+            return "motion stopped";
+            break;
+        case event::motionBufferOverflow:
+            return "";
+            break;
+        default:
+            break;
+    }
 }

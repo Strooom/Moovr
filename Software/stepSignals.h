@@ -16,13 +16,20 @@
 
 class stepSignals {
   public:
-    uint32_t dirSetup{0};          // direction setup time
-    uint32_t stepRise{0};          // rising edge of step pulse
-    uint32_t stepFall{0};          // falling edge of step pulse
-    uint32_t lastOutput{0};        // last data sent to motor outputs
+    bool isModified();                      //
+    void next();                            //
+    void stepBackward(uint8_t axis);        //
+    void stepForward(uint8_t axis);         //
+    step output();                          //
+    step outputDefault();                   //
+    bool isTimedOut();                      //
 
-    bool isModified();
-    void shift();
-    void stepBackward(uint8_t axis);
-    void stepForward(uint8_t axis);
+#ifndef UnitTesting
+  private:        // commented out during unit testing
+#endif
+    uint32_t dirSetup{0};                    // direction setup time
+    uint32_t stepRise{0};                    // rising edge of step pulse
+    uint32_t stepFall{0};                    // falling edge of step pulse
+    uint32_t lastOutput{0};                  // last data sent to motor outputs
+    uint32_t ticksSinceLastOutput{0};        //
 };

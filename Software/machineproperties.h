@@ -39,9 +39,9 @@ class machineProperties {
     void save();
 
     struct Motors {
-        float jMax{100};                                       // [mm/s^3]
-        float aMax[nmbrAxis]{20, 200, 200};                    // [mm/s^2]
-        float dMax[nmbrAxis]{-20, -200, -200};                 // [mm/s^2]
+        float jMax{1000};                                       // [mm/s^3]
+        float aMax[nmbrAxis]{200, 200, 200};                    // [mm/s^2]
+        float dMax[nmbrAxis]{-200, -200, -200};                 // [mm/s^2]
         float vMax[nmbrAxis]{200.0F, 200.0F, 200.0F};           // [mm/s]
         float sMax[nmbrAxis]{600.0F, 800.0F, 130.0F};           // [mm]
         float stepsPerMm[nmbrAxis]{50.0F, 50.0F, 50.0F};        // [1/mm]

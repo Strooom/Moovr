@@ -5,18 +5,21 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
+#include "logging.h"
 #include "mainctrl.h"
 #include "eventbuffer.h"
 #include "hostinterface.h"
+
+extern uLog theLog;
 
 mainController::mainController(machineProperties &someMachineProperties, eventBuffer &anEventBuffer, HostInterfaceUart &aHostInterface, stepBuffer &aStepBuffer) : theMachineProperties(someMachineProperties), theEventBuffer(anEventBuffer), theHostInterface(aHostInterface), theStepBuffer(aStepBuffer) {
 }
 
 void mainController::run() {
     theMotionCtrl.run();
-    theMotionCtrl.optimize();
+    //theMotionCtrl.optimize();
     handleEvents();          // handle all events such as buttons pressed, limit switches triggering, motions being completed..
-    handleMessages();        // handle all input from the external hostInterface
+    //handleMessages();        // handle all input from the external hostInterface
 }
 
 void mainController::handleMessages() {
@@ -158,6 +161,13 @@ void mainController::probing(event theEvent) {
 void mainController::discovery(event theEvent) {
 }
 
+void mainController::initialize() {
+    theParser.initialize();
+    theParser.getBlock("G1 X800 F2400");
+    theParser.parseBlock(theResult);
+    theMotionCtrl.append(theResult);
+}
+
 void mainController::handleEvents() {
     while (theEventBuffer.hasEvents()) {
         event theEvent = theEventBuffer.popEvent();
@@ -165,39 +175,14 @@ void mainController::handleEvents() {
         switch (theMainState) {
             case mainState::Ready:
                 switch (theEvent) {
-                    case event::emergencyStopButtonPressed:
-                        break;
-                    case event::emergencyStopButtonReleased:
-                        break;
                     case event::feedHoldResumeButtonPressed:
-                        break;
-                    case event::feedHoldResumeButtonReleased:
-                        break;
-                    case event::limitSwitchXMinClosed:
-                        break;
-                    case event::limitSwitchYMinClosed:
-                        break;
-                    case event::limitSwitchZMinClosed:
-                        break;
-                    case event::limitSwitchXMaxClosed:
-                        break;
-                    case event::limitSwitchYMaxClosed:
-                        break;
-                    case event::limitSwitchZMaxClosed:
-                        break;
-                    case event::limitSwitchXMinOpened:
-                        break;
-                    case event::limitSwitchYMinOpened:
-                        break;
-                    case event::limitSwitchZMinOpened:
-                        break;
-                    case event::limitSwitchXMaxOpened:
-                        break;
-                    case event::limitSwitchYMaxOpened:
-                        break;
-                    case event::limitSwitchZMaxOpened:
-                        break;
-                    case event::motionCompleted:
+                        if (!theMotionCtrl.theMotionBuffer.isEmpty()) {
+                            theMotionCtrl.theState = motionState::running;
+                            theMainState           = mainState::Running;
+                            theLog.output(loggingLevel::Debug, toString());
+                        } else {
+                            theLog.output(loggingLevel::Error, "go without data");
+                        }
                         break;
                     default:
                         break;
@@ -212,45 +197,37 @@ void mainController::handleEvents() {
                 break;
             case mainState::Running:
                 switch (theEvent) {
-                    case event::emergencyStopButtonPressed:
-                        break;
-                    case event::emergencyStopButtonReleased:
+                    case event::allMotionsCompleted:
+                        theMainState           = mainState::Ready;
+                        theLog.output(loggingLevel::Debug, toString());
                         break;
                     case event::feedHoldResumeButtonPressed:
+                        theMotionCtrl.theState = motionState::stopping;
+                        theMotionCtrl.optimize();
+                        theMotionCtrl.optimize();
+                        theMotionCtrl.optimize();
                         break;
-                    case event::feedHoldResumeButtonReleased:
-                        break;
-                    case event::limitSwitchXMinClosed:
-                        break;
-                    case event::limitSwitchYMinClosed:
-                        break;
-                    case event::limitSwitchZMinClosed:
-                        break;
-                    case event::limitSwitchXMaxClosed:
-                        break;
-                    case event::limitSwitchYMaxClosed:
-                        break;
-                    case event::limitSwitchZMaxClosed:
-                        break;
-                    case event::limitSwitchXMinOpened:
-                        break;
-                    case event::limitSwitchYMinOpened:
-                        break;
-                    case event::limitSwitchZMinOpened:
-                        break;
-                    case event::limitSwitchXMaxOpened:
-                        break;
-                    case event::limitSwitchYMaxOpened:
-                        break;
-                    case event::limitSwitchZMaxOpened:
-                        break;
-                    case event::motionCompleted:
+                    case event::motionStopped:
+                        theMainState = mainState::Pausing;
+                        theLog.output(loggingLevel::Debug, toString());
                         break;
                     default:
                         break;
                 }
                 break;
             case mainState::Pausing:
+                switch (theEvent) {
+                    case event::feedHoldResumeButtonPressed:
+                        theMotionCtrl.theState = motionState::running;
+                        theMotionCtrl.optimize();
+                        theMotionCtrl.optimize();
+                        theMotionCtrl.optimize();
+                        theMainState = mainState::Running;
+                        theLog.output(loggingLevel::Debug, toString());
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case mainState::Loading:
                 break;
@@ -259,5 +236,38 @@ void mainController::handleEvents() {
             default:
                 break;
         }
+    }
+}
+
+
+    const char *mainController::toString() const {
+    switch (theMainState) {
+            case mainState::Ready:
+            return "ready";
+                break;
+            case mainState::Homing:
+                return "";
+                break;
+            case mainState::Jogging:
+                return "";
+                break;
+            case mainState::Probing:
+                return "";
+                break;
+            case mainState::Running:
+                return "running";
+                break;
+            case mainState::Pausing:
+                return "pausing";
+                break;
+            case mainState::Loading:
+                return "";
+                break;
+            case mainState::Error:
+                return "error";
+                break;
+            default:
+                return "unknown";
+                break;
     }
 }

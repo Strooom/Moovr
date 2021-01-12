@@ -64,10 +64,13 @@ void stepperMotorOutputs::enableMotors123(bool onOff) {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
         GPIOB_PCOR = (0x00000001 << 18);
 #endif
+        theLog.output(loggingLevel::Debug, "motor123 enabled");
+
     } else {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
         GPIOB_PSOR = (0x00000001 << 18);
 #endif
+        theLog.output(loggingLevel::Debug, "motor123 disabled");
     }
 }
 
@@ -76,9 +79,12 @@ void stepperMotorOutputs::enableMotors456(bool onOff) {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
         GPIOB_PCOR = (0x00000001 << 19);
 #endif
+        theLog.output(loggingLevel::Debug, "motor456 enabled");
+
     } else {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
         GPIOB_PSOR = (0x00000001 << 19);
 #endif
+        theLog.output(loggingLevel::Debug, "motor456 disabled");
     }
 }

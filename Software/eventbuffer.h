@@ -12,41 +12,16 @@
 #else
 #include <stdint.h>
 #endif
-
-enum class event : uint8_t {
-    none,
-    emergencyStopButtonPressed,
-    emergencyStopButtonReleased,
-    feedHoldResumeButtonPressed,
-    feedHoldResumeButtonReleased,
-    probeSwitchClosed,
-    probeSwitchOpened,
-    limitSwitchXMinClosed,
-    limitSwitchYMinClosed,
-    limitSwitchZMinClosed,
-    limitSwitchXMaxClosed,
-    limitSwitchYMaxClosed,
-    limitSwitchZMaxClosed,
-    limitSwitchXMinOpened,
-    limitSwitchYMinOpened,
-    limitSwitchZMinOpened,
-    limitSwitchXMaxOpened,
-    limitSwitchYMaxOpened,
-    limitSwitchZMaxOpened,
-    motionAdded,
-    motionCompleted,
-    allMotionsCompleted,
-
-    motionBufferOverflow
-};
+#include "event.h"
 
 class eventBuffer {
   public:
     eventBuffer();
-    void pushEvent(event anEvent);        // push an event onto the eventBuffer
-    event popEvent();                     // pop an event from the eventbuffer
-    bool hasEvents();                     // check if there are any events
-    uint32_t getBufferLevelMax();         // this allows to get the maximum number of items in the buffer, to help dimensioning it
+    void pushEvent(event anEvent);                                 // push an event onto the eventBuffer
+    event popEvent();                                              // pop an event from the eventbuffer
+    bool hasEvents();                                              // check if there are any events
+    uint32_t getBufferLevelMax();                                  // this allows to get the maximum number of items in the buffer, to help dimensioning it
+    const char* toString(event anEvent) const;        // translate event code to string
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
