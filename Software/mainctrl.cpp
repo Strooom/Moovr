@@ -9,6 +9,7 @@
 #include "eventbuffer.h"
 #include "hostinterface.h"
 #include "logging.h"
+//#include "stepperMotorOutputs.h"
 
 extern uLog theLog;
 
@@ -33,8 +34,6 @@ void mainController::handleMessages() {
         } else {                                       //
             aCommand = command::gCode;                 // gCode
         }
-
-
 
         //switch (mainState) {
         //    case mainStates::ready:
@@ -179,7 +178,13 @@ void mainController::discovery(event theEvent) {
 
 void mainController::initialize() {
     theParser.initialize();
-    theParser.getBlock("G1 X800 F2400");
+    theParser.getBlock("G1 X100 F400");
+    theParser.parseBlock(theResult);
+    theMotionCtrl.append(theResult);
+    theParser.getBlock("Y100");
+    theParser.parseBlock(theResult);
+    theMotionCtrl.append(theResult);
+    theParser.getBlock("Z100");
     theParser.parseBlock(theResult);
     theMotionCtrl.append(theResult);
 }
@@ -208,9 +213,10 @@ void mainController::handleEvents() {
                 switch (theEvent) {
                     case event::feedHoldResumeButtonPressed:
                         if (!theMotionCtrl.theMotionBuffer.isEmpty()) {
-                            theMotionCtrl.theState = motionState::running;
+                            theMotionCtrl.startResume();
+                            gotoState(mainStates::running);
                         } else {
-                            theLog.output(loggingLevel::Error, "go without data");
+                            theLog.output(loggingLevel::Error, "Go/Resume on empty motionBuffer");
                         }
                         break;
                     default:
@@ -228,10 +234,7 @@ void mainController::handleEvents() {
                         gotoState(mainStates::ready);
                         break;
                     case event::feedHoldResumeButtonPressed:
-                        theMotionCtrl.theState = motionState::stopping;
-                        theMotionCtrl.optimize();
-                        theMotionCtrl.optimize();
-                        theMotionCtrl.optimize();
+                        theMotionCtrl.stop();
                         break;
                     default:
                         break;

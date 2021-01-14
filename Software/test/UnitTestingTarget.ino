@@ -22,12 +22,10 @@
 #include "hostinterface.h"
 #include "mainctrl.h"
 
-uLog theLog;
-version theVersion(0, 0, 3);
-
+uLog theLog(loggingLevel::Info);
+version theVersion(0, 0, 4);
 stepperMotorOutputs theStepperMotorOutputs;
 hardwareTimers theHWtimers;
-
 inputs theHardwareInputs;
 enum class buttonSwitch : uint32_t {
     limitSwitchXmin,
@@ -52,7 +50,6 @@ debouncedInput myInputs[nmbrInputs]  = {
     debouncedInput(theHardwareInputs, 6U, event::emergencyStopButtonPressed, event::emergencyStopButtonReleased),
     debouncedInput(theHardwareInputs, 7U, event::feedHoldResumeButtonPressed, event::feedHoldResumeButtonReleased),
     debouncedInput(theHardwareInputs, 8U, event::probeSwitchClosed, event::probeSwitchOpened)};
-
 eventBuffer theEventBuffer;
 
 void handleInputs() {
@@ -67,10 +64,8 @@ void handleInputs() {
 }
 
 unitTest theTest;
-
 stepBuffer theStepBuffer;
 machineProperties theMachineProperties;
-
 HostInterfaceUart theHostInterface;
 mainController theMainCtrl = mainController(theMachineProperties, theEventBuffer, theHostInterface, theStepBuffer);
 
@@ -87,8 +82,16 @@ void setup() {
     theHWtimers.enableInputTimer(true);
     theHWtimers.enableOutputTimer(true);
 
-    theStepperMotorOutputs.enableMotors123(true);
+// This code removes transient events from the inputs on startup.. TODO move it to a memberfunction
+    theHardwareInputs.sample();        // read HW inputs
+    for (uint32_t j = 0; j <= debouncedInput::debounceMaxCount; j++) {
+        for (uint32_t i = 0; i < nmbrInputs; i++) {
+            event anEvent = myInputs[i].getEvent();
+        }
+    }
+
     theMainCtrl.initialize();
+    theLog.pushLoggingLevel(loggingLevel::Debug);
 };
 
 void loop() {

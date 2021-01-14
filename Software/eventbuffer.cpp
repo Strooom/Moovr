@@ -7,7 +7,8 @@ eventBuffer::eventBuffer() {}
 
 void eventBuffer::pushEvent(event theEvent) {
     if (event::none != theEvent) {
-        theLog.snprintf(loggingLevel::Debug, "push event : %s", toString(theEvent));
+        //theLog.snprintf(loggingLevel::Debug, "push event : %s", toString(theEvent));
+        theLog.snprintf(loggingLevel::Debug, "event : %s", toString(theEvent));
 
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
         noInterrupts();
@@ -42,7 +43,7 @@ event eventBuffer::popEvent() {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     interrupts();
 #endif
-    theLog.snprintf(loggingLevel::Debug, "pop event : %s", toString(theEvent));
+    //theLog.snprintf(loggingLevel::Debug, "pop event : %s", toString(theEvent));
     return theEvent;
 }
 

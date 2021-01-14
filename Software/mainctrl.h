@@ -18,6 +18,7 @@
 #include "machineproperties.h"        // mainController contains a reference to machineProperties
 #include "motionctrl.h"               // mainController contains a motionController
 
+
 enum class mainStates : uint8_t {
     ready,          // the machine is in Jogging mode, it can receive a subset of gCode, some gCode context cannot be changed
     homing,         // the machine is busy doing a homing cycle - further sub-state is controlled in homingStates
@@ -91,4 +92,7 @@ class mainController {
     void gotoHomingState(homingStates newState);          //
     void gotoProbingState(probingStates newState);        //
     const char *toString(mainStates aState) const;        // translate state code to string
+
+
+
 };

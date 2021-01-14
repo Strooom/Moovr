@@ -24,7 +24,6 @@
 #include "stepsignals.h"              //
 
 enum class motionState : uint8_t {
-    ready,
     running,
     stopping,
     stopped
@@ -33,23 +32,18 @@ enum class motionState : uint8_t {
 class motionCtrl {
   public:
     motionCtrl(eventBuffer &anEventBuffer, machineProperties &someMachineProperties, overrides &someOverrides, stepBuffer &aStepBuffer);
-    void run();                                                                          //
-    void append(gCodeParserResult &aParseResult);                                        //
+    void run();                                          //
+    void append(gCodeParserResult &aParseResult);        //
+    void startResume();                                  // start or resume the motion
+    void stop();                                         // stop the motion
+    void optimize();                                     //
 
-    // start() : start the motion
-    // stop() : stop the motion
-    // notifyStop()
-    // notifyComplete();
+    float vJunction(uint32_t left, uint32_t right) const;        //
 
-    void stop();
-    void next();
-    float vJunction(uint32_t left, uint32_t right) const;                                //
-
-    motionState theState = motionState::ready;
+    motionState state = motionState::stopped;
     bool isRunning() const;
-    bool isStopped() const;
 
-    motionStrategy strategy() const;                                                     //
+    motionStrategy strategy() const;        //
 
     motionBuffer theMotionBuffer;        // instance of the object
 
@@ -61,7 +55,6 @@ class motionCtrl {
     bool needStepForward(uint8_t anAxis);                                                //
     bool needStepBackward(uint8_t anAxis);                                               //
     step nextStep();                                                                     //
-    void optimize();                                                                     //
     void optimizePair(int32_t junctionIndex);                                            //
 
     machineProperties &theMachineProperties;        // reference to all the pysical properties of the machine - to be read frm .cfg file

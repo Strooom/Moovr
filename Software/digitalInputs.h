@@ -37,7 +37,8 @@ class inputs {
   private:        // commented out during unit testing
 #endif
     uint32_t theInputs{0};
-    static constexpr uint32_t inputMask{0x00'00'0F'FF};        // this mask allows to invert individual bits in case of active low signals, io active high TODO : this should go to machineProperties
+    static constexpr uint32_t inputMask{0x00'00'00'00};        // this mask allows to invert individual bits in case of active low signals, io active high TODO : this should go to machineProperties
+                                                               //    static constexpr uint32_t inputMask{0x00'00'0F'FF};        // this mask allows to invert individual bits in case of active low signals, io active high TODO : this should go to machineProperties
     bool ready{false};
 };
 
@@ -51,6 +52,7 @@ class debouncedInput {
     debouncedInput(inputs &someInputs, uint32_t index, event onOpen, event onClose);        // constructor
     bool getState() const;                                                                  // get current state of the input
     event getEvent();                                                                       // get press or release event
+    static constexpr uint32_t debounceMaxCount{4U};        // sets the upper boundary for debounceCounter : 4 * 5ms = 20ms
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
@@ -60,7 +62,6 @@ class debouncedInput {
     const event onOpen;          // event to generate when this input opens
     const event onClose;         // event to generate when this input closes
 
-    static constexpr uint32_t debounceMaxCount{4U};        // sets the upper boundary for debounceCounter : 4 * 5ms = 20ms
     uint32_t debounceCounter{0U};                          // counts up (input high) or down (input low) until it hits boundaries 0 or maxCount
     bool currentState{false};                              // after debouncing : true : button is pressed, false : button is not pressed
     bool previousState{false};                             // remembers previous state, to detect flanks

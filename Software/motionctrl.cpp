@@ -8,8 +8,11 @@
 #include "motionctrl.h"
 #include <math.h>
 #include "logging.h"
+#include "stepperMotorOutputs.h"
 
 extern uLog theLog;
+extern stepperMotorOutputs theStepperMotorOutputs;
+
 
 motionCtrl::motionCtrl(eventBuffer &theEventBuffer, machineProperties &theMachineProperties, overrides &theOverrides, stepBuffer &theStepBuffer) : theEventBuffer(theEventBuffer), theMachineProperties(theMachineProperties), theOverrides(theOverrides), theStepBuffer(theStepBuffer) {
 }
@@ -21,6 +24,23 @@ void motionCtrl::append(gCodeParserResult &theParseResult) {
     } else {
         theEventBuffer.pushEvent(event::motionBufferOverflow);        // send a critical error event to the mainController, as this should never happen..
     }
+}
+
+void motionCtrl::startResume() {
+    if (!theMotionBuffer.isEmpty()) {
+        theStepperMotorOutputs.enableMotors123(true);
+        state = motionState::running;
+        optimize(); // TODO = temp
+
+        theEventBuffer.pushEvent(event::motionStarted);
+    } else {
+        theLog.output(loggingLevel::Error, "startResume with empty motionBuffer");
+    }
+}
+
+void motionCtrl::stop() {
+    state = motionState::stopping;
+    optimize();        // TODO = temp
 }
 
 void motionCtrl::optimize() {
@@ -51,7 +71,7 @@ void motionCtrl::optimize() {
 void motionCtrl::optimizePair(int32_t junctionIndex) {
     uint32_t left  = (theMotionBuffer.head + junctionIndex) % theMotionBuffer.length;            // index of the left motion (oldest)
     uint32_t right = (theMotionBuffer.head + junctionIndex + 1) % theMotionBuffer.length;        // index of the right motion (newest)
-    float v        = vJunction(left, right);                                                                // exit-entry speed between the motion-pair after optimizing
+    float v        = vJunction(left, right);                                                     // exit-entry speed between the motion-pair after optimizing
 
     // Todo : if the vStart/vEnd is already vJunction, then further optimizing is not possible. If all of the junctions are optimal, then the complete motion is optimal
 
@@ -76,12 +96,18 @@ step motionCtrl::nextStep() {
             theSampleTime.next();
             while (true) {
                 if (theSampleTime.isBeyondStop()) {
-                    stop();
+                    state = motionState::stopped;
+                    theEventBuffer.pushEvent(event::motionStopped);
                 }
                 if (theSampleTime.isBeyondEndOfMotion()) {
-                    next();
+                    theSampleTime.nextMotion();
+                    theMotionBuffer.pop();
+                    theEventBuffer.pushEvent(event::motionCompleted);
                     if (theMotionBuffer.isEmpty()) {
-                        stop();
+                        state = motionState::stopped;
+                        theEventBuffer.pushEvent(event::allMotionsCompleted);
+                        theEventBuffer.pushEvent(event::motionStopped);
+                        theStepperMotorOutputs.enableMotors123(false);
                         theSampleTime.reset();
                         break;
                     }
@@ -118,38 +144,15 @@ void motionCtrl::calcStepSignals() {
 }
 
 bool motionCtrl::isRunning() const {
-    return ((motionState::running == theState) || (motionState::stopping == theState));
-}
-
-bool motionCtrl::isStopped() const {
-    return ((motionState::ready == theState) || (motionState::stopped == theState));
-}
-
-void motionCtrl::stop() {
-    theState = motionState::stopped;
-    theEventBuffer.pushEvent(event::motionStopped);
-}
-
-void motionCtrl::next() {
-    theSampleTime.nextMotion();
-    theMotionBuffer.pop();
-    theEventBuffer.pushEvent(event::motionCompleted);
-    if (theMotionBuffer.isEmpty()) {
-        theEventBuffer.pushEvent(event::allMotionsCompleted);
-    }
+    return ((motionState::running == state) || (motionState::stopping == state));
+    // return (!(motionState::stopped == state)); // alternate way to calculate it... 
 }
 
 motionStrategy motionCtrl::strategy() const {
-    switch (theState) {
-        case motionState::ready:
-        case motionState::running:
-        default:
+    if (motionState::running == state) {
             return motionStrategy::maximizeSpeed;
-            break;
-        case motionState::stopping:
-        case motionState::stopped:
+    } else {
             return motionStrategy::minimizeSpeed;
-            break;
     }
 }
 
