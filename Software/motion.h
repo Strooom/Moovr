@@ -11,6 +11,16 @@
 #include "motionspeedprofile.h"
 #include "motiontrajectory.h"
 
+enum class motionStrategy : uint8_t {
+    minimizeSpeed,
+    maximizeSpeed
+};
+
+enum class motionCalculateDirection : uint8_t {
+    forward,
+    reverse
+};
+
 class motion {
   public:
     void set(const gCodeParserResult &theParseResult, const machineProperties &theMachineProperties, const motionStrategy &theStrategy, const overrides &theOverrides);        // sets the properties of an Item based upon inputs from gcodeParseResult and machineProperties

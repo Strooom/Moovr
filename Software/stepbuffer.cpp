@@ -17,9 +17,9 @@ stepBuffer::stepBuffer() {
 }
 
 void stepBuffer::initialize() {
-    bufferLevel       = 0;
-    bufferHead        = 6;
-    bufferTimeInTicks = 0;
+    level       = 0;
+    head        = 6;
+    timeInTicks = 0;
 
     while (needsFilling()) {                                         // this buffer should never be empty, so let's add some minimal items to it
         write(step{250, 0});        // TODO : fix these values
@@ -32,17 +32,17 @@ void stepBuffer::write(step aStep) {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     noInterrupts();
 #endif
-    if (bufferLevel < bufferLength) {
+    if (level < length) {
         uint32_t writeIndex;
-        writeIndex                    = (bufferLength + bufferHead + bufferLevel - 2) % bufferLength;        // TODO : explain
+        writeIndex                    = (length + head + level - 2) % length;        // TODO : explain
         buffer[writeIndex].timeBefore = aStep.timeBefore;                                                    //
-        writeIndex                    = (writeIndex + 2) % bufferLength;                                     //
+        writeIndex                    = (writeIndex + 2) % length;                                     //
         buffer[writeIndex].signals    = aStep.signals;                                                       //
-        bufferLevel++;                                                                                       //
-        bufferTimeInTicks += aStep.timeBefore;
+        level++;                                                                                       //
+        timeInTicks += aStep.timeBefore;
     } else {
-        theLog.snprintf(loggingLevel::Critical, "stepBufferOverflow level = %d, time = %d", bufferLevel, bufferTimeInTicks);
-        for (uint32_t i = 0; i < bufferLength; i++) {
+        theLog.snprintf(loggingLevel::Critical, "stepBufferOverflow level = %d, time = %d", level, timeInTicks);
+        for (uint32_t i = 0; i < length; i++) {
             theLog.snprintf(loggingLevel::Debug, "item %d time = %d signals = %d", i, buffer[i].timeBefore, buffer[i].signals);
         }
     }
@@ -52,13 +52,13 @@ void stepBuffer::write(step aStep) {
 }
 
 step stepBuffer::read() {
-    if (bufferLevel > 0) {
+    if (level > 0) {
         step aStep;
-        aStep.timeBefore = buffer[bufferHead].timeBefore;
-        aStep.signals    = buffer[bufferHead].signals;
-        bufferTimeInTicks -= buffer[bufferHead].timeBefore;
-        bufferHead = (bufferHead + 1) % bufferLength;
-        bufferLevel--;
+        aStep.timeBefore = buffer[head].timeBefore;
+        aStep.signals    = buffer[head].signals;
+        timeInTicks -= buffer[head].timeBefore;
+        head = (head + 1) % length;
+        level--;
         return aStep;
     } else {
         theLog.output(loggingLevel::Critical, "stepBufferUnderRun");
@@ -66,19 +66,19 @@ step stepBuffer::read() {
     }
 }
 
-uint32_t stepBuffer::getBufferTimeInTicks() const {
-    return bufferTimeInTicks;
+uint32_t stepBuffer::getTimeInTicks() const {
+    return timeInTicks;
 }
 
-uint32_t stepBuffer::getBufferLevel() const {
-    return bufferLevel;
+uint32_t stepBuffer::getLevel() const {
+    return level;
 }
 
 bool stepBuffer::needsFilling() const {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     noInterrupts();
 #endif
-    bool result = ((bufferLevel < minBufferLevel) || (bufferTimeInTicks < minStepBufferTotalTimeTicks));
+    bool result = ((level < minBufferLevel) || (timeInTicks < minStepBufferTotalTimeTicks));
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     interrupts();
 #endif

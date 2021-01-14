@@ -14,6 +14,13 @@
 #endif
 #include "general.h"        // required for definition of MotionSpeedProfile
 
+enum class motionSpeedProfileOrder : uint8_t {
+    firstOrder,
+    secondOrder
+};        // Shape of the speedprofile : first or second order
+
+
+
 class SpeedProfileAccDec {
   public:
     SpeedProfileAccDec();                                    //

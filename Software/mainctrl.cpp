@@ -5,10 +5,10 @@
 // ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
 // #############################################################################
 
-#include "logging.h"
 #include "mainctrl.h"
 #include "eventbuffer.h"
 #include "hostinterface.h"
+#include "logging.h"
 
 extern uLog theLog;
 
@@ -18,7 +18,7 @@ mainController::mainController(machineProperties &someMachineProperties, eventBu
 void mainController::run() {
     theMotionCtrl.run();
     //theMotionCtrl.optimize();
-    handleEvents();          // handle all events such as buttons pressed, limit switches triggering, motions being completed..
+    handleEvents();        // handle all events such as buttons pressed, limit switches triggering, motions being completed..
     //handleMessages();        // handle all input from the external hostInterface
 }
 
@@ -28,14 +28,56 @@ void mainController::handleMessages() {
 
         command aCommand;
 
-        if (ESC == commandLine[0]) {
+        if (ESC == commandLine[0]) {                   // all commands are preceded by a special char, which can never appear in gCode
             aCommand = (command)commandLine[1];        // non gCode commands
-        } else {
-            aCommand = command::gCode;        // gCode
+        } else {                                       //
+            aCommand = command::gCode;                 // gCode
         }
 
-        switch (theMainState) {
-            case mainState::Ready:
+
+
+        //switch (mainState) {
+        //    case mainStates::ready:
+        //        switch (theEvent) {
+        //            case event::feedHoldResumeButtonPressed:
+        //                if (!theMotionCtrl.theMotionBuffer.isEmpty()) {
+        //                    theMotionCtrl.theState = motionState::running;
+        //                } else {
+        //                    theLog.output(loggingLevel::Error, "go without data");
+        //                }
+        //                break;
+        //            default:
+        //                break;
+        //        }
+        //    case mainStates::homing:
+        //        homing(theEvent);
+        //        break;
+        //    case mainStates::probing:
+        //        probing(theEvent);
+        //        break;
+        //    case mainStates::running:
+        //        switch (theEvent) {
+        //            case event::allMotionsCompleted:
+        //                gotoState(mainStates::ready);
+        //                break;
+        //            case event::feedHoldResumeButtonPressed:
+        //                theMotionCtrl.theState = motionState::stopping;
+        //                theMotionCtrl.optimize();
+        //                theMotionCtrl.optimize();
+        //                theMotionCtrl.optimize();
+        //                break;
+        //            default:
+        //                break;
+        //        }
+        //        break;
+        //    case mainStates::error:
+        //        break;
+        //    default:
+        //        break;
+        //}
+
+        switch (mainState) {
+            case mainStates::ready:
                 switch (aCommand) {
                     case command::gCode:
                         theParser.getBlock(commandLine);        // Parse the line of gCode text into a gCodeBlock
@@ -46,7 +88,7 @@ void mainController::handleMessages() {
                                     break;
                                 case gCodeParserResult::ParseResultType::OkContextUpdateAndMotion:
                                     theMotionCtrl.append(theResult);
-                                    //mainState = mainState::RUNNING;
+                                    //mainStates = mainStates::RUNNING;
                                     break;
                                 case gCodeParserResult::ParseResultType::Error:
                                     break;
@@ -58,51 +100,25 @@ void mainController::handleMessages() {
 
                     case command::cancel:
                         break;
-                    case command::uploadFile:
-                        break;
                     case command::doHome:
+                        gotoState(mainStates::homing);
+                        // TODO : start the homing sequence
+                        break;
                     case command::doProbe:
-                    case command::jog:
-                    case command::executeFile:
-                    case command::override:
+                        gotoState(mainStates::probing);
+                        // TODO : start the probing sequence
+                        break;
+                    case command::setOverride:
+                        // TODO : set the overrides
                         break;
                     default:
                         break;
                 }
                 break;
 
-            case mainState::Loading:
-                switch (aCommand)        // then , depending on the command...
-                {
-                    case command::gCode:
-                    case command::doHome:
-                    case command::doProbe:
-                    case command::jog:
-                    case command::uploadFile:
-                    case command::executeFile:
-                    case command::override:
-                        //theHostInterface.sendMessage("invalid command\n");
-                        // unsupported commands in this state...
-                        break;
-                    default:
-                        // undefined command codes...
-                        break;
-                }
             default:
                 break;
         }
-
-        //responseMsg[0] = 0x0;	// clear the responseString
-        //theHostInterface.getStatus(responseMsg, 0xFF);
-        //theHostInterface.sendMessage(responseMsg);
-
-        //responseMsg[0] = 0x0;	// clear the responseString
-        //theParser.getState(responseMsg, 0xFF);
-        //theHostInterface.sendMessage(responseMsg);
-
-        //responseMsg[0] = 0x0;	// clear the responseString
-        //theMotion.getState(responseMsg, 0xFF);	// This will return the motionBufferLevel, which is needed for the sndr to do its flowControl
-        //theHostInterface.sendMessage(responseMsg);
     }
 }
 
@@ -168,18 +184,31 @@ void mainController::initialize() {
     theMotionCtrl.append(theResult);
 }
 
+void mainController::gotoState(mainStates newState) {
+    theLog.snprintf(loggingLevel::Debug, "mainState from %s -> %s", toString(mainState), toString(newState));
+    mainState = newState;
+}
+
+void mainController::gotoHomingState(homingStates newState) {
+    //theLog.snprintf(loggingLevel::Debug, "homingState from %s -> %s", toString(homingState), toString(newState));
+    homingState = newState;
+}
+
+void mainController::gotoProbingState(probingStates newState) {
+    //theLog.snprintf(loggingLevel::Debug, "probingState from %s -> %s", toString(probingState), toString(newState));
+    probingState = newState;
+}
+
 void mainController::handleEvents() {
     while (theEventBuffer.hasEvents()) {
         event theEvent = theEventBuffer.popEvent();
 
-        switch (theMainState) {
-            case mainState::Ready:
+        switch (mainState) {
+            case mainStates::ready:
                 switch (theEvent) {
                     case event::feedHoldResumeButtonPressed:
                         if (!theMotionCtrl.theMotionBuffer.isEmpty()) {
                             theMotionCtrl.theState = motionState::running;
-                            theMainState           = mainState::Running;
-                            theLog.output(loggingLevel::Debug, toString());
                         } else {
                             theLog.output(loggingLevel::Error, "go without data");
                         }
@@ -187,19 +216,16 @@ void mainController::handleEvents() {
                     default:
                         break;
                 }
-            case mainState::Homing:
+            case mainStates::homing:
                 homing(theEvent);
                 break;
-            case mainState::Jogging:
-                break;
-            case mainState::Probing:
+            case mainStates::probing:
                 probing(theEvent);
                 break;
-            case mainState::Running:
+            case mainStates::running:
                 switch (theEvent) {
                     case event::allMotionsCompleted:
-                        theMainState           = mainState::Ready;
-                        theLog.output(loggingLevel::Debug, toString());
+                        gotoState(mainStates::ready);
                         break;
                     case event::feedHoldResumeButtonPressed:
                         theMotionCtrl.theState = motionState::stopping;
@@ -207,31 +233,11 @@ void mainController::handleEvents() {
                         theMotionCtrl.optimize();
                         theMotionCtrl.optimize();
                         break;
-                    case event::motionStopped:
-                        theMainState = mainState::Pausing;
-                        theLog.output(loggingLevel::Debug, toString());
-                        break;
                     default:
                         break;
                 }
                 break;
-            case mainState::Pausing:
-                switch (theEvent) {
-                    case event::feedHoldResumeButtonPressed:
-                        theMotionCtrl.theState = motionState::running;
-                        theMotionCtrl.optimize();
-                        theMotionCtrl.optimize();
-                        theMotionCtrl.optimize();
-                        theMainState = mainState::Running;
-                        theLog.output(loggingLevel::Debug, toString());
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case mainState::Loading:
-                break;
-            case mainState::Error:
+            case mainStates::error:
                 break;
             default:
                 break;
@@ -239,35 +245,25 @@ void mainController::handleEvents() {
     }
 }
 
-
-    const char *mainController::toString() const {
-    switch (theMainState) {
-            case mainState::Ready:
+const char *mainController::toString(mainStates theState) const {
+    switch (theState) {
+        case mainStates::ready:
             return "ready";
-                break;
-            case mainState::Homing:
-                return "";
-                break;
-            case mainState::Jogging:
-                return "";
-                break;
-            case mainState::Probing:
-                return "";
-                break;
-            case mainState::Running:
-                return "running";
-                break;
-            case mainState::Pausing:
-                return "pausing";
-                break;
-            case mainState::Loading:
-                return "";
-                break;
-            case mainState::Error:
-                return "error";
-                break;
-            default:
-                return "unknown";
-                break;
+            break;
+        case mainStates::homing:
+            return "homing";
+            break;
+        case mainStates::probing:
+            return "probing";
+            break;
+        case mainStates::running:
+            return "running";
+            break;
+        case mainStates::error:
+            return "error";
+            break;
+        default:
+            return "unknown";
+            break;
     }
 }

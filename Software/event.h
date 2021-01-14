@@ -1,13 +1,12 @@
 #pragma once
 
-
 #ifndef WIN32
 #include <Arduino.h>
 #else
 #include <stdint.h>
 #endif
 
-    enum class event : uint8_t {
+enum class event : uint8_t {
     none,
     emergencyStopButtonPressed,
     emergencyStopButtonReleased,
@@ -34,4 +33,3 @@
     motionStopped,
     motionBufferOverflow
 };
-

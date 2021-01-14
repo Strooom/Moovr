@@ -12,7 +12,7 @@
 #else
 #include <stdint.h>
 #endif
-#include "eventbuffer.h"
+#include "event.h"
 
 // -------------------------------
 // raw GPIO - hardware abstraction
@@ -22,10 +22,10 @@
 
 class inputs {
   public:
-    inputs();
-    bool get(uint32_t index);
-    void sample();
-    bool isReady() const;
+    inputs();                        // constructor, configures the hardware
+    bool get(uint32_t index);        // get a specific bit of inputs HAL-copy
+    void sample();                   // read HW inputs into HAL-copy
+    bool isReady() const;            //
 
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     static constexpr uint32_t nmbrInputs{12U};              // how many inputs does this particular HW have
@@ -37,7 +37,7 @@ class inputs {
   private:        // commented out during unit testing
 #endif
     uint32_t theInputs{0};
-    static constexpr uint32_t inputMask{0x00'00'0F'FF};        // this mask allows to invert individual bits in case of active low signals, io active high
+    static constexpr uint32_t inputMask{0x00'00'0F'FF};        // this mask allows to invert individual bits in case of active low signals, io active high TODO : this should go to machineProperties
     bool ready{false};
 };
 
@@ -49,8 +49,8 @@ class inputs {
 class debouncedInput {
   public:
     debouncedInput(inputs &someInputs, uint32_t index, event onOpen, event onClose);        // constructor
-    bool getState() const;                                                                 // get current state of the input
-    event getEvent();                                                                      // get press or release event
+    bool getState() const;                                                                  // get current state of the input
+    event getEvent();                                                                       // get press or release event
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
@@ -60,8 +60,8 @@ class debouncedInput {
     const event onOpen;          // event to generate when this input opens
     const event onClose;         // event to generate when this input closes
 
-    static constexpr uint32_t debounceMaxCount = 4U;           // sets the upper boundary for debounceCounter : 4 * 5ms = 20ms
-    uint32_t debounceCounter                   = 0U;           // counts up (input high) or down (input low) until it hits boundaries 0 or maxCount
-    bool currentState                          = false;        // after debouncing : true : button is pressed, false : button is not pressed
-    bool previousState                         = false;        // remembers previous state, to detect flanks
+    static constexpr uint32_t debounceMaxCount{4U};        // sets the upper boundary for debounceCounter : 4 * 5ms = 20ms
+    uint32_t debounceCounter{0U};                          // counts up (input high) or down (input low) until it hits boundaries 0 or maxCount
+    bool currentState{false};                              // after debouncing : true : button is pressed, false : button is not pressed
+    bool previousState{false};                             // remembers previous state, to detect flanks
 };

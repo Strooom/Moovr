@@ -76,6 +76,6 @@ void hardwareTimers::enableOutputTimer(bool onOff) {
 
 void hardwareTimers::setOutputTimerReload(uint32_t value) {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
-    PIT_LDVAL1 = value;                                     // TODO think about using value or value - 1, what should be most logical and simple ?
+    PIT_LDVAL1 = value;                                     // 
 #endif
 }

@@ -11,8 +11,9 @@
 #else
 #include <stdint.h>
 #endif
-#include "gcodeparseresult.h"        // required as gCodeParseResult is passed as a parameter to some memberfunctions
+#include "gcodeparseresult.h"        // gCodeParseResult is passed as a parameter to some memberfunctions
 #include "general.h"                 // required for definition of MotionSpeedProfile
+
 
 class motionPeripherals {
   public:

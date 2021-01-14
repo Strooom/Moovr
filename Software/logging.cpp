@@ -78,18 +78,18 @@ void uLog::log(loggingLevel itemLoggingLevel, const char* aText) {
         length = strnlen(tmpStr, 16);
         if (checkLogBufferLevel(length)) {
             strncat(logBuffer, tmpStr, length);
-            bufferLevel += length;
+            level += length;
         }
 
         length = strnlen(aText, maxItemLength);
         if (checkLogBufferLevel(length)) {
             strncat(logBuffer, aText, length);
-            bufferLevel += length;
+            level += length;
         }
 
         if (checkLogBufferLevel(1)) {
             strcat(logBuffer, "\n");
-            bufferLevel++;
+            level++;
         }
     }
 }
@@ -117,14 +117,14 @@ void uLog::flush() {
 void uLog::output() {
     if (outputIsAvailable)        // only when output is available can we really send something there. If not we just keep it in the buffer for later..
     {
-        if (bufferLevel > 0) {
+        if (level > 0) {
 #ifdef WIN32
             std::cout << logBuffer;
 #else
             Serial.print(logBuffer);
 #endif
             logBuffer[0] = 0x00;        // reset logBuffer to empty string : terminating zero
-            bufferLevel  = 0;           // setting level back to zero
+            level  = 0;           // setting level back to zero
         }
     }
 }
@@ -149,7 +149,7 @@ void uLog::logTimestamp() {
         strcat(logBuffer, spaces);
         strcat(logBuffer, tmpStr);
         strcat(logBuffer, "-");
-        bufferLevel += (timestampLength + 1);
+        level += (timestampLength + 1);
     }
 }
 
@@ -158,5 +158,5 @@ bool uLog::checkLoggingLevel(loggingLevel itemLoggingLevel) const {
 }
 
 bool uLog::checkLogBufferLevel(uint32_t itemLength) const {
-    return (bufferLength >= (bufferLevel + itemLength));
+    return (length >= (level + itemLength));
 }

@@ -17,18 +17,18 @@
 class eventBuffer {
   public:
     eventBuffer();
-    void pushEvent(event anEvent);                                 // push an event onto the eventBuffer
-    event popEvent();                                              // pop an event from the eventbuffer
-    bool hasEvents();                                              // check if there are any events
-    uint32_t getBufferLevelMax();                                  // this allows to get the maximum number of items in the buffer, to help dimensioning it
-    const char* toString(event anEvent) const;        // translate event code to string
+    void pushEvent(event anEvent);                     // push an event onto the eventBuffer
+    event popEvent();                                  // pop an event from the eventbuffer
+    bool hasEvents();                                  // check if there are any events
+    uint32_t getLevelMax();                            // this allows to get the maximum number of items in the buffer, to help dimensioning it
+    static const char* toString(event anEvent);        // translate event code to string
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
-    static constexpr uint32_t bufferLength{32U};
-    event theEventBuffer[bufferLength]{};
-    uint32_t bufferReadIndex{0};
-    uint32_t bufferLevel{0};
-    uint32_t bufferLevelMax{0};
+    static constexpr uint32_t length{32U};
+    event theEventBuffer[eventBuffer::length]{};
+    uint32_t head{0};
+    uint32_t level{0};
+    uint32_t levelMax{0};
 };

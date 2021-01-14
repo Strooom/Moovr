@@ -17,19 +17,18 @@ class stepBuffer {
     void initialize();
     void write(step aStep);
     step read();
-    uint32_t getBufferTimeInTicks() const;
-    uint32_t getBufferLevel() const;
+    uint32_t getTimeInTicks() const;
+    uint32_t getLevel() const;
     bool needsFilling() const;
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
-    static constexpr uint32_t bufferLength = 256;        //
-    step buffer[bufferLength];                           //
-    uint32_t bufferLevel;                                //
-    //static constexpr uint32_t minBufferLevel = minBufferLevel;        // number of ITEMS we want AT LEAST in the buffer
-    uint32_t bufferHead;                                 //
-    uint32_t bufferTimeInTicks;                          // this keeps track of the total timeBefore off all items in the buffer
+    static constexpr uint32_t length = 256;        //
+    step buffer[stepBuffer::length];               //
+    uint32_t level;                                //
+    uint32_t head;               //
+    uint32_t timeInTicks;        // this keeps track of the total timeBefore off all items in the buffer
 
   public:
 };

@@ -45,25 +45,3 @@ enum class motionType : uint8_t {
     None,                  // When parsing a gCode block results in no motion, the motionType = None
     nmbrMotionTypes
 };
-
-enum class motionState : uint8_t {
-    ready,
-    running,
-    stopping,
-    stopped
-};        // State of the MotionController
-
-enum class motionStrategy : uint8_t {
-    minimizeSpeed,
-    maximizeSpeed
-};
-
-enum class motionSpeedProfileOrder : uint8_t {
-    firstOrder,
-    secondOrder
-};        // Shape of the speedprofile : first or second order
-
-enum class motionCalculateDirection : uint8_t {
-    forward,
-    reverse
-};

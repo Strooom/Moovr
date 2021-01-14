@@ -16,15 +16,15 @@ void sampleTime::reset() {
 }
 
 bool sampleTime::isBeyondEndOfMotion() const {
-    return (timeInMotionFloat > theMotionBuffer.current()->speedProfile.duration);
+    return (timeInMotionFloat > theMotionBuffer.getHeadPtr()->speedProfile.duration);
 }
 
 bool sampleTime::isBeyondStop() const {
-    return (timeInMotionFloat > theMotionBuffer.current()->speedProfile.tStop);
+    return (timeInMotionFloat > theMotionBuffer.getHeadPtr()->speedProfile.tStop);
 }
 
 void sampleTime::nextMotion() {
     sampleIndex      = 0;
-    sampleZeroOffset = timeInMotionFloat - theMotionBuffer.current()->speedProfile.duration;
+    sampleZeroOffset = timeInMotionFloat - theMotionBuffer.getHeadPtr()->speedProfile.duration;
     timeInMotionFloat = sampleZeroOffset;
 }

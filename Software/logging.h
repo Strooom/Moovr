@@ -76,9 +76,9 @@ class uLog {
     bool checkLoggingLevel(loggingLevel itemLoggingLevel) const;        // check if this msg needs to be logged, comparing msg level vs logger level
     bool checkLogBufferLevel(uint32_t itemLength) const;                // check if there is sufficient space in the buffer to add the msg
     static constexpr uint32_t maxItemLength = 128;                      // Maximum length of new item to be logged. Will be an upper limit to all C-style string like strnlen()
-    static constexpr uint32_t bufferLength  = 1024;                     // Length of the buffer to temporarily store the logging data, until being sent to an ouptut
-    char logBuffer[bufferLength + 1];                                   // buffer to store logdata when output is not yet available. + 1 for terminating zero
-    uint32_t bufferLevel = 0;                                           // keeping track of how much data is in the buffer
+    static constexpr uint32_t length  = 1024;                     // Length of the buffer to temporarily store the logging data, until being sent to an ouptut
+    char logBuffer[length + 1];                                   // buffer to store logdata when output is not yet available. + 1 for terminating zero
+    uint32_t level = 0;                                           // keeping track of how much data is in the buffer
     loggingLevel theLoggingLevel[4];                                    // controls what amount of information to log : from nothing to everything. There is a stack of 4 levels, so pushing and popping is possible
     bool outputIsAvailable                    = false;                  // by default the output is not available and needs to be activated first
     bool includeTimestamp                     = false;                  // by default the output lines are not prefixed with a timestamp

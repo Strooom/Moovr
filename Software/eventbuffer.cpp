@@ -1,16 +1,7 @@
-// #############################################################################
-// ### This file is part of the source code for the Moovr CNC Controller     ###
-// ### https://github.com/Strooom/Moovr                                      ###
-// ### Author(s) : Pascal Roobrouck - @strooom                               ###
-// ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
-// #############################################################################
-
 #include "eventbuffer.h"
 #include "logging.h"
 
 extern uLog theLog;
-
-// TODO : check if this threadprotection is needed... Where do we post events from other threads ?
 
 eventBuffer::eventBuffer() {}
 
@@ -21,11 +12,11 @@ void eventBuffer::pushEvent(event theEvent) {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
         noInterrupts();
 #endif
-        if (bufferLevel < bufferLength) {
-            theEventBuffer[(bufferReadIndex + bufferLevel) % bufferLength] = theEvent;        // write new event at next writeIndex = readIndex + Level
-            bufferLevel++;                                                                    // adjust level to one item more
-            if (bufferLevel > bufferLevelMax) {
-                bufferLevelMax = bufferLevel;
+        if (level < length) {
+            theEventBuffer[(head + level) % length] = theEvent;        // write new event at next writeIndex = readIndex + Level
+            level++;                                                   // adjust level to one item more
+            if (level > levelMax) {
+                levelMax = level;
             }
         } else {
             theLog.output(loggingLevel::Error, "Eventbuffer Overflow");
@@ -41,10 +32,10 @@ event eventBuffer::popEvent() {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     noInterrupts();
 #endif
-    if (bufferLevel > 0U) {
-        theEvent        = theEventBuffer[bufferReadIndex];              // read the oldest event
-        bufferReadIndex = (bufferReadIndex + 1U) % bufferLength;        // advance readIndex to next position
-        bufferLevel--;                                                  // adjust level to one item less
+    if (level > 0U) {
+        theEvent = theEventBuffer[head];        // read the oldest event
+        head     = (head + 1U) % length;        // advance readIndex to next position
+        level--;                                // adjust level to one item less
     } else {
         theLog.output(loggingLevel::Error, "Eventbuffer Underflow");
     }
@@ -59,30 +50,35 @@ bool eventBuffer::hasEvents() {
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     noInterrupts();
 #endif
-    bool hasEvents = (bufferLevel > 0U);
+    bool hasEvents = (level > 0U);                          // make thread-safe copy
 #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
     interrupts();
 #endif
     return hasEvents;
 }
 
-uint32_t eventBuffer::getBufferLevelMax() {
-    // TODO : check if we need to disable/re-enable interrupts here
-    uint32_t tmpLevel = bufferLevelMax;        //
-    bufferLevelMax    = 0U;                    // reset level when after reading it
-    return tmpLevel;
+uint32_t eventBuffer::getLevelMax() {
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    noInterrupts();
+#endif
+    uint32_t getLevelMax = levelMax;                        // make thread-safe copy
+    levelMax             = 0U;                              // reset level after reading it
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+    interrupts();
+#endif
+    return getLevelMax;
 }
 
-
-const char * eventBuffer::toString(event anEvent) const {
+const char* eventBuffer::toString(event anEvent) {
     switch (anEvent) {
         case event::none:
             return "none";
             break;
         case event::emergencyStopButtonPressed:
-            return "";
+            return "emergencyStop button pressed";
             break;
         case event::emergencyStopButtonReleased:
+            return "emergencyStop button released";
             break;
         case event::feedHoldResumeButtonPressed:
             return "feed Hold/Resume button pressed";
@@ -91,49 +87,49 @@ const char * eventBuffer::toString(event anEvent) const {
             return "feed Hold/Resume button released";
             break;
         case event::probeSwitchClosed:
-            return "";
+            return "probeSwitch closed";
             break;
         case event::probeSwitchOpened:
-            return "";
+            return "probeSwitch opened";
             break;
         case event::limitSwitchXMinClosed:
-            return "";
+            return "limitSwitch XMin closed";
             break;
         case event::limitSwitchYMinClosed:
-            return "";
+            return "limitSwitch YMin closed";
             break;
         case event::limitSwitchZMinClosed:
-            return "";
+            return "limitSwitch ZMin closed";
             break;
         case event::limitSwitchXMaxClosed:
-            return "";
+            return "limitSwitch XMax closed";
             break;
         case event::limitSwitchYMaxClosed:
-            return "";
+            return "limitSwitch YMax closed";
             break;
         case event::limitSwitchZMaxClosed:
-            return "";
+            return "limitSwitch ZMax closed";
             break;
         case event::limitSwitchXMinOpened:
-            return "";
+            return "limitSwitch XMin opened";
             break;
         case event::limitSwitchYMinOpened:
-            return "";
+            return "limitSwitch YMin opened";
             break;
         case event::limitSwitchZMinOpened:
-            return "";
+            return "limitSwitch ZMin opened";
             break;
         case event::limitSwitchXMaxOpened:
-            return "";
+            return "limitSwitch XMax opened";
             break;
         case event::limitSwitchYMaxOpened:
-            return "";
+            return "limitSwitch YMax opened";
             break;
         case event::limitSwitchZMaxOpened:
-            return "";
+            return "limitSwitch ZMax opened";
             break;
         case event::motionAdded:
-            return "";
+            return "motion added";
             break;
         case event::motionCompleted:
             return "motion completed";
@@ -142,15 +138,16 @@ const char * eventBuffer::toString(event anEvent) const {
             return "all motions completed";
             break;
         case event::motionStarted:
-            return "";
+            return "motion started";
             break;
         case event::motionStopped:
             return "motion stopped";
             break;
         case event::motionBufferOverflow:
-            return "";
+            return "motionBufferOverflow";
             break;
         default:
+            return "unknown";
             break;
     }
 }

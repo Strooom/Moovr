@@ -18,36 +18,52 @@
 #include "gcodeparseresult.h"         // motionControl received a gCodeParseResult parameter in append()
 #include "machineproperties.h"        //
 #include "motionbuffer.h"             // motionControl contains a motionBuffer
-#include "sampletime.h"
-#include "step.h"               // needed for definition of step, this is an output calculated by Motion
-#include "stepbuffer.h"         //
-#include "stepsignals.h"        //
+#include "sampletime.h"               //
+#include "step.h"                     // needed for definition of step, this is an output calculated by Motion
+#include "stepbuffer.h"               //
+#include "stepsignals.h"              //
+
+enum class motionState : uint8_t {
+    ready,
+    running,
+    stopping,
+    stopped
+};
 
 class motionCtrl {
   public:
     motionCtrl(eventBuffer &anEventBuffer, machineProperties &someMachineProperties, overrides &someOverrides, stepBuffer &aStepBuffer);
     void run();                                                                          //
-    void optimize();                                                                     //
-    void optimizePair(int32_t junctionIndex);                                            //
     void append(gCodeParserResult &aParseResult);                                        //
+
+    // start() : start the motion
+    // stop() : stop the motion
+    // notifyStop()
+    // notifyComplete();
+
+    void stop();
+    void next();
     float vJunction(uint32_t left, uint32_t right) const;                                //
-    motionStrategy strategy() const;                                                     //
-    step nextStep();                                                                     //
-    bool needStepForward(uint8_t anAxis);                                                //
-    bool needStepBackward(uint8_t anAxis);                                               //
-    void calcNextPositionInMm(uint8_t anAxis, float sNow, motion *currentMotion);        //
+
     motionState theState = motionState::ready;
     bool isRunning() const;
     bool isStopped() const;
-    void calcStepSignals();
-    void stop();
-    void next();
-    motionBuffer theMotionBuffer;                                  // instance of the object
 
+    motionStrategy strategy() const;                                                     //
+
+    motionBuffer theMotionBuffer;        // instance of the object
 
 #ifndef UnitTesting
   private:        // commented out during unit testing
 #endif
+    void calcStepSignals();
+    void calcNextPositionInMm(uint8_t anAxis, float sNow, motion *currentMotion);        //
+    bool needStepForward(uint8_t anAxis);                                                //
+    bool needStepBackward(uint8_t anAxis);                                               //
+    step nextStep();                                                                     //
+    void optimize();                                                                     //
+    void optimizePair(int32_t junctionIndex);                                            //
+
     machineProperties &theMachineProperties;        // reference to all the pysical properties of the machine - to be read frm .cfg file
     eventBuffer &theEventBuffer;                    // reference to the eventBuffer of the parent mainController, so this class can push events there
     overrides &theOverrides;                        // reference to override settings for feedrate and spindle-rpm

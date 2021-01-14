@@ -24,22 +24,22 @@ void motionCtrl::append(gCodeParserResult &theParseResult) {
 }
 
 void motionCtrl::optimize() {
-    switch (theMotionBuffer.level()) {
+    switch (theMotionBuffer.getLevel()) {
         case 0:
             isOptimal = true;
             break;
         case 1:
-            theMotionBuffer.current()->optimizeCurrent(strategy(), theOverrides, theSampleTime.timeInMotionFloat);        // ToDo : add a real time here, so we properly optimize the current motion
+            theMotionBuffer.getHeadPtr()->optimizeCurrent(strategy(), theOverrides, theSampleTime.timeInMotionFloat);        // ToDo : add a real time here, so we properly optimize the current motion
             break;
         default:
             switch (strategy()) {
                 case motionStrategy::minimizeSpeed:
-                    for (int32_t junctionIndex = 0; junctionIndex <= ((int32_t)theMotionBuffer.level() - 2); junctionIndex++) {
+                    for (int32_t junctionIndex = 0; junctionIndex <= ((int32_t)theMotionBuffer.getLevel() - 2); junctionIndex++) {
                         optimizePair(junctionIndex);
                     }
                     break;
                 case motionStrategy::maximizeSpeed:
-                    for (int32_t junctionIndex = (theMotionBuffer.level() - 2); junctionIndex >= 0; junctionIndex--) {
+                    for (int32_t junctionIndex = (theMotionBuffer.getLevel() - 2); junctionIndex >= 0; junctionIndex--) {
                         optimizePair(junctionIndex);
                     }
                     break;
@@ -49,8 +49,8 @@ void motionCtrl::optimize() {
 }
 
 void motionCtrl::optimizePair(int32_t junctionIndex) {
-    uint32_t left  = (theMotionBuffer.readIndex + junctionIndex) % theMotionBuffer.bufferLength;            // index of the left motion (oldest)
-    uint32_t right = (theMotionBuffer.readIndex + junctionIndex + 1) % theMotionBuffer.bufferLength;        // index of the right motion (newest)
+    uint32_t left  = (theMotionBuffer.head + junctionIndex) % theMotionBuffer.length;            // index of the left motion (oldest)
+    uint32_t right = (theMotionBuffer.head + junctionIndex + 1) % theMotionBuffer.length;        // index of the right motion (newest)
     float v        = vJunction(left, right);                                                                // exit-entry speed between the motion-pair after optimizing
 
     // Todo : if the vStart/vEnd is already vJunction, then further optimizing is not possible. If all of the junctions are optimal, then the complete motion is optimal
@@ -102,10 +102,10 @@ step motionCtrl::nextStep() {
 
 void motionCtrl::calcStepSignals() {
     // TODO : could maybe optimize by storing local copy of theMotionBuffer.current()
-    float sNow = theMotionBuffer.current()->s(theSampleTime.timeInMotionFloat);
+    float sNow = theMotionBuffer.getHeadPtr()->s(theSampleTime.timeInMotionFloat);
     for (uint8_t anAxis = 0; anAxis < (uint8_t)axis::nmbrAxis; ++anAxis) {
-        if (theMotionBuffer.current()->isMoving(anAxis)) {
-            calcNextPositionInMm(anAxis, sNow, theMotionBuffer.current());
+        if (theMotionBuffer.getHeadPtr()->isMoving(anAxis)) {
+            calcNextPositionInMm(anAxis, sNow, theMotionBuffer.getHeadPtr());
             if (needStepForward(anAxis)) {
                 theStepSignals.stepForward(anAxis);
                 currentPositionInSteps[anAxis]++;
