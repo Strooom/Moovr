@@ -1,0 +1,162 @@
+Date : 2022-03-26 21:21:18
+Directory : c:\Users\Pascal\Documents\GitHub\Moovr\test
+Total : 120 files,  1108 codes, -241 comments, 168 blanks, all 1035 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| C++      |        116 |      1,115 |       -241 |        170 |      1,044 |
+| Markdown |          4 |         -7 |          0 |         -2 |         -9 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                | files      | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                   |        120 |      1,108 |       -241 |        168 |      1,035 |
+| ..                                                                                                  |         71 |     -2,395 |       -464 |       -480 |     -3,339 |
+| ..\lib                                                                                              |         71 |     -2,395 |       -464 |       -480 |     -3,339 |
+| ..\lib\gcode                                                                                        |          9 |       -149 |        -42 |        -44 |       -235 |
+| ..\lib\general                                                                                      |         12 |       -120 |        -43 |        -30 |       -193 |
+| ..\lib\hostinterface                                                                                |          4 |       -149 |        -31 |        -45 |       -225 |
+| ..\lib\machine                                                                                      |          2 |        -73 |        -15 |        -20 |       -108 |
+| ..\lib\maincontroller                                                                               |         11 |       -321 |        -33 |        -32 |       -386 |
+| ..\lib\motion                                                                                       |         21 |     -1,254 |       -173 |       -217 |     -1,644 |
+| ..\lib\stepper                                                                                      |          5 |       -147 |        -53 |        -37 |       -237 |
+| ..\lib\switchesbuttons                                                                              |          4 |       -129 |        -47 |        -33 |       -209 |
+| ..\lib\timers                                                                                       |          3 |        -53 |        -27 |        -22 |       -102 |
+| generic-eventbuffer                                                                                 |          1 |         57 |          0 |          8 |         65 |
+| generic-stepbuffer                                                                                  |          1 |         50 |          2 |         10 |         62 |
+| generic-stepsignals                                                                                 |          1 |         66 |          0 |          8 |         74 |
+| oldtest                                                                                             |         22 |      1,841 |         98 |        325 |      2,264 |
+| test-generic                                                                                        |         16 |        959 |         27 |        168 |      1,154 |
+| test-target-teensy36                                                                                |          8 |        530 |         96 |        129 |        755 |
++-----------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++-----------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                            | language | code       | comment    | blank      | total      |
++-----------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\gcodeparseerror.cpp                                | C++      |        -11 |         -1 |         -2 |        -14 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\gcodeparseerror.h                                  | C++      |        -26 |         -6 |        -11 |        -43 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\gcodeparseresult.h                                 | C++      |        -54 |         -8 |        -15 |        -77 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\gcodeparseresulttype.cpp                           | C++      |        -17 |         -1 |         -1 |        -19 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\gcodeparseresulttype.h                             | C++      |        -11 |         -6 |         -3 |        -20 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\gcodeperipherals.h                                 | C++      |         -9 |         -6 |         -3 |        -18 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\gcodespeedprofile.h                                | C++      |         -6 |         -6 |         -3 |        -15 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\gcodetrajectory.h                                  | C++      |        -13 |         -8 |         -5 |        -26 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\gcode\todo.md                                            | Markdown |         -2 |          0 |         -1 |         -3 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\axis.cpp                                         | C++      |        -17 |          0 |         -2 |        -19 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\axis.h                                           | C++      |        -10 |         -7 |         -3 |        -20 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\buildconfig.h                                    | C++      |         -2 |        -12 |         -3 |        -17 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\motionstrategy.cpp                               | C++      |        -15 |          0 |         -1 |        -16 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\motionstrategy.h                                 | C++      |         -7 |         -6 |         -3 |        -16 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\plane.cpp                                        | C++      |        -17 |          0 |         -2 |        -19 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\plane.h                                          | C++      |        -10 |         -6 |         -3 |        -19 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\rotationdirection.cpp                            | C++      |        -14 |          0 |         -2 |        -16 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\rotationdirection.h                              | C++      |         -7 |         -6 |         -4 |        -17 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\todo.md                                          | Markdown |          0 |          0 |         -1 |         -1 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\version.cpp                                      | C++      |         -8 |          0 |         -2 |        -10 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\general\version.h                                        | C++      |        -13 |         -6 |         -4 |        -23 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\hostinterface\hostinterface.cpp                          | C++      |        -55 |         -6 |        -12 |        -73 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\hostinterface\hostinterface.h                            | C++      |        -23 |         -9 |        -11 |        -43 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\hostinterface\hostinterface_uart.h                       | C++      |        -12 |         -9 |         -6 |        -27 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\hostinterface\hostinterface_uart_MK64FX512_MK66FX1M0.cpp | C++      |        -59 |         -7 |        -16 |        -82 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\machine\machineproperties.cpp                            | C++      |         -5 |         -8 |         -4 |        -17 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\machine\machineproperties.h                              | C++      |        -68 |         -7 |        -16 |        -91 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\event.cpp                                 | C++      |        -83 |          0 |         -2 |        -85 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\event.h                                   | C++      |        -30 |         -6 |         -4 |        -40 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\eventbuffer.cpp                           | C++      |        -57 |         -3 |         -8 |        -68 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\eventbuffer.h                             | C++      |        -20 |         -6 |         -4 |        -30 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\homingstate.cpp                           | C++      |        -50 |          0 |         -2 |        -52 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\homingstate.h                             | C++      |        -19 |         -6 |         -4 |        -29 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\mainstate.cpp                             | C++      |        -23 |          0 |         -2 |        -25 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\mainstate.h                               | C++      |        -10 |         -6 |         -2 |        -18 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\probingstate.cpp                          | C++      |        -17 |          0 |         -1 |        -18 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\probingstate.h                            | C++      |         -8 |         -6 |         -3 |        -17 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\maincontroller\todo.md                                   | Markdown |         -4 |          0 |          0 |         -4 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motion.cpp                                        | C++      |       -387 |        -29 |        -40 |       -456 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motion.h                                          | C++      |        -33 |         -6 |        -13 |        -52 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionbuffer.cpp                                  | C++      |        -37 |         -8 |        -10 |        -55 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionbuffer.h                                    | C++      |        -21 |         -6 |         -6 |        -33 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motioncalculatedirection.h                        | C++      |         -6 |         -6 |         -2 |        -14 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionctrl.cpp                                    | C++      |       -198 |        -22 |        -26 |       -246 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionctrl.h                                      | C++      |        -42 |         -6 |        -13 |        -61 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionperipherals.cpp                             | C++      |        -13 |          0 |         -3 |        -16 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionperipherals.h                               | C++      |        -17 |         -6 |         -5 |        -28 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionspeedprofile.cpp                            | C++      |        -25 |         -1 |         -6 |        -32 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionspeedprofile.h                              | C++      |        -26 |         -6 |         -6 |        -38 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionstate.cpp                                   | C++      |        -18 |          0 |         -1 |        -19 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motionstate.h                                     | C++      |         -8 |         -6 |         -3 |        -17 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motiontrajectory.cpp                              | C++      |        -62 |         -8 |        -11 |        -81 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motiontrajectory.h                                | C++      |        -20 |        -10 |         -9 |        -39 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motiontype.cpp                                    | C++      |        -29 |          0 |         -3 |        -32 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\motiontype.h                                      | C++      |        -12 |         -6 |         -3 |        -21 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\sampletime.cpp                                    | C++      |        -24 |          0 |         -7 |        -31 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\sampletime.h                                      | C++      |        -19 |         -6 |         -4 |        -29 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\speedprofile.cpp                                  | C++      |       -191 |        -31 |        -30 |       -252 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\motion\speedprofile.h                                    | C++      |        -66 |        -10 |        -16 |        -92 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\stepper\step.h                                           | C++      |         -6 |         -6 |         -2 |        -14 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\stepper\stepbuffer.cpp                                   | C++      |        -53 |        -19 |        -15 |        -87 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\stepper\stepbuffer.h                                     | C++      |        -23 |        -20 |         -9 |        -52 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\stepper\stepsignals.cpp                                  | C++      |        -44 |         -2 |         -7 |        -53 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\stepper\stepsignals.h                                    | C++      |        -21 |         -6 |         -4 |        -31 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\switchesbuttons\debouncedswitch.h                        | C++      |        -19 |         -6 |         -6 |        -31 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\switchesbuttons\switches.cpp                             | C++      |        -75 |        -19 |        -15 |       -109 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\switchesbuttons\switches.h                               | C++      |        -21 |        -16 |         -8 |        -45 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\switchesbuttons\switchesinterface.h                      | C++      |        -14 |         -6 |         -4 |        -24 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\timers\timers.h                                          | C++      |        -10 |        -15 |         -8 |        -33 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\timers\timers_MK64FX512_MK66FX1M0.cpp                    | C++      |        -42 |        -12 |        -14 |        -68 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\lib\timers\todo.md                                           | Markdown |         -1 |          0 |          0 |         -1 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\generic-eventbuffer\unittest-eventbuffer.cpp            | C++      |         57 |          0 |          8 |         65 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\generic-stepbuffer\unittest-stepbuffer.cpp              | C++      |         50 |          2 |         10 |         62 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\generic-stepsignals\unittest-stepsignals.cpp            | C++      |         66 |          0 |          8 |         74 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\HostInterfaceTests.ino                          | C++      |         98 |         11 |         28 |        137 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\InputOutputTests.ino                            | C++      |        112 |          8 |         21 |        141 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\MotionItemTests.ino                             | C++      |         23 |          6 |         11 |         40 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\MotionPartTests.ino                             | C++      |         57 |         10 |         11 |         78 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\MotionTests.ino                                 | C++      |         78 |         32 |         10 |        120 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\StepperTests.ino                                | C++      |         51 |          7 |         15 |         73 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestGCodeAndMotion.cpp                      | C++      |        169 |          6 |         34 |        209 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestGCodeBlock.cpp                          | C++      |         40 |          0 |          5 |         45 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestGCodeParser.cpp                         | C++      |         59 |          0 |         14 |         73 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestGCodeWord.cpp                           | C++      |         14 |          0 |          3 |         17 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestMainCtrl.cpp                            | C++      |         20 |          0 |          2 |         22 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestMotion.cpp                              | C++      |         84 |          3 |         13 |        100 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestMotionBuffer.cpp                        | C++      |         67 |          0 |         11 |         78 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestMotionControl.cpp                       | C++      |        318 |          0 |         45 |        363 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestSpeedProfile.cpp                        | C++      |         33 |          0 |          2 |         35 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestTrajectory.cpp                          | C++      |         23 |          0 |          2 |         25 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestingTarget.ino                           | C++      |         95 |          9 |         15 |        119 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestsGCode.cpp                              | C++      |         94 |          0 |         15 |        109 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestsGCodeAndMotion.cpp                     | C++      |        169 |          6 |         34 |        209 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestsGCodeParser.cpp                        | C++      |         59 |          0 |         14 |         73 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestsMotion.cpp                             | C++      |         44 |          0 |          5 |         49 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\oldtest\UnitTestsMotionControl.cpp                      | C++      |        134 |          0 |         15 |        149 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\UnitTestGCodeAndMotion.cpp                 | C++      |        171 |          6 |         35 |        212 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\UnitTestGCodeParser.cpp                    | C++      |         59 |          0 |         14 |         73 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\UnitTestMainCtrl.cpp                       | C++      |         19 |          0 |          3 |         22 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\UnitTestMotion.cpp                         | C++      |         84 |          3 |         13 |        100 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\UnitTestSpeedProfile.cpp                   | C++      |         33 |          0 |          2 |         35 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\UnitTestsMotion.cpp                        | C++      |         44 |          0 |          5 |         49 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\gCodeBlockUnitTest.cpp                     | C++      |         40 |          0 |          5 |         45 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\gCodeTests.ino                             | C++      |         64 |         14 |         20 |         98 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\gCodeWordUnitTest.cpp                      | C++      |         14 |          0 |          3 |         17 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\globals.cpp                                | C++      |          4 |          0 |          1 |          5 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\motionBufferUnitTests.cpp                  | C++      |         39 |          0 |          8 |         47 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\motionControlUnitTest.cpp                  | C++      |        183 |          4 |         30 |        217 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\sampleTimeUnitTests.cpp                    | C++      |         29 |          0 |          5 |         34 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\stepBufferUnitTests.cpp                    | C++      |         64 |          0 |         11 |         75 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\stepSignalsUnitTests.cpp                   | C++      |         89 |          0 |         11 |        100 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-generic\trajectoryUnitTests.cpp                    | C++      |         23 |          0 |          2 |         25 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-target-teensy36\HostInterfaceTests.ino             | C++      |         98 |         11 |         28 |        137 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-target-teensy36\InputOutputTests.ino               | C++      |        112 |          8 |         21 |        141 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-target-teensy36\MotionItemTests.ino                | C++      |         23 |          6 |         11 |         40 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-target-teensy36\MotionPartTests.ino                | C++      |         57 |         10 |         11 |         78 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-target-teensy36\MotionTests.ino                    | C++      |         78 |         32 |         10 |        120 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-target-teensy36\StepperTests.ino                   | C++      |         51 |          7 |         15 |         73 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-target-teensy36\UnitTestingTarget.ino              | C++      |         47 |          8 |         13 |         68 |
+| c:\Users\Pascal\Documents\GitHub\Moovr\test\test-target-teensy36\gCodeTests.ino                     | C++      |         64 |         14 |         20 |         98 |
+| Total                                                                                               |          |      1,108 |       -241 |        168 |      1,035 |
++-----------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
