@@ -19,20 +19,14 @@ class stepBuffer {
     step read();
     uint32_t getTimeInTicks() const;
     uint32_t getLevel() const;
-    // bool isFull() const;
-    // bool isEmpty() const;
     bool needsFilling() const;
 
-#ifndef unitTesting
   private:
-#endif
     static constexpr uint32_t length{256};        //
     step buffer[stepBuffer::length];              //
     uint32_t level{0};                            //
     uint32_t head{0};                             //
     uint32_t timeInTicks{0};                      // this keeps track of the total timeBefore off all items in the buffer
-
-  public:
 };
 
 // -----------------------------------------------------------------------

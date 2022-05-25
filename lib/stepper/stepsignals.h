@@ -19,9 +19,7 @@ class stepSignals {
     step outputDefault();                    //
     bool isTimedOut();                       //
 
-#ifndef unitTesting
   private:
-#endif
     uint32_t dirSetup{0};                    // direction setup time
     uint32_t stepRise{0};                    // rising edge of step pulse
     uint32_t stepFall{0};                    // falling edge of step pulse

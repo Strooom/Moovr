@@ -18,9 +18,7 @@ class eventBuffer {
     uint32_t getLevelMax();                            // this allows to get the maximum number of items in the buffer, to help dimensioning it
     static const char* toString(event anEvent);        // translate event code to string
 
-#ifndef unitTesting
-  private:        // commented out during unit testing, so we can access private members during unit tests.
-#endif
+  private:
     static constexpr uint32_t length{32U};
     event theEventBuffer[eventBuffer::length]{};
     uint32_t head{0};
