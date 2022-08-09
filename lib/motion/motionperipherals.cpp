@@ -7,9 +7,9 @@ uint32_t motionPeripherals::toString(char *output) const {
     return outputLenght;
 }
 
-void motionPeripherals::set(const gCodeParserResult &theParseResult) {
-    spindledirection = theParseResult.motion.peripherals.spindledirection;
-    spindleSpeed     = static_cast<float>(theParseResult.motion.peripherals.spindleSpeed);
-    coolantFlood     = theParseResult.motion.peripherals.coolantFlood;
-    coolantMist      = theParseResult.motion.peripherals.coolantMist;
+void motionPeripherals::set(const simplifiedMotion &theMotion) {
+    spindledirection = theMotion.peripherals.spindledirection;
+    spindleSpeed     = static_cast<float>(theMotion.peripherals.spindleSpeed);
+    coolantFlood     = theMotion.peripherals.coolantFlood;
+    coolantMist      = theMotion.peripherals.coolantMist;
 }

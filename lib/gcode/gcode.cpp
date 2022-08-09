@@ -8,6 +8,7 @@
 #include <cstdlib>        // required for access to strtod under windows
 #include <math.h>
 #include "gcode.h"
+#include <limits>
 
 uint32_t gCode::getNmbrWords() const {
     return theBlock.nmbrWords;
@@ -714,7 +715,7 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                         theParseResult.motion.theMotionType = motionType::FeedHelicalCCW;
                         break;
                     default:
-                        // Todo : Error ?
+                        // TODO : Error ?
                         break;
                 }
 
@@ -1004,7 +1005,7 @@ void gCode::initialize() {
     theState.WCSorigin[(uint8_t)modalGroupCoordinateSet::G54][(uint8_t)axis::Z] = 0;
 
     // read Machine settings from SD-Card to override the defaults
-    // Todo
+    // TODO
 }
 
 void gCode::saveState() {

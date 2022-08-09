@@ -1,1 +1,0 @@
-make interface classes so hardware variants can be derived from them

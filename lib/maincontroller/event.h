@@ -10,10 +10,12 @@
 
 enum class event : uint32_t {
     none,
+    // buttons
     emergencyStopButtonPressed,
     emergencyStopButtonReleased,
     feedHoldResumeButtonPressed,
     feedHoldResumeButtonReleased,
+    // switches
     probeSwitchClosed,
     probeSwitchOpened,
     limitSwitchXMinClosed,
@@ -28,12 +30,19 @@ enum class event : uint32_t {
     limitSwitchXMaxOpened,
     limitSwitchYMaxOpened,
     limitSwitchZMaxOpened,
+    // stepBuffer
+    stepBufferUnderflow,
+    stepBufferOverflow,
+    // motionBuffer
     motionAdded,
     motionCompleted,
     allMotionsCompleted,
     motionStarted,
     motionStopped,
-    motionBufferOverflow
+    motionBufferOverflow,
+    // eventBuffer
+    eventBufferUnderflow,
+    eventBufferOverflow
 };
 
 

@@ -8,8 +8,6 @@
 #pragma once
 #include <stdint.h>
 
-namespace hostinterface {
-
 enum class error : uint32_t {
     none,
     underflow,
@@ -18,4 +16,3 @@ enum class error : uint32_t {
 
 const char* toString(error theError);
 
-}        // namespace hostinterface

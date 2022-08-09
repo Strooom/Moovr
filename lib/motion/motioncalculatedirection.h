@@ -12,3 +12,5 @@ enum class motionCalculateDirection : uint32_t {
     forward,
     reverse
 };
+
+const char* toString(motionCalculateDirection theMotionCalculateDirection);

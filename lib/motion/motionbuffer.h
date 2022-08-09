@@ -7,7 +7,7 @@
 
 #pragma once
 #include <stdint.h>
-#include "motion.h"
+#include "motionitem.h"
 
 class motionBuffer {
   public:
@@ -18,15 +18,15 @@ class motionBuffer {
     void pop();                       // pops the oldest item on from the buffer and adjusts indexes and level
     motion* getHeadPtr();             //
 
-    void export2csv(const char* outputFilename);        //
+    // void export2csv(const char* outputFilename);        //
 
+#ifndef unitTesting
+  private:
+#endif
+    friend class motionCtrl;
     static constexpr uint8_t length{32};              // Length should be a compromise : large enough to allow good speed-optimization. Not too large to consume ram and cpu in optimizing
     motion motionBuffer[motionBuffer::length];        // The buffer holding all motions to be executed
     uint32_t head{0};                                 // First-to-be-executed or currently-being-executed motion
     uint32_t level{0};                                // number of motions in the buffer
     uint32_t levelMax{0};                             // keeps track of maximum bufferlevel, as a help to dimension it
-
-#ifndef UnitTesting
-  private:        // commented out during unit testing
-#endif
 };

@@ -30,11 +30,7 @@ enum class gCodeParseError : uint32_t {
     MissingOffsetWord,
 
     UnsupportedgCodeWord,
-
-    MOTION_BUFFER_OVERFLOW,
-
     SoftLimits,
-
     ConfigFileError,
 
     nmbrErrors

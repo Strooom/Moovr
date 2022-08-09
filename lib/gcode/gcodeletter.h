@@ -8,26 +8,28 @@
 #pragma once
 #include <stdint.h>
 
-enum class gCodeLetter : uint8_t
-    {
+enum class gCodeLetter : uint8_t {
     //	All AXIS letters are put at the top, in the SAME order as in 'axis'. This way we can use loops to copy gCode letterValues to axis..
-    X, Y, Z,
-    //	A, B, C,
-    //	D, E,
-    //	U, V, W,
+    X,
+    Y,
+    Z,
+    //	A, B, C, D, E, U, V, W,
 
     //	After the AXIS letters, I put the OFFSET letters, so we can easily loop over those as well..
-    I, J, K,
+    I,
+    J,
+    K,
     L,
     F,
-    //	G, H,
-    //	M,
+    //	G, H, M,
     N,
     //	O,
     P,
     //	Q,
-    R, S, T,
+    R,
+    S,
+    T,
     nmbrLetters
-    };
+};
 
 constexpr uint32_t nmbrLetters = static_cast<uint32_t>(gCodeLetter::nmbrLetters);

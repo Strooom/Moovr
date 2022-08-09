@@ -6,41 +6,46 @@
 // #############################################################################
 
 #include "motionctrl.h"
+#include "machineproperties.h"
+#include "overrides.h"
+#include "eventbuffer.h"
+#include "stepbuffer.h"
+
 #include <math.h>
-#include "logging.h"
-#include "stepperMotorOutputs.h"
+#include <limits>
 
-extern uLog theLog;
-extern stepperMotorOutputs theStepperMotorOutputs;
+extern machineProperties theMachineProperties;
+extern eventBuffer theEventBuffer;
+extern stepBuffer theStepBuffer;
 
-
-motionCtrl::motionCtrl(eventBuffer &theEventBuffer, machineProperties &theMachineProperties, overrides &theOverrides, stepBuffer &theStepBuffer) : theEventBuffer(theEventBuffer), theMachineProperties(theMachineProperties), theOverrides(theOverrides), theStepBuffer(theStepBuffer) {
-}
-
-void motionCtrl::append(gCodeParserResult &theParseResult) {
+void motionCtrl::append(simplifiedMotion &theMotion) {
     if (!theMotionBuffer.isFull()) {
-        uint32_t newItemIndex = theMotionBuffer.push();                                                                        // add an item to the buffer
-        theMotionBuffer.motionBuffer[newItemIndex].set(theParseResult, theMachineProperties, strategy(), theOverrides);        // populate the motion from the results of the gCode parsing
+        uint32_t newItemIndex = theMotionBuffer.push();
+        theMotionBuffer.motionBuffer[newItemIndex].set(theMotion);
     } else {
-        theEventBuffer.pushEvent(event::motionBufferOverflow);        // send a critical error event to the mainController, as this should never happen..
+        theEventBuffer.pushEvent(event::motionBufferOverflow);
     }
 }
 
-void motionCtrl::startResume() {
+void motionCtrl::start() {
     if (!theMotionBuffer.isEmpty()) {
-        theStepperMotorOutputs.enableMotors123(true);
-        state = motionState::running;
-        optimize(); // TODO = temp
-
-        theEventBuffer.pushEvent(event::motionStarted);
+        theMotionCtrlState = motionState::running;
+        optimize();
     } else {
-        theLog.output(loggingLevel::Error, "startResume with empty motionBuffer");
     }
+}
+
+void motionCtrl::resume() {
+    // TODO : is this different from start() ?
 }
 
 void motionCtrl::stop() {
-    state = motionState::stopping;
-    optimize();        // TODO = temp
+    theMotionCtrlState = motionState::stopping;
+    optimize();
+}
+
+void motionCtrl::hold() {
+    // TOFO : is this different from stop() ?
 }
 
 void motionCtrl::optimize() {
@@ -49,10 +54,10 @@ void motionCtrl::optimize() {
             isOptimal = true;
             break;
         case 1:
-            theMotionBuffer.getHeadPtr()->optimizeCurrent(strategy(), theOverrides, theSampleTime.timeInMotionFloat);        // ToDo : add a real time here, so we properly optimize the current motion
+            theMotionBuffer.getHeadPtr()->optimize(theOverrides, theSampleTime.timeInMotion);
             break;
         default:
-            switch (strategy()) {
+            switch (theStrategy) {
                 case motionStrategy::minimizeSpeed:
                     for (int32_t junctionIndex = 0; junctionIndex <= ((int32_t)theMotionBuffer.getLevel() - 2); junctionIndex++) {
                         optimizePair(junctionIndex);
@@ -73,42 +78,42 @@ void motionCtrl::optimizePair(int32_t junctionIndex) {
     uint32_t right = (theMotionBuffer.head + junctionIndex + 1) % theMotionBuffer.length;        // index of the right motion (newest)
     float v        = vJunction(left, right);                                                     // exit-entry speed between the motion-pair after optimizing
 
-    // Todo : if the vStart/vEnd is already vJunction, then further optimizing is not possible. If all of the junctions are optimal, then the complete motion is optimal
+    // TODO : if the vStart/vEnd is already vJunction, then further optimizing is not possible. If all of the junctions are optimal, then the complete motion is optimal
 
     theMotionBuffer.motionBuffer[left].speedProfile.right.vEnd = v;
     if (0 == junctionIndex) {
-        //            theMotionBuffer.motionBuffer[left].optimizeCurrent(strategy(), theOverrides, theMachineProperties, 0.0F);
-        theMotionBuffer.motionBuffer[left].optimize(strategy(), theOverrides);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theSampleTime.timeInMotion);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides);
     } else {
-        theMotionBuffer.motionBuffer[left].optimize(strategy(), theOverrides);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides);
     }
     theMotionBuffer.motionBuffer[right].speedProfile.left.vStart = v;
-    theMotionBuffer.motionBuffer[right].optimize(strategy(), theOverrides);
+    theMotionBuffer.motionBuffer[right].optimize(theOverrides);
 }
 
-#if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6 Interrupt Handlers
-FASTRUN
-#endif
-step motionCtrl::nextStep() {
+// #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+// FASTRUN
+// #endif
+
+step motionCtrl::calculateStepperSignals() {
     while (true) {
         theStepSignals.next();
         if (isRunning()) {
             theSampleTime.next();
             while (true) {
                 if (theSampleTime.isBeyondStop()) {
-                    state = motionState::stopped;
+                    theMotionCtrlState = motionState::stopped;
                     theEventBuffer.pushEvent(event::motionStopped);
                 }
                 if (theSampleTime.isBeyondEndOfMotion()) {
-                    theSampleTime.nextMotion();
+                    theSampleTime.initializeNextMotion();
                     theMotionBuffer.pop();
                     theEventBuffer.pushEvent(event::motionCompleted);
                     if (theMotionBuffer.isEmpty()) {
-                        state = motionState::stopped;
+                        theMotionCtrlState = motionState::stopped;
                         theEventBuffer.pushEvent(event::allMotionsCompleted);
                         theEventBuffer.pushEvent(event::motionStopped);
-                        theStepperMotorOutputs.enableMotors123(false);
-                        theSampleTime.reset();
+                        theSampleTime.initialize();
                         break;
                     }
                 } else {
@@ -128,7 +133,7 @@ step motionCtrl::nextStep() {
 
 void motionCtrl::calcStepSignals() {
     // TODO : could maybe optimize by storing local copy of theMotionBuffer.current()
-    float sNow = theMotionBuffer.getHeadPtr()->s(theSampleTime.timeInMotionFloat);
+    float sNow = theMotionBuffer.getHeadPtr()->s(theSampleTime.timeInMotion);
     for (uint8_t anAxis = 0; anAxis < (uint8_t)axis::nmbrAxis; ++anAxis) {
         if (theMotionBuffer.getHeadPtr()->isMoving(anAxis)) {
             calcNextPositionInMm(anAxis, sNow, theMotionBuffer.getHeadPtr());
@@ -143,27 +148,26 @@ void motionCtrl::calcStepSignals() {
     }
 }
 
-bool motionCtrl::isRunning() const {
-    return ((motionState::running == state) || (motionState::stopping == state));
-    // return (!(motionState::stopped == state)); // alternate way to calculate it... 
+motionState motionCtrl::getState() const {
+    return theMotionCtrlState;
+}
+motionStrategy motionCtrl::getMotionStrategy() const {
+    return theStrategy;
 }
 
-motionStrategy motionCtrl::strategy() const {
-    if (motionState::running == state) {
-            return motionStrategy::maximizeSpeed;
-    } else {
-            return motionStrategy::minimizeSpeed;
-    }
+bool motionCtrl::isRunning() const {
+    return ((motionState::running == theMotionCtrlState) || (motionState::stopping == theMotionCtrlState));
+    // return (!(motionState::stopped == state)); // alternate way to calculate it...
 }
 
 float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
-    // for testing : TODO add smarter code to determine aligned segments from turns..
+    // TODO add smarter code to determine aligned segments from turns..
     return 0.0F;
 
     float vResult{0};        // local variable to calculate and test for speed conditions
     float vTest{0};          // local variable to calculate and test for speed conditions
 
-    switch (strategy()) {
+    switch (theStrategy) {
         case motionStrategy::minimizeSpeed:
             vResult = 0;        // assume we can slow down to zero, adjust upwards if needed by other constraints
             vTest   = theMotionBuffer.motionBuffer[left].vOut(motionStrategy::minimizeSpeed, motionCalculateDirection::forward);
@@ -214,12 +218,13 @@ float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
     return vResult;
 }
 
-void motionCtrl::run() {
-    while (theStepBuffer.needsFilling()) {
-        step aStep = nextStep();           // get next step from Motion...
-        theStepBuffer.write(aStep);        // ... and pump it to buffer
-    }
-}
+// This is a cooperation between motionCtrl and stepBuffer which could be at the main application level. So maybe not put it in either of those classes but just in main()
+// void motionCtrl::run() {
+//     while (theStepBuffer.needsFilling()) {
+//         step aStep = calculateStepperSignals();           // get next step from Motion...
+//         theStepBuffer.write(aStep);        // ... and pump it to buffer
+//     }
+// }
 
 bool motionCtrl::needStepForward(uint8_t axis) {
     return ((int32_t)((nextPositionInMm[axis] * theMachineProperties.motors.stepsPerMm[axis]) - hysteresis) > currentPositionInSteps[axis]);

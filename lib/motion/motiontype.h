@@ -17,4 +17,5 @@ enum class motionType : uint32_t {
     pause,                 // Pause for undefined time, resume on resume commmand = M0 or M1
     none                   // When parsing a gCode block results in no motion, the motionType = None
 };
+
 const char* toString(motionType aMotionType);

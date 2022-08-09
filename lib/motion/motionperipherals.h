@@ -6,21 +6,23 @@
 // #############################################################################
 
 #pragma once
-#ifndef WIN32
-#include <Arduino.h>
-#else
 #include <stdint.h>
-#endif
-#include "gcodeparseresult.h"        // gCodeParseResult is passed as a parameter to some memberfunctions
-#include "general.h"                 // required for definition of MotionSpeedProfile
-
+#include "rotationdirection.h"
+#include "simplifiedmotion.h"
 
 class motionPeripherals {
   public:
+    void set(const simplifiedMotion &theMotion);
     uint32_t toString(char *output) const;
-    void set(const gCodeParserResult &theParseResult);
 
-    rotationDirection spindledirection{rotationDirection::Clockwise};
+#ifndef unitTesting
+  private:
+#endif
+    friend class motion;
+    friend class motionBuffer;
+    friend class motionCtrl;
+
+    rotationDirection spindledirection{rotationDirection::clockwise};
     float spindleSpeed{};
     bool coolantFlood{};
     bool coolantMist{};

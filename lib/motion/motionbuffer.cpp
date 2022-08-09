@@ -39,16 +39,16 @@ uint32_t motionBuffer::getLevel() const {
     return level;
 }
 
-void motionBuffer::export2csv(const char* outputFilename) {
-#ifdef WIN32
+// void motionBuffer::export2csv(const char* outputFilename) {
+// #ifdef WIN32
 
-    std::ofstream outputFile(outputFilename);
-    for (uint32_t i = 0; i < level; i++) {
-        for (uint32_t j = 0; j < 100; j++) {
-            float t = (motionBuffer[(head + i) % length].speedProfile.duration * static_cast<float>(j)) / static_cast<float>(100);
-            outputFile << motionBuffer[(head + i) % length].v(t) << std::endl;
-        }
-    }
-    outputFile.close();
-#endif
-}
+//     std::ofstream outputFile(outputFilename);
+//     for (uint32_t i = 0; i < level; i++) {
+//         for (uint32_t j = 0; j < 100; j++) {
+//             float t = (motionBuffer[(head + i) % length].speedProfile.duration * static_cast<float>(j)) / static_cast<float>(100);
+//             outputFile << motionBuffer[(head + i) % length].v(t) << std::endl;
+//         }
+//     }
+//     outputFile.close();
+// #endif
+//}

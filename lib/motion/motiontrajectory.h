@@ -7,32 +7,37 @@
 
 #pragma once
 #include <stdint.h>
-#include "gcodeparseresult.h"        // required as gCodeParseResult is passed as a parameter to some memberfunctions
-
+#include "simplifiedmotion.h"
 
 class motionTrajectory {
   public:
-    void set(const gCodeParserResult& theParseResult);
+    void set(const simplifiedMotion& theMotion);
 
-    //private:
-    float startPosition[nmbrAxis]{};        // mm
+#ifndef unitTesting
+  private:
+#endif
+    friend class motion;
+    friend class motionBuffer;
+    friend class motionCtrl;
+
+    float startPosition[nmbrAxis]{};        // [mm]
 
     // Linear moves
-    float delta[nmbrAxis]{};        // mm
+    float delta[nmbrAxis]{};        // [mm]
 
     // Helical moves
-    axis arcAxis0{axis::nmbrAxis};
-    axis arcAxis1{axis::nmbrAxis};
-    float arcCenter0{};        // mm
-    float arcCenter1{};        // mm
-    float startAngle{};        // rad
-    float deltaAngle{};        // rad
-    float radius{};            // mm
+    axis arcAxis0{axis::nmbrAxis};        //
+    axis arcAxis1{axis::nmbrAxis};        //
+    float arcCenter0{};                   // [mm]
+    float arcCenter1{};                   // [mm]
+    float startAngle{};                   // [rad]
+    float deltaAngle{};                   // [rad]
+    float radius{};                       // [mm]
 
     // Common to all moves
-    float length{};                               // mm
-    float deltaRealTime[nmbrAxis]{};              // mm
-    float directionUnitVector[nmbrAxis]{};        // dimensionless
+    float length{};                               // [mm]
+    float deltaRealTime[nmbrAxis]{};              // [mm]
+    float directionUnitVector[nmbrAxis]{};        // [dimensionless]
 
     uint32_t toString(char* output, const motionType type) const;
 };
