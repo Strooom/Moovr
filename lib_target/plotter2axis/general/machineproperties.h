@@ -13,13 +13,16 @@
 
 static constexpr uint32_t busFrequency = 60'000'000U;
 
+static constexpr uint32_t nmbrInputs = 9U;
+static constexpr uint32_t inputSamplingInterval{10U};        // [ms] interval between sampling inputs like buttons and limitswitches
+
 static constexpr uint32_t outputTimerFrequency        = 60'000U;                                                                          // Design parameter resulting in a certain maximum stepping frequency, as well as a minimum Step pulse width and Dir setup timeBefore
 static constexpr uint32_t maxSteppingFrequency        = outputTimerFrequency / 2U;                                                        //
 static constexpr float minStepPulseWidth              = 1.0F / outputTimerFrequency;                                                      // period of the PIT1 timer, this will automatically become the DIR setup timeBefore, as well as the STEP pulse width
 static constexpr float minStepBufferTotalTime         = 0.025F;                                                                           // amount of totalTime [s] we want at least in the buffer
 static constexpr uint32_t minStepBufferTotalTimeTicks = (uint32_t)(outputTimerFrequency * minStepBufferTotalTime);                        // amount of totalTime [PIT1 ticks] we want at least in the buffer
-static constexpr uint32_t minBufferLevel              = 4U;                                                                               //
-static constexpr uint32_t maxTicksSinceLastOutput     = minStepBufferTotalTimeTicks / minBufferLevel;                                     //
+static constexpr uint32_t minStepBufferLevel          = 4U;                                                                               //
+static constexpr uint32_t maxTicksSinceLastOutput     = minStepBufferTotalTimeTicks / minStepBufferLevel;                                 //
 static constexpr float minSteppingFrequency           = (float)maxSteppingFrequency / (float)std::numeric_limits<uint32_t>::max();        //
 static constexpr float maxMotionDuration              = (float)(std::numeric_limits<uint32_t>::max() / outputTimerFrequency);             //
 static constexpr uint32_t inputTimerFrequency         = 100U;                                                                             // Design parameter : 100 Hz = 10ms

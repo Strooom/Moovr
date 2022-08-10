@@ -10,6 +10,18 @@
 debouncedInput::debouncedInput(const event eventOnOpen, const event eventOnClose) : onOpen(eventOnOpen), onClose(eventOnClose) {
 }
 
+void debouncedInput::initialize(bool undebouncedInput) {
+    if (undebouncedInput) {
+        debounceCounter = debounceMaxCount;
+        currentState    = true;
+        previousState   = true;
+    } else {
+        debounceCounter = 0U;
+        currentState    = false;
+        previousState   = false;
+    }
+}
+
 bool debouncedInput::getState() const {
     return currentState;
 }

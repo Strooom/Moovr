@@ -9,8 +9,7 @@
 #include "timers.h"
 #include "machineproperties.h"
 
-
-hardwareTimers::hardwareTimers() {
+void outputTimer::initialize() {
     // ---------------------------------------------------------------------------------------
     // Setting up clocks to enable the K64/K66 Programmable Interval Timer (PIT) functionality
     // ---------------------------------------------------------------------------------------
@@ -52,19 +51,18 @@ hardwareTimers::hardwareTimers() {
 //     }
 // }
 
-void hardwareTimers::enableOutputTimer(bool onOff) {
-    if (onOff) {
-        PIT_TFLG1  = 0x1;        // Clear timer interrupt flag for PIT1
-        PIT_TCTRL0 = 0x1;        // Enable the Timer PIT0
-        PIT_TCTRL1 = 0x7;        // Timer Control Register (PIT_TCTRLn). Chain the timer to PIT0, Start the timer and enable interrupts
-    } else {
-        PIT_TCTRL1 = 0x4;        // Disable the Timer PIT1 and its Interrupts
-        PIT_TCTRL0 = 0x0;        // Disable the Timer PIT0
-        PIT_TFLG1  = 0x1;        // Clear timer interrupt flag for PIT1
-    }
+void outputTimer::enable() {
+    PIT_TFLG1  = 0x1;        // Clear timer interrupt flag for PIT1
+    PIT_TCTRL0 = 0x1;        // Enable the Timer PIT0
+    PIT_TCTRL1 = 0x7;        // Timer Control Register (PIT_TCTRLn). Chain the timer to PIT0, Start the timer and enable interrupts
 }
 
-void hardwareTimers::setOutputTimerReload(uint32_t value) {
+void outputTimer::disable() {
+    PIT_TCTRL1 = 0x4;        // Disable the Timer PIT1 and its Interrupts
+    PIT_TCTRL0 = 0x0;        // Disable the Timer PIT0
+    PIT_TFLG1  = 0x1;        // Clear timer interrupt flag for PIT1
+}
+
+void outputTimer::reload(uint32_t value) {
     PIT_LDVAL1 = value;        //
 }
-

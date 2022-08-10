@@ -41,7 +41,7 @@ void hostInterfaceUart::rxReady() {
     uint8_t byteReceived;
     byteReceived = UART0_D;
 
-    if (rxBufferLevel < (rxBufferLength))        // if buffer NOT full...
+    if (rxBufferLevel < rxBufferLength)        // if buffer NOT full...
     {
         {
             rxBuffer[(rxBufferHead + rxBufferLevel) % rxBufferLength] = byteReceived;        // store received byte in rxBuffer
@@ -79,17 +79,17 @@ void hostInterfaceUart::getMessage(uint8_t* destinationBuffer) {
 // --- interrupt handler ---
 // -------------------------
 
-extern hostInterfaceUart theHostInterface;
+// extern hostInterfaceUart theHostInterface;
 
-void uart0_status_isr(void) {
-    uint8_t status;
-    status = UART0_S1;                // read status register. Interrupt-flag is cleared after reading this register AND reading/writing the UART0_D register until they are empty/full
-    if (status & UART_S1_RDRF)        // Transmit ready or Receive event ?
-    {
-        theHostInterface.rxReady();        // Handle ' byte received' event
-    }
-    if (status & UART_S1_TDRE)        // Transmit ready event ?
-    {
-        theHostInterface.txReady();        // Handle 'byte sent' event
-    }
-}
+// void uart0_status_isr(void) {
+//     uint8_t status;
+//     status = UART0_S1;                // read status register. Interrupt-flag is cleared after reading this register AND reading/writing the UART0_D register until they are empty/full
+//     if (status & UART_S1_RDRF)        // Transmit ready or Receive event ?
+//     {
+//         theHostInterface.rxReady();        // Handle ' byte received' event
+//     }
+//     if (status & UART_S1_TDRE)        // Transmit ready event ?
+//     {
+//         theHostInterface.txReady();        // Handle 'byte sent' event
+//     }
+// }

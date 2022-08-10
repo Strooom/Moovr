@@ -19,14 +19,12 @@
 
 // Note : one instance of this class will create BOTH timers
 
-
-class hardwareTimers {
+class outputTimer {
   public:
-    hardwareTimers();
-
-    void enableInputTimer(bool onOff);
-    void enableOutputTimer(bool onOff);
-    void setOutputTimerReload(uint32_t value);
+    void initialize();
+    void enable();
+    void disable();
+    void reload(uint32_t value);
 
   private:
 };
