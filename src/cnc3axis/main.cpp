@@ -84,12 +84,13 @@ stepperMotorOutputs theStepperMotorOutputs;
 // --- interrupt handlers         ---
 // ----------------------------------
 
-void pit1_isr() {
-    theOutputTimer.reload(60000);        // reload timer
-    Serial.print(".");
-    PIT_TFLG1 = 0x1;                                                 // clear timer interrupt flag
-}
+bool forward{false};
 
+void pit1_isr() {
+    theOutputTimer.reload(6000U);        // reload timer
+    forward   = true;
+    PIT_TFLG1 = 0x1;        // clear timer interrupt flag
+}
 
 // void pit1_isr() {
 //     step theStep = theStepBuffer.read();                             // read step from the stepBuffer
@@ -130,10 +131,16 @@ void setup() {
 
     // read config from nvs
     theStepperMotorOutputs.initialize();
+    theOutputTimer.initialize();
     theOutputTimer.enable();
 }
 
 void loop() {
+    if (forward) {
+        Serial.print(".");
+        forward = false;
+    }
+
     // run motionControl
     // TODO : disable/re-enable timerInterrupt PITx around adding step to stepBuffer to make this threadsafe
 

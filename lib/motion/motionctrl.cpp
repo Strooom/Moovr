@@ -21,7 +21,7 @@ extern stepBuffer theStepBuffer;
 void motionCtrl::append(simplifiedMotion &theMotion) {
     if (!theMotionBuffer.isFull()) {
         uint32_t newItemIndex = theMotionBuffer.push();
-        theMotionBuffer.motionBuffer[newItemIndex].set(theMotion);
+        theMotionBuffer.motionBuffer[newItemIndex].set(theMotion, theOverrides, theStrategy);
     } else {
         theEventBuffer.pushEvent(event::motionBufferOverflow);
     }
@@ -54,7 +54,7 @@ void motionCtrl::optimize() {
             isOptimal = true;
             break;
         case 1:
-            theMotionBuffer.getHeadPtr()->optimize(theOverrides, theSampleTime.timeInMotion);
+            theMotionBuffer.getHeadPtr()->optimize(theOverrides, theStrategy, theSampleTime.timeInMotion);
             break;
         default:
             switch (theStrategy) {
@@ -82,13 +82,13 @@ void motionCtrl::optimizePair(int32_t junctionIndex) {
 
     theMotionBuffer.motionBuffer[left].speedProfile.right.vEnd = v;
     if (0 == junctionIndex) {
-        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theSampleTime.timeInMotion);
-        theMotionBuffer.motionBuffer[left].optimize(theOverrides);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy, theSampleTime.timeInMotion);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy);
     } else {
-        theMotionBuffer.motionBuffer[left].optimize(theOverrides);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy);
     }
     theMotionBuffer.motionBuffer[right].speedProfile.left.vStart = v;
-    theMotionBuffer.motionBuffer[right].optimize(theOverrides);
+    theMotionBuffer.motionBuffer[right].optimize(theOverrides, theStrategy);
 }
 
 // #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6

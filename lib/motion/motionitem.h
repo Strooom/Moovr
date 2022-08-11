@@ -21,11 +21,11 @@
 
 class motion {
   public:
-    void set(const simplifiedMotion &theMotion);
+    void set(const simplifiedMotion &theMotion, overrides theOverrides, motionStrategy theStrategy);
 
-    void limit();                                             // calculate vMax, aMax and dMax from trajectory and machine limits
-    void optimize(overrides theOverrides, float tNow);        // optimizes this motion
-    void optimize(overrides theOverrides);                    // optimizes this motion
+    void limit();                                                                         // calculate vMax, aMax and dMax from trajectory and machine limits
+    void optimize(overrides theOverrides, motionStrategy theStrategy, float tNow);        // optimizes this motion
+    void optimize(overrides theOverrides, motionStrategy theStrategy);                    // optimizes this motion
 
     // void optimizeOld();                      // optimizes this motion
 

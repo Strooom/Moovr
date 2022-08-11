@@ -4,8 +4,8 @@
 #include "overrides.h"
 #include <math.h>
 
-#include "step.h"
-#include "event.h"
+//#include "step.h"
+//#include "event.h"
 
 // TEST_ASSERT_FLOAT_WITHIN() : Use this for testing if a float is almost the same, within a certain error band
 
@@ -13,7 +13,9 @@
 // --- globals                    ---
 // ----------------------------------
 
-machineProperties theMachineProperties;        //
+machineProperties theMachineProperties;                           // defaults are ok
+overrides theOverrides;                                           // defaults are ok
+motionStrategy theStrategy{motionStrategy::maximizeSpeed};        // 
 
 void setUp(void) {}           // before test
 void tearDown(void) {}        // after test
@@ -409,7 +411,7 @@ void limit() {
         simplifiedMotion aSimpleMotion;
         motion aMotion;
         aSimpleMotion.setForTest(0U);
-        aMotion.set(aSimpleMotion);
+        aMotion.set(aSimpleMotion, theOverrides, theStrategy);
         aMotion.limit();
         TEST_ASSERT_EQUAL_FLOAT(1.0f, aMotion.speedProfile.aMax);
         TEST_ASSERT_EQUAL_FLOAT(-1.0f, aMotion.speedProfile.dMax);
@@ -420,7 +422,7 @@ void limit() {
         simplifiedMotion aSimpleMotion;
         motion aMotion;
         aSimpleMotion.setForTest(1U);
-        aMotion.set(aSimpleMotion);
+        aMotion.set(aSimpleMotion, theOverrides, theStrategy);
         aMotion.limit();
         TEST_ASSERT_EQUAL_FLOAT(sqrt(3.0f), aMotion.speedProfile.vMax);
         TEST_ASSERT_EQUAL_FLOAT(sqrt(3.0f), aMotion.speedProfile.aMax);
@@ -430,22 +432,22 @@ void limit() {
 
 void optimize() {
     overrides theOverrrides;
-    //theStrategy = motionStrategy::maximizeSpeed;
+    // theStrategy = motionStrategy::maximizeSpeed;
     simplifiedMotion aSimpleMotion;
     motion aMotion;
     aSimpleMotion.setForTest(0U);
-    aMotion.set(aSimpleMotion);
+    aMotion.set(aSimpleMotion, theOverrides, theStrategy);
     aMotion.limit();
-    aMotion.optimize(theOverrrides);
+    aMotion.optimize(theOverrrides, theStrategy);
     TEST_ASSERT_EQUAL_FLOAT(2.0f, aMotion.speedProfile.duration);
     TEST_ASSERT_EQUAL_FLOAT(1.0f, aMotion.speedProfile.mid.vMid);
 
     theMachineProperties.motors.jMax    = 1.0f;
     theMachineProperties.motors.vMax[0] = 2.0f;
     aSimpleMotion.setForTest(2U);
-    aMotion.set(aSimpleMotion);
+    aMotion.set(aSimpleMotion, theOverrides, theStrategy);
     aMotion.limit();
-    aMotion.optimize(theOverrrides);
+    aMotion.optimize(theOverrrides, theStrategy);
     TEST_ASSERT_EQUAL_FLOAT(8.0f, aMotion.speedProfile.duration);
     TEST_ASSERT_EQUAL_FLOAT(2.0f, aMotion.speedProfile.mid.vMid);
 }
@@ -457,9 +459,9 @@ void calculateMotion() {
     theMachineProperties.motors.jMax    = 1.0f;
     theMachineProperties.motors.vMax[0] = 2.0f;
     aSimpleMotion.setForTest(2U);
-    aMotion.set(aSimpleMotion);
+    aMotion.set(aSimpleMotion, theOverrides, theStrategy);
     aMotion.limit();
-    aMotion.optimize(theOverrrides);
+    aMotion.optimize(theOverrrides, theStrategy);
 
     // check a(t),
     // check v(t),

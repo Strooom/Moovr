@@ -7,7 +7,6 @@
 
 #include "maincontroller.h"
 #include "eventbuffer.h"
-//#include "hostInterface_uart.h"
 #include "motionctrl.h"
 
 extern eventBuffer theEventBuffer;

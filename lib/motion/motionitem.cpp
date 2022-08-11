@@ -7,10 +7,8 @@
 #include <limits>
 
 extern machineProperties theMachineProperties;        // TODO : I think this is quite safe to be global
-extern motionStrategy theStrategy;                    // TODO : this belongs into motionControl
-extern overrides theOverrides;                        // TODO : this belongs into motionControl
 
-void motion::set(const simplifiedMotion &theMotion) {
+void motion::set(const simplifiedMotion &theMotion, overrides theOverrides, motionStrategy theStrategy) {
     type = theMotion.type;
     switch (type) {
             // This case calculates from given length to a duration
@@ -18,11 +16,11 @@ void motion::set(const simplifiedMotion &theMotion) {
         case motionType::feedLinear:
         case motionType::feedHelicalCW:
         case motionType::feedHelicalCCW:
-            trajectory.set(theMotion);               // copy Trajectory properties from parseResult into this motion
-            limit();                                 // limit the wanted speeds and accelerations to machine limitations for this trajectory
-            speedProfile.setSpeed(theMotion);        // copy SpeedProfile properties from parseResult into this motion
-            optimize(theOverrides);                              //
-            peripherals.set(theMotion);              // copy Peripheral properties
+            trajectory.set(theMotion);                  // copy Trajectory properties from parseResult into this motion
+            limit();                                    // limit the wanted speeds and accelerations to machine limitations for this trajectory
+            speedProfile.setSpeed(theMotion);           // copy SpeedProfile properties from parseResult into this motion
+            optimize(theOverrides, theStrategy);        //
+            peripherals.set(theMotion);                 // copy Peripheral properties
             break;
             // This case has duration given, and speeds are all zero
         case motionType::pauseAndResume:
@@ -121,15 +119,15 @@ float motion::a(float time) const {
     return speedProfile.right.a(time);
 }
 
-void motion::optimize(overrides theOverrides, float tNow) {
+void motion::optimize(overrides theOverrides, motionStrategy theStrategy, float tNow) {
     speedProfile.left.setvStart(v(tNow));
     speedProfile.done.length   = s(tNow);
     speedProfile.done.duration = tNow;
-    optimize(theOverrides);
+    optimize(theOverrides, theStrategy);
 }
 
-// 
-void motion::optimize(overrides theOverrides) {
+//
+void motion::optimize(overrides theOverrides, motionStrategy theStrategy) {
     switch (type) {
         case motionType::traverse:
         case motionType::feedLinear:
@@ -349,61 +347,60 @@ uint32_t motion::toString(char *output) const {
 //     }
 // }
 
-
-//void motion::optimizeOld() {
-//     float vMid{0.0F};
-//     switch (type) {
-//         case motionType::traverse:
-//         case motionType::feedLinear:
-//         case motionType::feedHelicalCW:
-//         case motionType::feedHelicalCCW:
-//             if (theStrategy == motionStrategy::maximizeSpeed) {
-//                 vMid = speedProfile.vFeed * theOverrides.feedOverride;        // vFeed was set in gCode, overrides may yield new value, but new vMid must still be within machine limits
-//                 if (vMid > speedProfile.vMax) {
-//                     vMid = speedProfile.vMax;
-//                 }
-//                 speedProfile.left.setvEnd(vMid);
-//                 speedProfile.right.setvStart(vMid);
-//                 // speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
-//                 // speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
-//                 speedProfile.left.calculate(speedProfileOrder::secondOrder);
-//                 speedProfile.right.calculate(speedProfileOrder::secondOrder);
-//                 if ((speedProfile.left.length + speedProfile.right.length) <= (trajectory.length - speedProfile.done.length)) {
-//                     // Add a non-zero constant speed mid phase
-//                     speedProfile.mid.length = (trajectory.length - speedProfile.done.length) - (speedProfile.left.length + speedProfile.right.length);
-//                     speedProfile.mid.set(vMid);
-//                     speedProfile.mid.duration = speedProfile.mid.length / vMid;
-//                 } else {
-//                     // Switch to a triangular T-profile
-//                     vMid = vTri(theStrategy);
-//                     speedProfile.left.setvEnd(vMid);
-//                     speedProfile.right.setvStart(vMid);
-//                     speedProfile.left.calculate(speedProfileOrder::firstOrder);
-//                     speedProfile.right.calculate(speedProfileOrder::firstOrder);
-//                     speedProfile.mid.length   = 0.0F;
-//                     speedProfile.mid.duration = 0.0F;
-//                 }
-//                 speedProfile.duration = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
-//                 speedProfile.tStop    = std::numeric_limits<float>::infinity();
-//             } else {
-//                 vMid = vTri(theStrategy);
-//                 // TODO : if 0.0F can be reached, it is worthwhile to try second order profile for smoother stopping
-//                 speedProfile.left.setvEnd(vMid);
-//                 speedProfile.right.setvStart(vMid);
-//                 //                speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
-//                 //                speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
-//                 speedProfile.left.calculate(speedProfileOrder::secondOrder);
-//                 speedProfile.right.calculate(speedProfileOrder::secondOrder);
-//                 speedProfile.mid.length   = 0.0F;
-//                 speedProfile.mid.duration = 0.0F;
-//                 speedProfile.duration     = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
-//                 if (vMid == 0.0F) {
-//                     speedProfile.tStop = speedProfile.left.vStart / (-speedProfile.dMax);
-//                 } else {
-//                     speedProfile.tStop = std::numeric_limits<float>::infinity();
-//                 }
-//             }
-//             break;
+// void motion::optimizeOld() {
+//      float vMid{0.0F};
+//      switch (type) {
+//          case motionType::traverse:
+//          case motionType::feedLinear:
+//          case motionType::feedHelicalCW:
+//          case motionType::feedHelicalCCW:
+//              if (theStrategy == motionStrategy::maximizeSpeed) {
+//                  vMid = speedProfile.vFeed * theOverrides.feedOverride;        // vFeed was set in gCode, overrides may yield new value, but new vMid must still be within machine limits
+//                  if (vMid > speedProfile.vMax) {
+//                      vMid = speedProfile.vMax;
+//                  }
+//                  speedProfile.left.setvEnd(vMid);
+//                  speedProfile.right.setvStart(vMid);
+//                  // speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
+//                  // speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
+//                  speedProfile.left.calculate(speedProfileOrder::secondOrder);
+//                  speedProfile.right.calculate(speedProfileOrder::secondOrder);
+//                  if ((speedProfile.left.length + speedProfile.right.length) <= (trajectory.length - speedProfile.done.length)) {
+//                      // Add a non-zero constant speed mid phase
+//                      speedProfile.mid.length = (trajectory.length - speedProfile.done.length) - (speedProfile.left.length + speedProfile.right.length);
+//                      speedProfile.mid.set(vMid);
+//                      speedProfile.mid.duration = speedProfile.mid.length / vMid;
+//                  } else {
+//                      // Switch to a triangular T-profile
+//                      vMid = vTri(theStrategy);
+//                      speedProfile.left.setvEnd(vMid);
+//                      speedProfile.right.setvStart(vMid);
+//                      speedProfile.left.calculate(speedProfileOrder::firstOrder);
+//                      speedProfile.right.calculate(speedProfileOrder::firstOrder);
+//                      speedProfile.mid.length   = 0.0F;
+//                      speedProfile.mid.duration = 0.0F;
+//                  }
+//                  speedProfile.duration = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
+//                  speedProfile.tStop    = std::numeric_limits<float>::infinity();
+//              } else {
+//                  vMid = vTri(theStrategy);
+//                  // TODO : if 0.0F can be reached, it is worthwhile to try second order profile for smoother stopping
+//                  speedProfile.left.setvEnd(vMid);
+//                  speedProfile.right.setvStart(vMid);
+//                  //                speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
+//                  //                speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
+//                  speedProfile.left.calculate(speedProfileOrder::secondOrder);
+//                  speedProfile.right.calculate(speedProfileOrder::secondOrder);
+//                  speedProfile.mid.length   = 0.0F;
+//                  speedProfile.mid.duration = 0.0F;
+//                  speedProfile.duration     = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
+//                  if (vMid == 0.0F) {
+//                      speedProfile.tStop = speedProfile.left.vStart / (-speedProfile.dMax);
+//                  } else {
+//                      speedProfile.tStop = std::numeric_limits<float>::infinity();
+//                  }
+//              }
+//              break;
 
 //         case motionType::pauseAndResume:
 //         case motionType::pause:

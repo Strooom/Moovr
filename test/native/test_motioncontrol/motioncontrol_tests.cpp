@@ -1,7 +1,9 @@
+
 #include <unity.h>
 #include "simplifiedmotion.h"
 #include "motionctrl.h"
 #include "machineproperties.h"
+#include "eventbuffer.h"
 #include <math.h>
 
 // ----------------------------------
@@ -28,6 +30,7 @@
 // ----------------------------------
 
 machineProperties theMachineProperties;        //
+eventBuffer theEventBuffer;                    //
 
 void setUp(void) {}           // before test
 void tearDown(void) {}        // after test
@@ -38,7 +41,6 @@ void initialize() {
     TEST_ASSERT_EQUAL(motionState::stopped, theMotionCtrl.getState());
     // TODO : test default value for overrides
 
-    
     TEST_ASSERT_EQUAL_UINT32(0U, theMotionCtrl.theMotionBuffer.head);
     TEST_ASSERT_EQUAL_UINT32(0U, theMotionCtrl.theMotionBuffer.getLevel());
     // TODO : test initialization of motionBuffer
