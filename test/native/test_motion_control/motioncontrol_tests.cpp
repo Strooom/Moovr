@@ -1,9 +1,8 @@
 
 #include <unity.h>
-#include "simplifiedmotion.h"
 #include "motionctrl.h"
-#include "machineproperties.h"
-#include "eventbuffer.h"
+#include "machineproperties.h"        // motionControl relies on an external dependency : there must be a global instance of machineProperties where it can read settings/properties
+#include "eventbuffer.h"              // motionControl relies on an external dependency : there must be a global instance of eventBuffer where it can notify/push events that occured
 #include <math.h>
 
 // ----------------------------------
@@ -39,11 +38,8 @@ void initialize() {
     motionCtrl theMotionCtrl;
     TEST_ASSERT_FALSE(theMotionCtrl.isRunning());
     TEST_ASSERT_EQUAL(motionState::stopped, theMotionCtrl.getState());
-    // TODO : test default value for overrides
-
-    TEST_ASSERT_EQUAL_UINT32(0U, theMotionCtrl.theMotionBuffer.head);
-    TEST_ASSERT_EQUAL_UINT32(0U, theMotionCtrl.theMotionBuffer.getLevel());
-    // TODO : test initialization of motionBuffer
+    TEST_ASSERT_EQUAL(1.0f, theMotionCtrl.theOverrides.feedOverride);
+    TEST_ASSERT_EQUAL(1.0f, theMotionCtrl.theOverrides.spindleOverride);
 }
 
 int main(int argc, char **argv) {

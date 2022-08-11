@@ -151,9 +151,14 @@ void motionCtrl::calcStepSignals() {
 motionState motionCtrl::getState() const {
     return theMotionCtrlState;
 }
-motionStrategy motionCtrl::getMotionStrategy() const {
-    return theStrategy;
-}
+
+// motionStrategy motionCtrl::getMotionStrategy() const {
+//     return theStrategy;
+// }
+
+// overrides motionCtrl::getOverrides() const {
+//     return theOverrides;
+// }
 
 bool motionCtrl::isRunning() const {
     return ((motionState::running == theMotionCtrlState) || (motionState::stopping == theMotionCtrlState));
@@ -218,13 +223,6 @@ float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
     return vResult;
 }
 
-// This is a cooperation between motionCtrl and stepBuffer which could be at the main application level. So maybe not put it in either of those classes but just in main()
-// void motionCtrl::run() {
-//     while (theStepBuffer.needsFilling()) {
-//         step aStep = calculateStepperSignals();           // get next step from Motion...
-//         theStepBuffer.write(aStep);        // ... and pump it to buffer
-//     }
-// }
 
 bool motionCtrl::needStepForward(uint8_t axis) {
     return ((int32_t)((nextPositionInMm[axis] * theMachineProperties.motors.stepsPerMm[axis]) - hysteresis) > currentPositionInSteps[axis]);

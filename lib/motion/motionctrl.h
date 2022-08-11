@@ -28,8 +28,10 @@ class motionCtrl {
     void optimize();
 
     motionState getState() const;
-    motionStrategy getMotionStrategy() const;
-    overrides getOverrides() const;
+    
+    // motionStrategy getMotionStrategy() const;
+    // overrides getOverrides() const;
+    
     bool isRunning() const;
 
     step calculateStepperSignals();
@@ -37,7 +39,7 @@ class motionCtrl {
 #ifndef unitTesting
   private:
 #endif
-    motionStrategy theStrategy;
+    motionStrategy theStrategy{motionStrategy::minimizeSpeed};
     overrides theOverrides;
 
     sampleTime theSampleTime       = sampleTime(1);               // TODO : set a correct sample interval
