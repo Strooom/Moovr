@@ -15,8 +15,7 @@ class stepSignals {
     void next();                                                  // advance (discrete) time one tick
     void stepBackward(uint32_t axis);                             // add signals for setting a step forward on an axis
     void stepForward(uint32_t axis);                              // add signals for setting a step backward on an axis
-    step output();                                                // gets a step after something is modified
-    step outputDefault();                                         // gets a step, nothing is changed but there is a timeout
+    step output();                                                // gets a step after something is modified or old value if timeout
     void setMaxTicksSinceLastOutput(uint32_t newMaxTicks);        // set maxTicksSinceLastOutput
     bool isTimedOut();                                            // is there a certain (discrete) time passed since previous output ?
 

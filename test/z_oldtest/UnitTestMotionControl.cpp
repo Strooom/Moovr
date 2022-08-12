@@ -17,13 +17,6 @@ namespace UnitTestMotionCtrl {
 
 TEST_CLASS (C06_motionCtrl) {
   public:
-    TEST_METHOD (T01_Construction) {
-        eventBuffer theEventBuffer;
-        machineProperties theMachineProperties;
-        overrides theOverrides;
-        stepBuffer theStepBuffer;
-        motionCtrl theMotionCtrl(theEventBuffer, theMachineProperties, theOverrides, theStepBuffer);
-    }
 
     TEST_METHOD (T002_getNextStep) {
         Logger::WriteMessage("motionBuffer empty ->  : output is default");
@@ -148,34 +141,7 @@ TEST_CLASS (C06_motionCtrl) {
 
 TEST_CLASS (C01_motionCtrl) {
   public:
-    TEST_METHOD (T01_Construction_Initialization) {
-        eventBuffer theEventBuffer;
-        machineProperties theMachineProperties;
-        overrides theOverrides;
-        stepBuffer theStepBuffer;
-        motionCtrl theCtrl(theEventBuffer, theMachineProperties, theOverrides, theStepBuffer);
-        Assert::AreEqual(false, theCtrl.isOptimal);
-        Assert::AreEqual(0, theCtrl.currentPositionInSteps[0]);
-        Assert::AreEqual(0.0F, theCtrl.nextPositionInMm[0]);
-    }
 
-    TEST_METHOD (T02_nextStep_notRunning) {
-        eventBuffer theEventBuffer;
-        machineProperties theMachineProperties;
-        overrides theOverrides;
-        stepBuffer theStepBuffer;
-        step aStep;
-        motionCtrl theCtrl(theEventBuffer, theMachineProperties, theOverrides, theStepBuffer);
-        theCtrl.theState = motionState::ready;
-        aStep            = theCtrl.nextStep();
-        Assert::AreEqual(0U, aStep.signals);        // we should get default stepSignals..
-        Assert::AreEqual(maxTicksSinceLastOutput, aStep.timeBefore);
-        theCtrl.theState = motionState::stopped;
-        aStep            = theCtrl.nextStep();
-        Assert::AreEqual(0U, aStep.signals);        // we should get default stepSignals..
-        Assert::AreEqual(maxTicksSinceLastOutput, aStep.timeBefore);
-        Assert::AreEqual(0U, theCtrl.theSampleTime.sampleIndex);        // and the sampleTime should not proceed
-    }
 
     TEST_METHOD (T03_nextStep_Running_emptyBuffer) {
         eventBuffer theEventBuffer;
@@ -334,13 +300,6 @@ TEST_CLASS (C01_motionCtrl) {
         Assert::IsTrue(theEventBuffer.hasEvents());
     }
 
-    TEST_METHOD (T005_Construction) {
-        eventBuffer theEventBuffer;
-        machineProperties theMachineProperties;
-        overrides theOverrides;
-        stepBuffer theStepBuffer;
-        motionCtrl theMotionCtrl(theEventBuffer, theMachineProperties, theOverrides, theStepBuffer);
-    }
 
     TEST_METHOD (T006_vJunction) {
         eventBuffer theEventBuffer;
@@ -359,4 +318,4 @@ TEST_CLASS (C01_motionCtrl) {
     }
 };
 
-}        // namespace UnitTestMotionCtrl
+

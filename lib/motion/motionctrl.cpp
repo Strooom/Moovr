@@ -18,10 +18,22 @@ extern machineProperties theMachineProperties;
 extern eventBuffer theEventBuffer;
 extern stepBuffer theStepBuffer;
 
+motionState motionCtrl::getState() const {
+    return theMotionCtrlState;
+}
+
+bool motionCtrl::isRunning() const {
+    return (!(motionState::stopped == theMotionCtrlState));
+}
+
+motionStrategy motionCtrl::theStrategy() const {
+    return ((motionState::running == theMotionCtrlState) ? motionStrategy::maximizeSpeed : motionStrategy::minimizeSpeed);
+}
+
 void motionCtrl::append(simplifiedMotion &theMotion) {
     if (!theMotionBuffer.isFull()) {
         uint32_t newItemIndex = theMotionBuffer.push();
-        theMotionBuffer.motionBuffer[newItemIndex].set(theMotion, theOverrides, theStrategy);
+        theMotionBuffer.motionBuffer[newItemIndex].set(theMotion, theOverrides, theStrategy());
     } else {
         theEventBuffer.pushEvent(event::motionBufferOverflow);
     }
@@ -54,10 +66,10 @@ void motionCtrl::optimize() {
             isOptimal = true;
             break;
         case 1:
-            theMotionBuffer.getHeadPtr()->optimize(theOverrides, theStrategy, theSampleTime.timeInMotion);
+            theMotionBuffer.getHead().optimize(theOverrides, (theStrategy()), theSampleTime.timeInMotion);
             break;
         default:
-            switch (theStrategy) {
+            switch (theStrategy()) {
                 case motionStrategy::minimizeSpeed:
                     for (int32_t junctionIndex = 0; junctionIndex <= ((int32_t)theMotionBuffer.getLevel() - 2); junctionIndex++) {
                         optimizePair(junctionIndex);
@@ -82,87 +94,13 @@ void motionCtrl::optimizePair(int32_t junctionIndex) {
 
     theMotionBuffer.motionBuffer[left].speedProfile.right.vEnd = v;
     if (0 == junctionIndex) {
-        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy, theSampleTime.timeInMotion);
-        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy(), theSampleTime.timeInMotion);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy());
     } else {
-        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy);
+        theMotionBuffer.motionBuffer[left].optimize(theOverrides, theStrategy());
     }
     theMotionBuffer.motionBuffer[right].speedProfile.left.vStart = v;
-    theMotionBuffer.motionBuffer[right].optimize(theOverrides, theStrategy);
-}
-
-// #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
-// FASTRUN
-// #endif
-
-step motionCtrl::calculateStepperSignals() {
-    while (true) {
-        theStepSignals.next();
-        if (isRunning()) {
-            theSampleTime.next();
-            while (true) {
-                if (theSampleTime.isBeyondStop()) {
-                    theMotionCtrlState = motionState::stopped;
-                    theEventBuffer.pushEvent(event::motionStopped);
-                }
-                if (theSampleTime.isBeyondEndOfMotion()) {
-                    theSampleTime.initializeNextMotion();
-                    theMotionBuffer.pop();
-                    theEventBuffer.pushEvent(event::motionCompleted);
-                    if (theMotionBuffer.isEmpty()) {
-                        theMotionCtrlState = motionState::stopped;
-                        theEventBuffer.pushEvent(event::allMotionsCompleted);
-                        theEventBuffer.pushEvent(event::motionStopped);
-                        theSampleTime.initialize();
-                        break;
-                    }
-                } else {
-                    calcStepSignals();
-                    break;
-                }
-            }
-        }
-        if (theStepSignals.isModified()) {
-            return theStepSignals.output();
-        }
-        if (theStepSignals.isTimedOut()) {
-            return theStepSignals.outputDefault();
-        }
-    }
-}
-
-void motionCtrl::calcStepSignals() {
-    // TODO : could maybe optimize by storing local copy of theMotionBuffer.current()
-    float sNow = theMotionBuffer.getHeadPtr()->s(theSampleTime.timeInMotion);
-    for (uint8_t anAxis = 0; anAxis < (uint8_t)axis::nmbrAxis; ++anAxis) {
-        if (theMotionBuffer.getHeadPtr()->isMoving(anAxis)) {
-            calcNextPositionInMm(anAxis, sNow, theMotionBuffer.getHeadPtr());
-            if (needStepForward(anAxis)) {
-                theStepSignals.stepForward(anAxis);
-                currentPositionInSteps[anAxis]++;
-            } else if (needStepBackward(anAxis)) {
-                theStepSignals.stepBackward(anAxis);
-                currentPositionInSteps[anAxis]--;
-            }
-        }
-    }
-}
-
-motionState motionCtrl::getState() const {
-    return theMotionCtrlState;
-}
-
-// motionStrategy motionCtrl::getMotionStrategy() const {
-//     return theStrategy;
-// }
-
-// overrides motionCtrl::getOverrides() const {
-//     return theOverrides;
-// }
-
-bool motionCtrl::isRunning() const {
-    return ((motionState::running == theMotionCtrlState) || (motionState::stopping == theMotionCtrlState));
-    // return (!(motionState::stopped == state)); // alternate way to calculate it...
+    theMotionBuffer.motionBuffer[right].optimize(theOverrides, theStrategy());
 }
 
 float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
@@ -172,7 +110,7 @@ float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
     float vResult{0};        // local variable to calculate and test for speed conditions
     float vTest{0};          // local variable to calculate and test for speed conditions
 
-    switch (theStrategy) {
+    switch (theStrategy()) {
         case motionStrategy::minimizeSpeed:
             vResult = 0;        // assume we can slow down to zero, adjust upwards if needed by other constraints
             vTest   = theMotionBuffer.motionBuffer[left].vOut(motionStrategy::minimizeSpeed, motionCalculateDirection::forward);
@@ -223,26 +161,77 @@ float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
     return vResult;
 }
 
+// #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
+// FASTRUN
+// #endif
 
-bool motionCtrl::needStepForward(uint8_t axis) {
-    return ((int32_t)((nextPositionInMm[axis] * theMachineProperties.motors.stepsPerMm[axis]) - hysteresis) > currentPositionInSteps[axis]);
+step motionCtrl::calcNextStepperMotorSignals() {
+    while (true) {
+        theStepSignals.next();
+        if (isRunning()) {
+            theSampleTime.next();
+            while (true) {
+                if (theSampleTime.isBeyondStop()) {
+                    theMotionCtrlState = motionState::stopped;
+                    theEventBuffer.pushEvent(event::motionStopped);
+                }
+                if (theSampleTime.isBeyondEndOfMotion()) {
+                    theSampleTime.initializeNextMotion();
+                    theMotionBuffer.pop();
+                    theEventBuffer.pushEvent(event::motionCompleted);
+                    if (theMotionBuffer.isEmpty()) {
+                        theMotionCtrlState = motionState::stopped;
+                        theEventBuffer.pushEvent(event::allMotionsCompleted);
+                        theEventBuffer.pushEvent(event::motionStopped);
+                        theSampleTime.initialize();
+                        break;
+                    }
+                } else {
+                    positionInSteps();
+                    break;
+                }
+            }
+        }
+        if (theStepSignals.isModified() || theStepSignals.isTimedOut()) {
+            return theStepSignals.output();
+        }
+    }
 }
 
-bool motionCtrl::needStepBackward(uint8_t axis) {
-    return ((int32_t)((nextPositionInMm[axis] * theMachineProperties.motors.stepsPerMm[axis]) + hysteresis) < currentPositionInSteps[axis]);
+void motionCtrl::positionInSteps() {
+    float sNow = theMotionBuffer.getHead().s(theSampleTime.timeInMotion);
+    for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
+        if (theMotionBuffer.getHead().isMoving(anAxis)) {
+            positionInMm(anAxis, sNow, theMotionBuffer.getHead().trajectory);
+            if (needStepForward(anAxis)) {
+                theStepSignals.stepForward(anAxis);
+                currentPositionInSteps[anAxis]++;
+            } else if (needStepBackward(anAxis)) {
+                theStepSignals.stepBackward(anAxis);
+                currentPositionInSteps[anAxis]--;
+            }
+        }
+    }
 }
 
-void motionCtrl::calcNextPositionInMm(uint8_t axis, float sNow, motion *currentMotion) {
-    // TODO : simplify by passing a pointer to trajectory io currentMotion
-
-    // 4b. Determine if this new position requires a step, forward or backwards
-    // NOTE - TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
+bool motionCtrl::needStepForward(uint32_t axis) {
+    return (static_cast<int32_t>((nextPositionInMm[axis] * theMachineProperties.motors.stepsPerMm[axis]) - hysteresis) > currentPositionInSteps[axis]);
+    // TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
     // Should test this on the K64/K66 to see how it behaves there
-    if (axis == (uint8_t)currentMotion->trajectory.arcAxis0) {
-        nextPositionInMm[axis] = (currentMotion->trajectory.arcCenter0 + (currentMotion->trajectory.radius * cosf(currentMotion->trajectory.startAngle + (currentMotion->trajectory.deltaRealTime[axis] * sNow))));
-    } else if (axis == (uint8_t)currentMotion->trajectory.arcAxis1) {
-        nextPositionInMm[axis] = (currentMotion->trajectory.arcCenter1 + (currentMotion->trajectory.radius * sinf(currentMotion->trajectory.startAngle + (currentMotion->trajectory.deltaRealTime[axis] * sNow))));
+}
+
+bool motionCtrl::needStepBackward(uint32_t axis) {
+    return (static_cast<int32_t>((nextPositionInMm[axis] * theMachineProperties.motors.stepsPerMm[axis]) + hysteresis) < currentPositionInSteps[axis]);
+    // TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
+    // Should test this on the K64/K66 to see how it behaves there
+}
+
+void motionCtrl::positionInMm(uint32_t axis, float sNow, motionTrajectory& currentMotionTrajectory) {
+    if (axis == static_cast<uint32_t>(currentMotionTrajectory.arcAxis0)) {
+        nextPositionInMm[axis] = (currentMotionTrajectory.arcCenter0 + (currentMotionTrajectory.radius * cosf(currentMotionTrajectory.startAngle + (currentMotionTrajectory.deltaRealTime[axis] * sNow))));
+    } else if (axis == static_cast<uint32_t>(currentMotionTrajectory.arcAxis1)) {
+        nextPositionInMm[axis] = (currentMotionTrajectory.arcCenter1 + (currentMotionTrajectory.radius * sinf(currentMotionTrajectory.startAngle + (currentMotionTrajectory.deltaRealTime[axis] * sNow))));
     } else {
-        nextPositionInMm[axis] = (currentMotion->trajectory.startPosition[axis] + currentMotion->trajectory.deltaRealTime[axis] * sNow);
+        nextPositionInMm[axis] = (currentMotionTrajectory.startPosition[axis] + currentMotionTrajectory.deltaRealTime[axis] * sNow);
     }
 }

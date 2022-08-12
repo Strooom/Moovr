@@ -43,12 +43,6 @@ step stepSignals::output() {
     return step{timeBefore, dirSetup};
 }
 
-step stepSignals::outputDefault() {
-    lastOutput           = dirSetup;
-    ticksSinceLastOutput = 0;
-    return step{maxTicksSinceLastOutput, dirSetup};
-}
-
 void stepSignals::setMaxTicksSinceLastOutput(uint32_t newMaxTicksSinceLastOutput) {
     maxTicksSinceLastOutput = newMaxTicksSinceLastOutput;
 }

@@ -146,7 +146,7 @@ void loop() {
     // This is a cooperation between motionCtrl and stepBuffer which could be at the main application level. So maybe not put it in either of those classes but just in main()
     // void motionCtrl::run() {
     //     while (theStepBuffer.needsFilling()) {
-    //         step aStep = calculateStepperSignals();           // get next step from Motion...
+    //         step aStep = calcNextStepperMotorSignals();           // get next step from Motion...
     //         theStepBuffer.write(aStep);        // ... and pump it to buffer
     //     }
     // }

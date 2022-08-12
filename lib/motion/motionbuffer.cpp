@@ -31,8 +31,8 @@ void motionBuffer::pop() {
     --level;
 }
 
-motion* motionBuffer::getHeadPtr() {
-    return &motionBuffer[head];
+motion& motionBuffer::getHead() {
+    return motionBuffer[head];
 }
 
 uint32_t motionBuffer::getLevel() const {

@@ -19,7 +19,7 @@
 
 class motionCtrl {
   public:
-    void append(simplifiedMotion &aSimpleMotion);
+    void append(simplifiedMotion& aSimpleMotion);
     void start();
     void hold();
     void resume();
@@ -28,18 +28,15 @@ class motionCtrl {
     void optimize();
 
     motionState getState() const;
-    
-    // motionStrategy getMotionStrategy() const;
-    // overrides getOverrides() const;
-    
     bool isRunning() const;
+    motionStrategy theStrategy() const;
 
-    step calculateStepperSignals();
+    step calcNextStepperMotorSignals();
 
 #ifndef unitTesting
   private:
 #endif
-    motionStrategy theStrategy{motionStrategy::minimizeSpeed};
+    // motionStrategy theStrategy{motionStrategy::minimizeSpeed};
     overrides theOverrides;
 
     sampleTime theSampleTime       = sampleTime(1);               // TODO : set a correct sample interval
@@ -47,14 +44,14 @@ class motionCtrl {
     motionBuffer theMotionBuffer;                                 //
     stepSignals theStepSignals;                                   //
 
-    float vJunction(uint32_t left, uint32_t right) const;                                //
-    void calcStepSignals();                                                              //
-    void calcNextPositionInMm(uint8_t anAxis, float sNow, motion *currentMotion);        //
-    bool needStepForward(uint8_t anAxis);                                                //
-    bool needStepBackward(uint8_t anAxis);                                               //
-    void optimizePair(int32_t junctionIndex);                                            //
+    float vJunction(uint32_t left, uint32_t right) const;                                             //
+    void positionInSteps();                                                                           //
+    void positionInMm(uint32_t anAxis, float sNow, motionTrajectory& currentMotionTrajectory);        //
+    bool needStepForward(uint32_t anAxis);                                                            //
+    bool needStepBackward(uint32_t anAxis);                                                           //
+    void optimizePair(int32_t junctionIndex);                                                         //
 
     bool isOptimal{false};
-    int32_t currentPositionInSteps[(uint8_t)axis::nmbrAxis]{};        // CAUTION, signed int - could go negative
-    float nextPositionInMm[(uint8_t)axis::nmbrAxis]{};                //
+    int32_t currentPositionInSteps[nmbrAxis]{};        // CAUTION, signed int - could go negative
+    float nextPositionInMm[nmbrAxis]{};                //
 };
