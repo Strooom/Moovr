@@ -25,9 +25,6 @@ static constexpr uint32_t minStepBufferLevel          = 4U;                     
 static constexpr uint32_t maxTicksSinceLastOutput     = minStepBufferTotalTimeTicks / minStepBufferLevel;                                 //
 static constexpr float minSteppingFrequency           = (float)maxSteppingFrequency / (float)std::numeric_limits<uint32_t>::max();        //
 static constexpr float maxMotionDuration              = (float)(std::numeric_limits<uint32_t>::max() / outputTimerFrequency);             //
-static constexpr uint32_t inputTimerFrequency         = 100U;                                                                             // Design parameter : 100 Hz = 10ms
-static constexpr uint32_t inputSamplingRate           = inputTimerFrequency;                                                              //
-static constexpr uint32_t pit2Reload                  = busFrequency / inputTimerFrequency;                                               //
 static constexpr float hysteresis                     = 0.05F;                                                                            // hysteresis, to avoid setting steps forward and backwards due to floating point rounding errors. In fact the value put here is half of the hysteresis
 
 static constexpr float oneSixth{1.0F / 6.0F};        // constant to avoid having to divide by 6, as division is slower than multiplication

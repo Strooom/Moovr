@@ -257,8 +257,8 @@ void motion::limit()        // calculate vMax, aMax and dMax from trajectory and
     speedProfile.jMax = theMachineProperties.motors.jMax;
 }
 
-bool motion::isMoving(uint8_t axis) const {
-    return trajectory.deltaRealTime[axis] != 0.0F;
+bool motion::isMoving(uint32_t anAxis) const {
+    return trajectory.deltaRealTime[anAxis] != 0.0F;
 }
 
 uint32_t motion::toString(char *output) const {
@@ -271,6 +271,25 @@ uint32_t motion::toString(char *output) const {
 
     return outputLenght;
 }
+
+void motion::positionFromDistance(point& aPosition, float s) {
+    // TODO s is confusion as parameter as it is also the name of a member function
+    for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
+        if (isMoving(anAxis)) {
+            // first calculation the position in mm
+            if (anAxis == static_cast<uint32_t>(trajectory.arcAxis0)) {
+                aPosition.inMm[anAxis] = (trajectory.arcCenter0 + (trajectory.radius * cosf(trajectory.startAngle + (trajectory.deltaRealTime[anAxis] * s))));
+            } else if (anAxis == static_cast<uint32_t>(trajectory.arcAxis1)) {
+                aPosition.inMm[anAxis] = (trajectory.arcCenter1 + (trajectory.radius * sinf(trajectory.startAngle + (trajectory.deltaRealTime[anAxis] * s))));
+            } else {
+                aPosition.inMm[anAxis] = (trajectory.startPosition[anAxis] + trajectory.deltaRealTime[anAxis] * s);
+            }
+            // then calculate position in steps
+            aPosition.inSteps[anAxis] = static_cast<int32_t>(aPosition.inMm[anAxis] * theMachineProperties.motors.stepsPerMm[anAxis]);
+        }
+    }
+}
+
 
 // void motion::export2csv(const char *outputFilename, uint32_t nmbrDataPoints) {
 // // #ifdef WIN32

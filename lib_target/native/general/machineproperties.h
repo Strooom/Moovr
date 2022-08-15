@@ -11,8 +11,6 @@
 #include <stdint.h>
 #include "axis.h"
 
-static constexpr uint32_t busFrequency = 60'000'000U;
-
 static constexpr uint32_t outputTimerFrequency        = 60'000U;                                                                          // Design parameter resulting in a certain maximum stepping frequency, as well as a minimum Step pulse width and Dir setup timeBefore
 static constexpr uint32_t maxSteppingFrequency        = outputTimerFrequency / 2U;                                                        //
 static constexpr float minStepPulseWidth              = 1.0F / outputTimerFrequency;                                                      // period of the PIT1 timer, this will automatically become the DIR setup timeBefore, as well as the STEP pulse width
@@ -24,7 +22,6 @@ static constexpr float minSteppingFrequency           = (float)maxSteppingFreque
 static constexpr float maxMotionDuration              = (float)(std::numeric_limits<uint32_t>::max() / outputTimerFrequency);             //
 static constexpr uint32_t inputTimerFrequency         = 100U;                                                                             // Design parameter : 100 Hz = 10ms
 static constexpr uint32_t inputSamplingRate           = inputTimerFrequency;                                                              //
-static constexpr uint32_t pit2Reload                  = busFrequency / inputTimerFrequency;                                               //
 static constexpr float hysteresis                     = 0.05F;                                                                            // hysteresis, to avoid setting steps forward and backwards due to floating point rounding errors. In fact the value put here is half of the hysteresis
 
 static constexpr float oneSixth{1.0F / 6.0F};        // constant to avoid having to divide by 6, as division is slower than multiplication
@@ -33,6 +30,7 @@ class machineProperties {
   public:
     void load();
     void save();
+    void setForTest(uint32_t set);
 
     struct Motors {
         float jMax{1000.0F};                                    // [mm/s^3] // TODO should we not set jMax per axis ?
@@ -66,4 +64,3 @@ class machineProperties {
 
     // static constexpr float t = limits.maxLimitswitchTravel * 6.0 / motors.jMax;
 };
-

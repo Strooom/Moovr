@@ -30,7 +30,7 @@ motionStrategy motionCtrl::theStrategy() const {
     return ((motionState::running == theMotionCtrlState) ? motionStrategy::maximizeSpeed : motionStrategy::minimizeSpeed);
 }
 
-void motionCtrl::append(simplifiedMotion &theMotion) {
+void motionCtrl::append(simplifiedMotion& theMotion) {
     if (!theMotionBuffer.isFull()) {
         uint32_t newItemIndex = theMotionBuffer.push();
         theMotionBuffer.motionBuffer[newItemIndex].set(theMotion, theOverrides, theStrategy());
@@ -187,7 +187,7 @@ step motionCtrl::calcNextStepperMotorSignals() {
                         break;
                     }
                 } else {
-                    positionInSteps();
+                    move();
                     break;
                 }
             }
@@ -198,40 +198,58 @@ step motionCtrl::calcNextStepperMotorSignals() {
     }
 }
 
-void motionCtrl::positionInSteps() {
-    float sNow = theMotionBuffer.getHead().s(theSampleTime.timeInMotion);
+bool motionCtrl::needStepForward(uint32_t anAxis) {
+    return (static_cast<int32_t>((nextPosition.inSteps[anAxis] - hysteresis) > currentPosition.inSteps[anAxis]));
+    // TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
+    // Should test this on the K64/K66 to see how it behaves there
+}
+
+bool motionCtrl::needStepBackward(uint32_t anAxis) {
+    return (static_cast<int32_t>((nextPosition.inSteps[anAxis] + hysteresis) < currentPosition.inSteps[anAxis]));
+    // TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
+    // Should test this on the K64/K66 to see how it behaves there
+}
+
+void motionCtrl::move() {
+    motion& currentMotion = theMotionBuffer.getHead();
+    float sNow            = currentMotion.s(theSampleTime.timeInMotion);
+    currentMotion.positionFromDistance(currentPosition, sNow);
+
     for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
-        if (theMotionBuffer.getHead().isMoving(anAxis)) {
-            positionInMm(anAxis, sNow, theMotionBuffer.getHead().trajectory);
+        if (currentMotion.isMoving(anAxis)) {
             if (needStepForward(anAxis)) {
                 theStepSignals.stepForward(anAxis);
-                currentPositionInSteps[anAxis]++;
             } else if (needStepBackward(anAxis)) {
                 theStepSignals.stepBackward(anAxis);
-                currentPositionInSteps[anAxis]--;
             }
         }
     }
 }
 
-bool motionCtrl::needStepForward(uint32_t axis) {
-    return (static_cast<int32_t>((nextPositionInMm[axis] * theMachineProperties.motors.stepsPerMm[axis]) - hysteresis) > currentPositionInSteps[axis]);
-    // TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
-    // Should test this on the K64/K66 to see how it behaves there
-}
 
-bool motionCtrl::needStepBackward(uint32_t axis) {
-    return (static_cast<int32_t>((nextPositionInMm[axis] * theMachineProperties.motors.stepsPerMm[axis]) + hysteresis) < currentPositionInSteps[axis]);
-    // TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
-    // Should test this on the K64/K66 to see how it behaves there
-}
+// void motionCtrl::positionInMm(uint32_t axis, float sNow, motionTrajectory& currentMotionTrajectory) {
+//     if (axis == static_cast<uint32_t>(currentMotionTrajectory.arcAxis0)) {
+//         nextPositionInMm[axis] = (currentMotionTrajectory.arcCenter0 + (currentMotionTrajectory.radius * cosf(currentMotionTrajectory.startAngle + (currentMotionTrajectory.deltaRealTime[axis] * sNow))));
+//     } else if (axis == static_cast<uint32_t>(currentMotionTrajectory.arcAxis1)) {
+//         nextPositionInMm[axis] = (currentMotionTrajectory.arcCenter1 + (currentMotionTrajectory.radius * sinf(currentMotionTrajectory.startAngle + (currentMotionTrajectory.deltaRealTime[axis] * sNow))));
+//     } else {
+//         nextPositionInMm[axis] = (currentMotionTrajectory.startPosition[axis] + currentMotionTrajectory.deltaRealTime[axis] * sNow);
+//     }
+// }
 
-void motionCtrl::positionInMm(uint32_t axis, float sNow, motionTrajectory& currentMotionTrajectory) {
-    if (axis == static_cast<uint32_t>(currentMotionTrajectory.arcAxis0)) {
-        nextPositionInMm[axis] = (currentMotionTrajectory.arcCenter0 + (currentMotionTrajectory.radius * cosf(currentMotionTrajectory.startAngle + (currentMotionTrajectory.deltaRealTime[axis] * sNow))));
-    } else if (axis == static_cast<uint32_t>(currentMotionTrajectory.arcAxis1)) {
-        nextPositionInMm[axis] = (currentMotionTrajectory.arcCenter1 + (currentMotionTrajectory.radius * sinf(currentMotionTrajectory.startAngle + (currentMotionTrajectory.deltaRealTime[axis] * sNow))));
-    } else {
-        nextPositionInMm[axis] = (currentMotionTrajectory.startPosition[axis] + currentMotionTrajectory.deltaRealTime[axis] * sNow);
-    }
-}
+
+// void motionCtrl::positionInSteps() {
+//     float sNow = theMotionBuffer.getHead().s(theSampleTime.timeInMotion);
+//     for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
+//         if (theMotionBuffer.getHead().isMoving(anAxis)) {
+//             positionInMm(anAxis, sNow, theMotionBuffer.getHead().trajectory);
+//             if (needStepForward(anAxis)) {
+//                 theStepSignals.stepForward(anAxis);
+//                 currentPositionInSteps[anAxis]++;
+//             } else if (needStepBackward(anAxis)) {
+//                 theStepSignals.stepBackward(anAxis);
+//                 currentPositionInSteps[anAxis]--;
+//             }
+//         }
+//     }
+// }

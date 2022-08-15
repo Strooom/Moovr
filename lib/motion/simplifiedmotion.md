@@ -19,3 +19,6 @@
 
 # 20, 30, 40
 * To Be Completed
+
+TODO : arcAxis could be simpler if we define the plane, io 2 axis'
+But we still need to define the 2 coordinates of the axis intersection with the plane

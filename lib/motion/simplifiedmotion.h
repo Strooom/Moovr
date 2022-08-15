@@ -7,6 +7,7 @@
 
 #pragma once
 #include <stdint.h>
+#include <limits>
 #include "axis.h"
 #include "motiontype.h"
 #include "rotationdirection.h"
@@ -27,8 +28,8 @@ class simplifiedMotion {
     } trajectory;
 
     struct SpeedProfile {
-        double vFeed{0.0};           // speed requested by gCode [mm/s]
-        double duration{0.0};        // duration [s]
+        double vFeed{std::numeric_limits<double>::infinity()};        // speed requested by gCode [mm/s]
+        double duration{0.0};                                         // duration [s]
     } speedProfile;
 
     struct Peripherals {
@@ -40,4 +41,5 @@ class simplifiedMotion {
 
     uint32_t toString(char* destBuffer);
     void setForTest(uint32_t aSet);
+    void setForTest(motionType theType, uint32_t trajectoryIndex, uint32_t speedprofileIndex);
 };

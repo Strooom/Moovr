@@ -49,7 +49,6 @@ void simplifiedMotion::setForTest(uint32_t aSet) {
             type                = motionType::traverse;
             trajectory.length   = 1.0f;
             trajectory.delta[0] = 1.0f;
-            speedProfile.vFeed  = std::numeric_limits<float>::infinity();
             break;
 
         case 1U:
@@ -58,14 +57,12 @@ void simplifiedMotion::setForTest(uint32_t aSet) {
             trajectory.delta[0] = 1.0f;
             trajectory.delta[1] = 1.0f;
             trajectory.delta[2] = 1.0f;
-            speedProfile.vFeed  = std::numeric_limits<float>::infinity();
             break;
 
         case 2U:
             type                = motionType::traverse;
             trajectory.length   = 10.0f;
             trajectory.delta[0] = 10.0f;
-            speedProfile.vFeed  = std::numeric_limits<float>::infinity();
             break;
 
         case 10U:
@@ -88,8 +85,38 @@ void simplifiedMotion::setForTest(uint32_t aSet) {
             break;
 
         case 40U:
-            type               = motionType::pauseAndResume;
+            type                  = motionType::pauseAndResume;
             speedProfile.duration = 1.0f;
+            break;
+
+        case 100U:
+            type               = motionType::feedHelicalCW;
+            trajectory.length  = 1.0f;
+            trajectory.radius=1.0f;
+            
+            break;
+
+        case 101U:
+            type               = motionType::feedHelicalCCW;
+            trajectory.length  = 1.0f;
             break;
     }
 }
+
+// void simplifiedMotion::setForTest(motionType theType, uint32_t trajectoryIndex, uint32_t speedprofileIndex) {
+//     type = theType;
+//     switch (trajectoryIndex) {
+//         case 0U:
+//             break;
+
+//         default:
+//             break;
+//     }
+//     switch (speedprofileIndex) {
+//         case 0U:
+//             break;
+
+//         default:
+//             break;
+//     }
+// }

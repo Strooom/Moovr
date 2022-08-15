@@ -15,7 +15,7 @@
 
 machineProperties theMachineProperties;                           // defaults are ok
 overrides theOverrides;                                           // defaults are ok
-motionStrategy theStrategy{motionStrategy::maximizeSpeed};        // 
+motionStrategy theStrategy{motionStrategy::maximizeSpeed};        //
 
 void setUp(void) {}           // before test
 void tearDown(void) {}        // after test
@@ -483,6 +483,32 @@ void calculateMotion() {
     TEST_ASSERT_EQUAL_FLOAT(10.0f, aMotion.s(8.0f));
 }
 
+void calculateTrajectory() {
+    overrides theOverrrides;
+    simplifiedMotion aSimpleMotion;
+    motion aMotion;
+    point aPosition;
+    
+    aSimpleMotion.setForTest(0U);        // 1 mm move over the x-axis
+    aMotion.set(aSimpleMotion, theOverrides, theStrategy);
+    for (uint32_t steps = 0; steps < 2; steps++) {
+        float distanceTravelled = static_cast<float>(steps) * aMotion.trajectory.length;
+        aMotion.positionFromDistance(aPosition, distanceTravelled);
+        TEST_ASSERT_EQUAL_FLOAT(distanceTravelled, aPosition.inMm[0]);
+        TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[1]);
+        TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[2]);
+    }
+    aSimpleMotion.setForTest(100U);        // circular motion, xy-plane
+    aMotion.set(aSimpleMotion, theOverrides, theStrategy);
+    for (uint32_t steps = 0; steps < 2; steps++) {
+        float distanceTravelled = static_cast<float>(steps) * aMotion.trajectory.length;
+        aMotion.positionFromDistance(aPosition, distanceTravelled);
+        TEST_ASSERT_EQUAL_FLOAT(distanceTravelled, aPosition.inMm[0]);
+        TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[1]);
+        TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[2]);
+    }
+}
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(initializeMotionPart);
@@ -494,5 +520,6 @@ int main(int argc, char **argv) {
     RUN_TEST(limit);
     RUN_TEST(optimize);
     RUN_TEST(calculateMotion);
+    RUN_TEST(calculateTrajectory);
     UNITY_END();
 }

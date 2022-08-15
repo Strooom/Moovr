@@ -14,3 +14,16 @@ void machineProperties::load() {
 void machineProperties::save() {
     // TODO : save the properties to an SD card or other stream
 }
+
+void machineProperties::setForTest(uint32_t aSet) {
+    switch (aSet) {
+        case 0U:
+        default:
+            for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
+                motors.aMax[anAxis] = 1.0f;
+                motors.dMax[anAxis] = -1.0f;
+                motors.vMax[anAxis] = 1.0f;
+            }
+            break;
+    }
+}

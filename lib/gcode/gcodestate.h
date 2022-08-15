@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "axis.h"
 #include "gcodemodalgroup.h"
+#include "gcodeletter.h"
 
 struct gCodeState
     {

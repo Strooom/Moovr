@@ -10,276 +10,19 @@
 #include "gcode.h"
 #include <limits>
 
-uint32_t gCode::getNmbrWords() const {
-    return theBlock.nmbrWords;
-};
-
-void gCode::countModalGroupAndOthers(uint32_t i) {
-    if ('G' == theBlock.gCodeWords[i].letter) {
-        switch (theBlock.gCodeWords[i].intNumber) {
-            case 0U:
-            case 10U:
-            case 20U:
-            case 30U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Motion];
-                break;
-
-            case 170U:
-            case 180U:
-            case 190U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Plane];
-                break;
-
-            case 900U:
-            case 910U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Distance];
-                break;
-
-            case 200U:
-            case 210U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Unit];
-                break;
-
-            case 930U:
-            case 940U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::FeedRate];
-                break;
-
-            case 540U:
-            case 550U:
-            case 560U:
-            case 570U:
-            case 580U:
-            case 590U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::CoordinateSet];
-                break;
-
-            case 40U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Motion];
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Group0];
-                break;
-
-            case 100U:
-            case 280U:
-            case 300U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Group0];
-                break;
-
-            case 530U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::CoordinateSet];
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Group0];
-                break;
-        }
-    } else if ('M' == theBlock.gCodeWords[i].letter) {
-        switch (theBlock.gCodeWords[i].intNumber) {
-            case 30U:
-            case 40U:
-            case 50U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::Spindle];
-                break;
-
-            case 70U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::CoolantMist];
-                break;
-
-            case 80U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::CoolantFlood];
-                break;
-
-            case 90U:
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::CoolantFlood];
-                ++theBlock.modalGroupCount[(uint32_t)modalGroup::CoolantMist];
-                break;
-        }
-    } else {
-        switch (theBlock.gCodeWords[i].letter) {
-            // TODO, add all other valueLetters
-            case 'F':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::F];
-                break;
-            case 'L':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::L];
-                break;
-            case 'N':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::N];
-                break;
-            case 'P':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::P];
-                break;
-            case 'R':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::R];
-                theBlock.hasRadius = true;
-                break;
-            case 'S':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::S];
-                break;
-            case 'X':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::X];
-                theBlock.hasAxis = true;
-                break;
-            case 'Y':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::Y];
-                theBlock.hasAxis = true;
-                break;
-            case 'Z':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::Z];
-                theBlock.hasAxis = true;
-                break;
-            case 'I':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::I];
-                theBlock.hasOffset = true;
-                break;
-            case 'J':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::J];
-                theBlock.hasOffset = true;
-                break;
-            case 'K':
-                ++theBlock.valueWordCount[(uint32_t)gCodeLetter::K];
-                theBlock.hasOffset = true;
-                break;
-        }
-    }
-};
-
-void gCode::getBlock(const uint8_t *commandLine) {
-    uint8_t currentByte;
-    uint8_t readPos   = 0;
-    uint8_t writePos  = 0;
-    bool inComment    = false;
-    char number[16]   = "";
-    uint8_t writePos2 = 0;
-
-    theBlock.nmbrWords = 0;            // reset counter for counting words inside a block
-    theBlock.hasAxis   = false;        // X Y Z A B C
-    theBlock.hasOffset = false;        // I J K
-    theBlock.hasRadius = false;        // R
-
-    // reset counts for words part of modalGroups. Only maximum one G- or M-code for each of these blocks is allowed
-    for (uint32_t i = 0; i < (uint8_t)modalGroup::nmbrModalGroups; ++i) {
-        theBlock.modalGroupCount[i] = 0;
-    }
-
-    // reset counts for all non G and M words, called valueWords
-    for (uint32_t i = 0; i < (uint8_t)gCodeLetter::nmbrLetters; ++i) {
-        theBlock.valueWordCount[i] = 0;
-    }
-
-    // 1. Strip all Whitespace and Comments
-    while ((currentByte = commandLine[readPos]))        // read new byte from source for as long as they are not zero, which indicated rxBuffer underrun
-    {
-        if ('\n' == currentByte)        // if linefeed...
-        {
-            break;        // ... is 'end of line' -> break out of loop ...
-        }
-        switch (currentByte) {
-            case '(':                    // detect beginning of a comment
-                inComment = true;        // remember by setting flag
-                break;
-
-            case ')':                     // detect end of a comment
-                inComment = false;        // reset flag
-                break;
-
-            case ' ':         // strip spaces
-            case '\t':        // strip TABs
-                break;
-
-            default:
-                if (!inComment)        // if NOT inside comment...
-                {
-                    if ((currentByte >= 'a') && (currentByte <= 'z'))        // if any lowercase...
-                    {
-                        currentByte -= ('a' - 'A');        // ... convert to uppercase to simplify parsing later-on
-                    }
-                    gCodeLine[writePos] = currentByte;        // ... write to output
-                    writePos++;                               // move to next position in destination
-                }
-                break;
-        }
-        ++readPos;
-    }
-    gCodeLine[writePos] = 0;        // Terminate
-
-    // 2. Now parse the line of text and convert into an array of gCodeWords
-    readPos = 0;
-    while (gCodeLine[readPos] && (theBlock.nmbrWords < theBlock.MaxGCodeWordsPerGCodeBlock)) {
-        // 1. Proceed to next A-Z
-        if (!(('A' <= gCodeLine[readPos]) && ('Z' >= gCodeLine[readPos]))) {
-            ++readPos;
-        } else {
-            // Get the letter..
-            theBlock.gCodeWords[theBlock.nmbrWords].letter = gCodeLine[readPos];
-            // 2. Then after the 'letter', expect the number
-            // For strtod to work 100% reliable, we need to really isolate the number part into a separate string...
-            ++readPos;
-            writePos2 = 0;
-            while (gCodeLine[readPos] && (writePos2 < 15) && (!(('A' <= gCodeLine[readPos]) && ('Z' >= gCodeLine[readPos])))) {
-                number[writePos2] = gCodeLine[readPos];
-                ++readPos;
-                ++writePos2;
-            }
-            number[writePos2] = 0;        // Terminate the new number string
-
-            theBlock.gCodeWords[theBlock.nmbrWords].number = strtod(number, NULL);
-
-            if (('G' == theBlock.gCodeWords[theBlock.nmbrWords].letter) || ('M' == theBlock.gCodeWords[theBlock.nmbrWords].letter)) {
-                theBlock.gCodeWords[theBlock.nmbrWords].intNumber = (uint32_t)(theBlock.gCodeWords[theBlock.nmbrWords].number * 10);
-            } else {
-                theBlock.gCodeWords[theBlock.nmbrWords].intNumber = 0;
-            }
-            countModalGroupAndOthers(theBlock.nmbrWords);
-
-            ++theBlock.nmbrWords;
-        }
-    }
-}
-void gCode::getBlock(const char *commandLine) {
-    getBlock(reinterpret_cast<const uint8_t *>(commandLine));
-};
-
-int32_t gCode::searchWord(uint8_t aLetter, uint32_t anIntNumber) const {
-    if (('G' == aLetter) || ('M' == aLetter))        // for G and M
-    {
-        for (uint32_t i = 0; i < theBlock.nmbrWords; ++i) {
-            if ((theBlock.gCodeWords[i].letter == aLetter) && (theBlock.gCodeWords[i].intNumber == anIntNumber)) {
-                return i;
-            }
-        }
-    } else {
-        for (uint32_t i = 0; i < theBlock.nmbrWords; ++i) {
-            if (theBlock.gCodeWords[i].letter == aLetter) {
-                return i;
-            }
-        }
-    }
-    return -1;
-}
-
-void gCode::removeWord(int32_t indexToBeRemoved) {
-    if ((indexToBeRemoved >= 0) && (indexToBeRemoved < (int32_t)theBlock.nmbrWords))        // only if index is within meaningful range
-    {
-        if (theBlock.nmbrWords > 1U)        // if it's not the last word, swap the last item with the to be removed item
-        {
-            theBlock.gCodeWords[indexToBeRemoved].letter    = theBlock.gCodeWords[theBlock.nmbrWords - 1].letter;
-            theBlock.gCodeWords[indexToBeRemoved].number    = theBlock.gCodeWords[theBlock.nmbrWords - 1].number;
-            theBlock.gCodeWords[indexToBeRemoved].intNumber = theBlock.gCodeWords[theBlock.nmbrWords - 1].intNumber;
-        }
-        --theBlock.nmbrWords;
-    }
-};
 
 gCode::gCode() {
     initialize();
 };
 
-void gCode::parseBlock(gCodeParserResult &theParseResult) {
+void gCode::parseBlock(simplifiedMotion &theParseResult) {
     //    int8_t i, j, k;        // indexes of gcode words in the array. int io uint, as 'not found' returns -1. All Words inside the block are executed in the correct order - no matter what order they appear on the line. Any word found is executed, and then removed from the block. At the same time, all syntax errors are being checked
-    theParseResult.theParseResultType   = gCodeParserResult::ParseResultType::EmptyBlock;
+    theParseResult.theParseResultType   = simplifiedMotion::ParseResultType::EmptyBlock;
     theParseResult.motion.theMotionType = motionType::None;
-    theParseResult.error                = gCodeParserResult::Error::None;
+    theParseResult.error                = simplifiedMotion::Error::None;
 
     // If we are in inverse feedmode or G91, we should reset F and axis for each block
-    // even going to these modes in  a block, we should do that.. before reading any axis words
+    // even going to these modes in a block, we should do that.. before reading any axis words
     // TODO : put some extra tests in the code, depending on the number of Axis
     // If 1 axis -> no helical possible
     // if 2 axis -> only 1 plane possible
@@ -290,8 +33,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
     // Step 1 : check for modalgroup and letterword violations...
     for (uint8_t i = 0; i < (uint8_t)modalGroup::nmbrModalGroups; ++i) {
         if (theBlock.modalGroupCount[i] > 1U) {
-            theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-            theParseResult.error              = gCodeParserResult::Error::ModalGroupCollision;
+            theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+            theParseResult.error              = simplifiedMotion::Error::ModalGroupCollision;
             theBlock.nmbrWords                = 0;
             return;
         }
@@ -299,8 +42,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
     // Check if Value words are present max 1 per block
     for (uint8_t i = 0; i < (uint8_t)gCodeLetter::nmbrLetters; ++i) {
         if (theBlock.valueWordCount[i] > 1U) {
-            theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-            theParseResult.error              = gCodeParserResult::Error::ValueWordCollision;
+            theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+            theParseResult.error              = simplifiedMotion::Error::ValueWordCollision;
             theBlock.nmbrWords                = 0;
             return;
         }
@@ -350,8 +93,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
         int32_t i;
         i = searchWord('N');
         if (i > 0) {
-            theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-            theParseResult.error              = gCodeParserResult::Error::InvalidLineNumber;
+            theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+            theParseResult.error              = simplifiedMotion::Error::InvalidLineNumber;
             theBlock.nmbrWords                = 0;
             return;
         } else if (0 == i) {
@@ -359,8 +102,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                 theState.letterValueState[(uint8_t)gCodeLetter::N] = theBlock.gCodeWords[i].number;
                 removeWord(i);
             } else {
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                theParseResult.error              = gCodeParserResult::Error::InvalidLineNumber;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                theParseResult.error              = simplifiedMotion::Error::InvalidLineNumber;
                 theBlock.nmbrWords                = 0;
                 return;
             }
@@ -390,15 +133,15 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                 theState.letterValueState[(uint8_t)gCodeLetter::F] = theBlock.gCodeWords[i].number;
                 removeWord(i);
             } else {
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                theParseResult.error              = gCodeParserResult::Error::InvalidFeedrate;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                theParseResult.error              = simplifiedMotion::Error::InvalidFeedrate;
                 theBlock.nmbrWords                = 0;
                 return;
             }
         } else {
             if (theState.modalGroupsState[(uint8_t)modalGroup::FeedRate] == (uint8_t)modalGroupFeedRate::G93) {
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                theParseResult.error              = gCodeParserResult::Error::MissingFeedrate;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                theParseResult.error              = simplifiedMotion::Error::MissingFeedrate;
                 theBlock.nmbrWords                = 0;
                 return;
             }
@@ -414,8 +157,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                 theState.letterValueState[(uint8_t)gCodeLetter::S] = theBlock.gCodeWords[i].number;
                 removeWord(i);
             } else {
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                theParseResult.error              = gCodeParserResult::Error::InvalidSpindleSpeed;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                theParseResult.error              = simplifiedMotion::Error::InvalidSpindleSpeed;
                 theBlock.nmbrWords                = 0;
                 return;
             }
@@ -477,21 +220,21 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
             if (j >= 0) {
                 if (theBlock.gCodeWords[j].number >= 0) {
                     theState.letterValueState[(uint8_t)gCodeLetter::P] = theBlock.gCodeWords[j].number;
-                    theParseResult.theParseResultType                  = gCodeParserResult::ParseResultType::OkContextUpdateAndMotion;
+                    theParseResult.theParseResultType                  = simplifiedMotion::ParseResultType::OkContextUpdateAndMotion;
                     theParseResult.motion.theMotionType                = motionType::PauseAndResume;
                     calcMotion(theParseResult);
                     removeWord(i);
                     removeWord(j);
                     return;
                 } else {
-                    theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                    theParseResult.error              = gCodeParserResult::Error::InvalidDwellTime;
+                    theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                    theParseResult.error              = simplifiedMotion::Error::InvalidDwellTime;
                     theBlock.nmbrWords                = 0;
                     return;
                 }
             } else {
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                theParseResult.error              = gCodeParserResult::Error::MissingPForG4;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                theParseResult.error              = simplifiedMotion::Error::MissingPForG4;
                 theBlock.nmbrWords                = 0;
                 return;
             }
@@ -587,8 +330,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                 if ((k = searchWord('P')) >= 0) {
                     // TODO : Check P integer 1 .. 9
                 } else {
-                    theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                    theParseResult.error              = gCodeParserResult::Error::MissingPForG10;
+                    theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                    theParseResult.error              = simplifiedMotion::Error::MissingPForG10;
                     theBlock.nmbrWords                = 0;
                     return;
                 }
@@ -597,14 +340,14 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                 if ((k = searchWord('P')) >= 0) {
                     // TODO : Check P integer 1 .. 9
                 } else {
-                    theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                    theParseResult.error              = gCodeParserResult::Error::MissingPForG10;
+                    theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                    theParseResult.error              = simplifiedMotion::Error::MissingPForG10;
                     theBlock.nmbrWords                = 0;
                     return;
                 }
             } else {
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                theParseResult.error              = gCodeParserResult::Error::MissingLForG10;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                theParseResult.error              = simplifiedMotion::Error::MissingLForG10;
                 theBlock.nmbrWords                = 0;
                 return;
             }
@@ -658,8 +401,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
             if ((i = searchWord('G', 0)) >= 0) {
                 theState.modalGroupsState[(uint8_t)modalGroup::Motion] = (uint8_t)modalGroupMotion::G0;
 
-                theParseResult.theParseResultType   = gCodeParserResult::ParseResultType::OkContextUpdateAndMotion;
-                theParseResult.error                = gCodeParserResult::Error::None;
+                theParseResult.theParseResultType   = simplifiedMotion::ParseResultType::OkContextUpdateAndMotion;
+                theParseResult.error                = simplifiedMotion::Error::None;
                 theParseResult.motion.theMotionType = motionType::Traverse;
                 calcMotion(theParseResult);
                 removeWord(i);
@@ -673,12 +416,12 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                     if (theState.modalGroupsState[(uint8_t)modalGroup::FeedRate] == (uint8_t)modalGroupFeedRate::G93) {
                         theState.letterValueState[(uint8_t)gCodeLetter::F] = 0;
                     }
-                    theParseResult.error              = gCodeParserResult::Error::None;
-                    theParseResult.theParseResultType = gCodeParserResult::ParseResultType::OkContextUpdateAndMotion;
+                    theParseResult.error              = simplifiedMotion::Error::None;
+                    theParseResult.theParseResultType = simplifiedMotion::ParseResultType::OkContextUpdateAndMotion;
                     return;
                 } else {
-                    theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-                    theParseResult.error              = gCodeParserResult::Error::InvalidFeedrate;
+                    theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+                    theParseResult.error              = simplifiedMotion::Error::InvalidFeedrate;
                     theBlock.nmbrWords                = 0;
                     return;
                 }
@@ -688,8 +431,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                 // check if feedrate > 0
                 calcMotion(theParseResult);
                 removeWord(i);
-                theParseResult.error              = gCodeParserResult::Error::None;
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::OkContextUpdateAndMotion;
+                theParseResult.error              = simplifiedMotion::Error::None;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::OkContextUpdateAndMotion;
                 return;
             } else if ((i = searchWord('G', 30)) >= 0) {
                 theState.modalGroupsState[(uint8_t)modalGroup::Motion] = (uint8_t)modalGroupMotion::G3;
@@ -697,8 +440,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
                 // check if feedrate > 0
                 calcMotion(theParseResult);
                 removeWord(i);
-                theParseResult.error              = gCodeParserResult::Error::None;
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::OkContextUpdateAndMotion;
+                theParseResult.error              = simplifiedMotion::Error::None;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::OkContextUpdateAndMotion;
                 return;
             } else if (theBlock.hasAxis) {        // no G-code, but axis words -> continue the current mode - TODO : do I need additional checks ?
                 switch (theState.modalGroupsState[(uint8_t)modalGroup::Motion]) {
@@ -721,8 +464,8 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
 
                 // check if feedrate > 0
                 calcMotion(theParseResult);
-                theParseResult.error              = gCodeParserResult::Error::None;
-                theParseResult.theParseResultType = gCodeParserResult::ParseResultType::OkContextUpdateAndMotion;
+                theParseResult.error              = simplifiedMotion::Error::None;
+                theParseResult.theParseResultType = simplifiedMotion::ParseResultType::OkContextUpdateAndMotion;
                 return;
             }
         }
@@ -746,13 +489,13 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
     }
     // Now check for any unused words - normally they should be unsupported
     if (theBlock.nmbrWords > 0) {
-        theParseResult.theParseResultType = gCodeParserResult::ParseResultType::Error;
-        theParseResult.error              = gCodeParserResult::Error::UnsupportedgCodeWord;
+        theParseResult.theParseResultType = simplifiedMotion::ParseResultType::Error;
+        theParseResult.error              = simplifiedMotion::Error::UnsupportedgCodeWord;
         theBlock.nmbrWords                = 0;
     }
 
-    theParseResult.error              = gCodeParserResult::Error::None;
-    theParseResult.theParseResultType = gCodeParserResult::ParseResultType::OkContextUpdateOnly;
+    theParseResult.error              = simplifiedMotion::Error::None;
+    theParseResult.theParseResultType = simplifiedMotion::ParseResultType::OkContextUpdateOnly;
     return;
 };
 
@@ -768,7 +511,7 @@ void gCode::parseBlock(gCodeParserResult &theParseResult) {
 // translate to parameters for efficient real-time calculation
 // the real-time calculations will use (hardware) float (single precision)
 
-void gCode::calcMotion(gCodeParserResult &theParseResult) {
+void gCode::calcMotion(simplifiedMotion &theParseResult) {
     // 	################################
     //	1.	Calculate Next Position [mm]
     // 	################################
