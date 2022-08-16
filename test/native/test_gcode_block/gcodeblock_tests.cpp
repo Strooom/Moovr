@@ -22,6 +22,51 @@ void wordCount() {
     TEST_ASSERT_EQUAL(9, aBlock.getNmbrWords());
 }
 
+// TODO : get floating point values from words, in all kinds of formatting..
+// TODO : works for uppercase or lowercase or mixed case words
+// TODO : test all boundary conditions for properly detecting words from string
+// TODO : do comments work ?
+    // TODO : test boundaries.. > maxNmbrwords
+
+
+void hasAxis() {
+    gCodeBlock aBlock;
+    aBlock.getBlockFromString("S100");
+    TEST_ASSERT_FALSE(aBlock.hasAxis());
+    aBlock.getBlockFromString("X100");
+    TEST_ASSERT_TRUE(aBlock.hasAxis());
+    aBlock.getBlockFromString("Y100");
+    TEST_ASSERT_TRUE(aBlock.hasAxis());
+    aBlock.getBlockFromString("Z100");
+    TEST_ASSERT_TRUE(aBlock.hasAxis());
+    aBlock.getBlockFromString("X100 Y200 Z300");
+    TEST_ASSERT_TRUE(aBlock.hasAxis());
+}
+
+void hasOffsets() {
+    gCodeBlock aBlock;
+    aBlock.getBlockFromString("S100");
+    TEST_ASSERT_FALSE(aBlock.hasOffset());
+    aBlock.getBlockFromString("I100");
+    TEST_ASSERT_TRUE(aBlock.hasOffset());
+    aBlock.getBlockFromString("J100");
+    TEST_ASSERT_TRUE(aBlock.hasOffset());
+    aBlock.getBlockFromString("K100");
+    TEST_ASSERT_TRUE(aBlock.hasOffset());
+    aBlock.getBlockFromString("I100 J200 K300");
+    TEST_ASSERT_TRUE(aBlock.hasOffset());
+}
+
+void hasRadius() {
+    gCodeBlock aBlock;
+    aBlock.getBlockFromString("S100");
+    TEST_ASSERT_FALSE(aBlock.hasRadius());
+    aBlock.getBlockFromString("R10");
+    TEST_ASSERT_TRUE(aBlock.hasRadius());
+}
+
+
+
 void wordSearchAndRemove() {
     gCodeBlock aBlock;
     TEST_ASSERT_EQUAL(-1, aBlock.searchWord('G', 10));
@@ -60,6 +105,9 @@ int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(initialization);
     RUN_TEST(wordCount);
+    RUN_TEST(hasAxis);
+    RUN_TEST(hasOffsets);
+    RUN_TEST(hasRadius);
     RUN_TEST(wordSearchAndRemove);
     RUN_TEST(modalGroupViolation);
     RUN_TEST(letterWordViolation);

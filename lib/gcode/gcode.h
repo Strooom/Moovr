@@ -7,35 +7,34 @@
 
 #pragma once
 #include <stdint.h>
-//#include "gcodeword.h"
 #include "gcodeblock.h"
 #include "gcodestate.h"
 #include "simplifiedmotion.h"
+#include "gcodeparseresulttype.h"
+#include "gcodeparseerror.h"
 
 class gCode {
   public:
     gCode();        // Constructor
 
-    void initialize();          // (Re-)initialize the parser
+    void initialize();        // initialize the parser, before parsing a new block
+    void reset();             // completely reset the parser, forgetting all state from already parsed blocks
+
     void saveState();           // Save the state of the Parser, so we can do some interim stuff and afterwards restore the state back to what is was..
     void restoreState();        // Restore the state from previous saveState
 
-    void getBlock(const uint8_t *commandLine);                 // Read a line of input and process as gCode block - This is the input of this module.. it receives a c-style zero terminated string
-    void getBlock(const char *commandLine);                    // Read a line of input and process as gCode block - This is the input of this module.. it receives a c-style zero terminated string
     void parseBlock(simplifiedMotion &theParseResult);        // Process all words in block, update gCode context and spawn a motion if the block contains one..
     void calcMotion(simplifiedMotion &theParseResult);        // calculate all the details for a motion resulting from a G0, G1, G2, G3, G4 block..
 
-    uint32_t getNmbrWords(void) const;        // return number of actually used words in the block
-
-    //	private:
+#ifndef unitTesting
+  private:
+#endif
     static constexpr double pi{3.141592653589793238463};        // constant for calculations in radians
     static constexpr double inches2mm{25.4};                    // 25.4 mm/inch
 
-    char gCodeLine[256]{};
-
-    gCodeBlock theBlock;
+    gCodeBlock theBlock;        //
     gCodeState theState;        // gCode parser context : current position, value of all modal groups, etc.
-
-    void removeWord(int32_t indexToBeRemoved);                                  // removes a word [x] from gCodeWords[] by swapping it with the last one and decrementing nmbrWords
-    void countModalGroupAndOthers(uint32_t);                                    // Keep count of how many words from each ModalGroup are found, also sets hasAxis, hasOffset, hasRadius flags
+    simplifiedMotion theMotion;
+    gCodeParseResultType theResult;
+    gCodeParseError theError;
 };

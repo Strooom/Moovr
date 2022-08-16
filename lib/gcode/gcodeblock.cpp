@@ -10,9 +10,9 @@
 
 void gCodeBlock::initialize() {
     nmbrWords = 0;            // reset counter for counting words inside a block
-    hasAxis   = false;        // X Y Z A B C
-    hasOffset = false;        // I J K
-    hasRadius = false;        // R
+    nmbrAxis   = 0;        // X Y Z A B C
+    nmbrOffsets = 0;        // I J K
+    nmbrRadius = 0;        // R
     // reset counts for words part of modalGroups. Only maximum one G- or M-code for each of these blocks is allowed
     for (uint32_t i = 0; i < (uint8_t)modalGroup::nmbrModalGroups; ++i) {
         modalGroupCount[i] = 0;
@@ -109,6 +109,10 @@ void gCodeBlock::getBlockFromString(const char *commandLine) {
 
 uint32_t gCodeBlock::getNmbrWords() const {
     return nmbrWords;
+}
+
+bool gCodeBlock::hasWords() const {
+    return (getNmbrWords() > 0);
 }
 
 int32_t gCodeBlock::searchWord(uint8_t aLetter, uint32_t anIntNumber) const {        // if (('G' == aLetter) || ('M' == aLetter))        // for G and M
@@ -236,34 +240,34 @@ void gCodeBlock::countModalGroupAndOthers(uint32_t i) {
                 break;
             case 'R':
                 ++valueWordCount[(uint32_t)gCodeLetter::R];
-                hasRadius = true;
+                ++nmbrRadius;
                 break;
             case 'S':
                 ++valueWordCount[(uint32_t)gCodeLetter::S];
                 break;
             case 'X':
                 ++valueWordCount[(uint32_t)gCodeLetter::X];
-                hasAxis = true;
+                ++nmbrAxis;
                 break;
             case 'Y':
                 ++valueWordCount[(uint32_t)gCodeLetter::Y];
-                hasAxis = true;
+                ++nmbrAxis;
                 break;
             case 'Z':
                 ++valueWordCount[(uint32_t)gCodeLetter::Z];
-                hasAxis = true;
+                ++nmbrAxis;
                 break;
             case 'I':
                 ++valueWordCount[(uint32_t)gCodeLetter::I];
-                hasOffset = true;
+                ++nmbrOffsets;
                 break;
             case 'J':
                 ++valueWordCount[(uint32_t)gCodeLetter::J];
-                hasOffset = true;
+                ++nmbrOffsets;
                 break;
             case 'K':
                 ++valueWordCount[(uint32_t)gCodeLetter::K];
-                hasOffset = true;
+                ++nmbrOffsets;
                 break;
         }
     }
@@ -285,4 +289,16 @@ bool gCodeBlock::hasLetterWordViolation() const {
         }
     }
     return false;
+}
+
+bool gCodeBlock::hasAxis() const {
+    return (nmbrAxis > 0);
+}
+
+bool gCodeBlock::hasOffset() const {
+    return (nmbrOffsets > 0);
+}
+
+bool gCodeBlock::hasRadius() const {
+    return (nmbrRadius > 0);
 }
