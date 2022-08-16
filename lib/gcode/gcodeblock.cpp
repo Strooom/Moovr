@@ -9,10 +9,10 @@
 #include "gcodeblock.h"
 
 void gCodeBlock::initialize() {
-    nmbrWords = 0;            // reset counter for counting words inside a block
-    nmbrAxis   = 0;        // X Y Z A B C
+    nmbrWords   = 0;        // reset counter for counting words inside a block
+    nmbrAxis    = 0;        // X Y Z A B C
     nmbrOffsets = 0;        // I J K
-    nmbrRadius = 0;        // R
+    nmbrRadius  = 0;        // R
     // reset counts for words part of modalGroups. Only maximum one G- or M-code for each of these blocks is allowed
     for (uint32_t i = 0; i < (uint8_t)modalGroup::nmbrModalGroups; ++i) {
         modalGroupCount[i] = 0;

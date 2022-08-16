@@ -10,8 +10,7 @@
 
 enum class gCodeParseError : uint32_t {
     None = 0,
-    TooManyWordsInBlock,
-    InvalidArcParameters,
+    TooManyWordsInBlock, // more than gCodeBlock::MaxGCodeWordsPerGCodeBlock
     ModalGroupCollision,
     ValueWordCollision,
     InvalidLineNumber,
@@ -26,9 +25,9 @@ enum class gCodeParseError : uint32_t {
     MissingPForG10,
     InvalidPForG10,
 
-    MissingAxisWord,
-    MissingOffsetWord,
-
+    MissingAxisWord, // G0 or G1 without any X, Y or Z
+    MissingOffsetWord, // G2 or G3 without 
+    InvalidArcParameters,
     UnsupportedgCodeWord,
     SoftLimits,
     ConfigFileError,
