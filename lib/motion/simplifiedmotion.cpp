@@ -43,6 +43,7 @@ uint32_t simplifiedMotion::toString(char* output) {
 }
 
 void simplifiedMotion::setForTest(uint32_t aSet) {
+    static constexpr double pi{3.141592653589793238463};        // constant for calculations in radians
     switch (aSet) {
         case 0U:
         default:
@@ -73,15 +74,32 @@ void simplifiedMotion::setForTest(uint32_t aSet) {
             break;
 
         case 20U:
-            type               = motionType::feedHelicalCW;
-            trajectory.length  = 1.0f;
-            speedProfile.vFeed = 1.0f;
+            type                    = motionType::feedHelicalCW;
+            trajectory.length       = (float)(0.5 * pi);
+            trajectory.delta[0]     = 1.0f;
+            trajectory.delta[1]     = 1.0f;
+            trajectory.arcAxis[0]   = axis::X;
+            trajectory.arcAxis[1]   = axis::Y;
+            trajectory.arcCenter[0] = 1.0f;
+            trajectory.arcCenter[1] = 0.0f;
+            trajectory.radius       = 1.0f;
+            trajectory.startAngle   = (float)pi;
+            trajectory.deltaAngle   = (float)(-0.5 * pi);
+            speedProfile.vFeed      = 1.0f;
             break;
 
         case 30U:
-            type               = motionType::feedHelicalCCW;
-            trajectory.length  = 1.0f;
-            speedProfile.vFeed = 1.0f;
+            type                    = motionType::feedHelicalCCW;
+            trajectory.length       = (float)(0.5 * pi);
+            trajectory.delta[0]     = 1.0f;
+            trajectory.delta[1]     = 1.0f;
+            trajectory.arcAxis[0]   = axis::X;
+            trajectory.arcAxis[1]   = axis::Y;
+            trajectory.arcCenter[0] = 0.0f;
+            trajectory.arcCenter[1] = 1.0f;
+            trajectory.startAngle   = (float)(-0.5 * pi);
+            trajectory.deltaAngle   = (float)(0.5 * pi);
+            speedProfile.vFeed      = 1.0f;
             break;
 
         case 40U:
@@ -90,15 +108,15 @@ void simplifiedMotion::setForTest(uint32_t aSet) {
             break;
 
         case 100U:
-            type               = motionType::feedHelicalCW;
-            trajectory.length  = 1.0f;
-            trajectory.radius=1.0f;
-            
+            type              = motionType::feedHelicalCW;
+            trajectory.length = 1.0f;
+            trajectory.radius = 1.0f;
+
             break;
 
         case 101U:
-            type               = motionType::feedHelicalCCW;
-            trajectory.length  = 1.0f;
+            type              = motionType::feedHelicalCCW;
+            trajectory.length = 1.0f;
             break;
     }
 }

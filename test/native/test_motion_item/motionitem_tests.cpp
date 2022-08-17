@@ -488,23 +488,39 @@ void calculateTrajectory() {
     simplifiedMotion aSimpleMotion;
     motion aMotion;
     point aPosition;
-    
+
     aSimpleMotion.setForTest(0U);        // 1 mm move over the x-axis
     aMotion.set(aSimpleMotion, theOverrides, theStrategy);
-    for (uint32_t steps = 0; steps < 2; steps++) {
-        float distanceTravelled = static_cast<float>(steps) * aMotion.trajectory.length;
+    for (uint32_t steps = 0; steps <= 10; steps++) {
+        float distanceTravelled = static_cast<float>(steps) * aMotion.trajectory.length * 0.1f;
         aMotion.positionFromDistance(aPosition, distanceTravelled);
         TEST_ASSERT_EQUAL_FLOAT(distanceTravelled, aPosition.inMm[0]);
         TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[1]);
         TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[2]);
     }
-    aSimpleMotion.setForTest(100U);        // circular motion, xy-plane
+
+    const float pi{3.141592653589793238463};        // constant for calculations in radians
+    float angle;
+
+    aSimpleMotion.setForTest(20U);        // circular motion, xy-plane
     aMotion.set(aSimpleMotion, theOverrides, theStrategy);
-    for (uint32_t steps = 0; steps < 2; steps++) {
-        float distanceTravelled = static_cast<float>(steps) * aMotion.trajectory.length;
+    for (uint32_t steps = 0; steps <= 10; steps++) {
+        float distanceTravelled = static_cast<float>(steps) * aMotion.trajectory.length * 0.1f;
+        angle                   = pi - (static_cast<float>(steps) * pi * 0.05f);
         aMotion.positionFromDistance(aPosition, distanceTravelled);
-        TEST_ASSERT_EQUAL_FLOAT(distanceTravelled, aPosition.inMm[0]);
-        TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[1]);
+        TEST_ASSERT_EQUAL_FLOAT((aMotion.trajectory.arcCenter0 + cosf(angle)), aPosition.inMm[0]);
+        TEST_ASSERT_EQUAL_FLOAT((aMotion.trajectory.arcCenter1 + sinf(angle)), aPosition.inMm[1]);
+        TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[2]);
+    }
+
+    aSimpleMotion.setForTest(30U);        // circular motion, xy-plane
+    aMotion.set(aSimpleMotion, theOverrides, theStrategy);
+    for (uint32_t steps = 0; steps <= 10; steps++) {
+        float distanceTravelled = static_cast<float>(steps) * aMotion.trajectory.length * 0.1f;
+        angle                   = (pi * -0.5f) + (static_cast<float>(steps) * pi * 0.05f);
+        aMotion.positionFromDistance(aPosition, distanceTravelled);
+        TEST_ASSERT_EQUAL_FLOAT((aMotion.trajectory.arcCenter0 + cosf(angle)), aPosition.inMm[0]);
+        TEST_ASSERT_EQUAL_FLOAT((aMotion.trajectory.arcCenter1 + sinf(angle)), aPosition.inMm[1]);
         TEST_ASSERT_EQUAL_FLOAT(0.0f, aPosition.inMm[2]);
     }
 }

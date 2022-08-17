@@ -34,52 +34,52 @@ void parseBlock() {
     simplifiedMotion theMotion;
 
     theParser.reset();
-    theParser.theBlock.getBlockFromString("G0 X10");        // 10 mm X-axis move
+    theParser.theBlock.getBlockFromString("G0 X1");        // 1 mm X-axis move
     theParser.parseBlock(theMotion);
     TEST_ASSERT_EQUAL(gCodeParseResultType::OkContextUpdateAndMotion, theParser.theResult);
     TEST_ASSERT_EQUAL(gCodeParseError::None, theParser.theError);
     TEST_ASSERT_EQUAL(motionType::traverse, theMotion.type);
     // TEST_ASSERT_EQUAL(std::numeric_limits<double>::infinity(), theMotion.speedProfile.vFeed);
-    TEST_ASSERT_EQUAL(10.0, theMotion.trajectory.delta[(uint8_t)axis::X]);
+    TEST_ASSERT_EQUAL(1.0, theMotion.trajectory.delta[(uint8_t)axis::X]);
     TEST_ASSERT_EQUAL(0.0, theMotion.trajectory.delta[(uint8_t)axis::Y]);
     TEST_ASSERT_EQUAL(0.0, theMotion.trajectory.delta[(uint8_t)axis::Z]);
-    TEST_ASSERT_EQUAL(10.0, theMotion.trajectory.length);
+    TEST_ASSERT_EQUAL(1.0, theMotion.trajectory.length);
 
     theParser.reset();
-    theParser.theBlock.getBlockFromString("G1 X10 F600");        // 10 mm X-axis move @ feedspeed
+    theParser.theBlock.getBlockFromString("G1 X1 F60");        // 1 mm X-axis move @ feedspeed
     theParser.parseBlock(theMotion);
     TEST_ASSERT_EQUAL(gCodeParseResultType::OkContextUpdateAndMotion, theParser.theResult);
     TEST_ASSERT_EQUAL(gCodeParseError::None, theParser.theError);
     TEST_ASSERT_EQUAL(motionType::feedLinear, theMotion.type);
-    TEST_ASSERT_EQUAL(10.0, theMotion.speedProfile.vFeed);
-    TEST_ASSERT_EQUAL(10.0, theMotion.trajectory.delta[(uint8_t)axis::X]);
+    TEST_ASSERT_EQUAL(1.0, theMotion.speedProfile.vFeed);
+    TEST_ASSERT_EQUAL(1.0, theMotion.trajectory.delta[(uint8_t)axis::X]);
     TEST_ASSERT_EQUAL(0.0, theMotion.trajectory.delta[(uint8_t)axis::Y]);
     TEST_ASSERT_EQUAL(0.0, theMotion.trajectory.delta[(uint8_t)axis::Z]);
-    TEST_ASSERT_EQUAL(10.0, theMotion.trajectory.length);
+    TEST_ASSERT_EQUAL(1.0, theMotion.trajectory.length);
 
     theParser.reset();
-    theParser.theBlock.getBlockFromString("G2 X10 Y10 I10 J0 F1200");        // 10 mm arc CW, from 0,0, to 10,10, center = 10,0
+    theParser.theBlock.getBlockFromString("G2 X1 Y1 I1 J0 F120");        // 1 mm arc CW, from 0,0, to 1,1, center = 1,0
     theParser.parseBlock(theMotion);
     TEST_ASSERT_EQUAL(gCodeParseResultType::OkContextUpdateAndMotion, theParser.theResult);
     TEST_ASSERT_EQUAL(gCodeParseError::None, theParser.theError);
     TEST_ASSERT_EQUAL(motionType::feedHelicalCW, theMotion.type);
-    TEST_ASSERT_EQUAL(20.0, theMotion.speedProfile.vFeed);
-    TEST_ASSERT_EQUAL(10.0, theMotion.trajectory.delta[(uint8_t)axis::X]);
-    TEST_ASSERT_EQUAL(10.0, theMotion.trajectory.delta[(uint8_t)axis::Y]);
+    TEST_ASSERT_EQUAL(2.0, theMotion.speedProfile.vFeed);
+    TEST_ASSERT_EQUAL(1.0, theMotion.trajectory.delta[(uint8_t)axis::X]);
+    TEST_ASSERT_EQUAL(1.0, theMotion.trajectory.delta[(uint8_t)axis::Y]);
     TEST_ASSERT_EQUAL(0.0, theMotion.trajectory.delta[(uint8_t)axis::Z]);
-    TEST_ASSERT_EQUAL((5 * gCode::pi), theMotion.trajectory.length);
+    TEST_ASSERT_EQUAL((0.5 * gCode::pi), theMotion.trajectory.length);
 
     theParser.reset();
-    theParser.theBlock.getBlockFromString("G3 X10 Y10 I0 J10 F2400");        // 10 mm arc CCW, from 0,0, to 10,10, center = 0,10
+    theParser.theBlock.getBlockFromString("G3 X1 Y1 I0 J1 F240");        // 1 mm arc CCW, from 0,0, to 1,1, center = 0,1
     theParser.parseBlock(theMotion);
     TEST_ASSERT_EQUAL(gCodeParseResultType::OkContextUpdateAndMotion, theParser.theResult);
     TEST_ASSERT_EQUAL(gCodeParseError::None, theParser.theError);
     TEST_ASSERT_EQUAL(motionType::feedHelicalCCW, theMotion.type);
-    TEST_ASSERT_EQUAL(40.0, theMotion.speedProfile.vFeed);
-    TEST_ASSERT_EQUAL(10.0, theMotion.trajectory.delta[(uint8_t)axis::X]);
-    TEST_ASSERT_EQUAL(10.0, theMotion.trajectory.delta[(uint8_t)axis::Y]);
+    TEST_ASSERT_EQUAL(4.0, theMotion.speedProfile.vFeed);
+    TEST_ASSERT_EQUAL(1.0, theMotion.trajectory.delta[(uint8_t)axis::X]);
+    TEST_ASSERT_EQUAL(1.0, theMotion.trajectory.delta[(uint8_t)axis::Y]);
     TEST_ASSERT_EQUAL(0.0, theMotion.trajectory.delta[(uint8_t)axis::Z]);
-    TEST_ASSERT_EQUAL((5 * gCode::pi), theMotion.trajectory.length);
+    TEST_ASSERT_EQUAL((0.5 * gCode::pi), theMotion.trajectory.length);
 
 // TODO : add the case with a R radius instead of IJK offset
 
