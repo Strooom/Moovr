@@ -35,8 +35,7 @@ class gCode {
     gCodeParseResultType theResult;        //
     gCodeParseError theError;              //
 
-    // TODO : some of the helpers below may not need the simplifiedMotion as they are only updating the state..
-    void getAxisOffsetRadiusWords();
+        void getAxisOffsetRadiusWords();
     void getLineNumberWord();
     void setFeedrateMode();
     void setFeedrateValue();

@@ -21,9 +21,9 @@ void gCode::reset() {
     theError  = gCodeParseError::None;
 
     // Test Only Defaults
-    theState.WCSorigin[(uint8_t)modalGroupCoordinateSet::G54][(uint8_t)axis::X] = 0;
-    theState.WCSorigin[(uint8_t)modalGroupCoordinateSet::G54][(uint8_t)axis::Y] = 0;
-    theState.WCSorigin[(uint8_t)modalGroupCoordinateSet::G54][(uint8_t)axis::Z] = 0;
+    theState.WCSorigin[static_cast<uint32_t>(modalGroupCoordinateSet::G54)][static_cast<uint32_t>(axis::X)] = 0;
+    theState.WCSorigin[static_cast<uint32_t>(modalGroupCoordinateSet::G54)][static_cast<uint32_t>(axis::Y)] = 0;
+    theState.WCSorigin[static_cast<uint32_t>(modalGroupCoordinateSet::G54)][static_cast<uint32_t>(axis::Z)] = 0;
 
     // read Machine settings from SD-Card to override the defaults
     // TODO
@@ -64,9 +64,9 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
             j = theBlock.searchWord('P');
             if (j >= 0) {
                 if (theBlock.gCodeWords[j].number >= 0) {
-                    theState.letterValueState[(uint8_t)gCodeLetter::P] = theBlock.gCodeWords[j].number;
-                    theResult                                          = gCodeParseResultType::OkContextUpdateAndMotion;
-                    theMotion.type                                     = motionType::pauseAndResume;
+                    theState.letterValueState[static_cast<uint32_t>(gCodeLetter::P)] = theBlock.gCodeWords[j].number;
+                    theResult                                                        = gCodeParseResultType::OkContextUpdateAndMotion;
+                    theMotion.type                                                   = motionType::pauseAndResume;
                     calcMotion(theMotion);        // TODO : maybe no need to do all calculations, only subset calculating duration would be ok
                     theBlock.removeWord(i);
                     theBlock.removeWord(j);
@@ -118,8 +118,8 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
         int32_t i;
         if ((i = theBlock.searchWord('G', 530)) >= 0) {
             // NonModal G53 move
-            uint8_t currentCoordinateSet                                  = theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet];        // remember which WCS is active
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G53;                                // just for this move, use machine coordinates
+            uint8_t currentCoordinateSet                                                = theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)];        // remember which WCS is active
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G53);                                // just for this move, use machine coordinates
             int32_t j;
             if ((j = theBlock.searchWord('G', 0)) >= 0) {
                 // non-modal move at traverse rate
@@ -155,12 +155,12 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
                 }
             }
             theBlock.removeWord(i);
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = currentCoordinateSet;        // go back to whatever WCS was active
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = currentCoordinateSet;        // go back to whatever WCS was active
 
         } else {
             // No G53, so normal modal moves
             if ((i = theBlock.searchWord('G', 0)) >= 0) {
-                theState.modalGroupsState[(uint8_t)modalGroup::Motion] = (uint8_t)modalGroupMotion::G0;
+                theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Motion)] = static_cast<uint32_t>(modalGroupMotion::G0);
 
                 theResult      = gCodeParseResultType::OkContextUpdateAndMotion;
                 theError       = gCodeParseError::None;
@@ -169,13 +169,13 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
                 theBlock.removeWord(i);
                 return;
             } else if ((i = theBlock.searchWord('G', 10)) >= 0) {
-                theState.modalGroupsState[(uint8_t)modalGroup::Motion] = (uint8_t)modalGroupMotion::G1;
-                theMotion.type                                         = motionType::feedLinear;
-                if (theState.letterValueState[(uint8_t)gCodeLetter::F] > 0) {
+                theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Motion)] = static_cast<uint32_t>(modalGroupMotion::G1);
+                theMotion.type                                                       = motionType::feedLinear;
+                if (theState.letterValueState[static_cast<uint32_t>(gCodeLetter::F)] > 0) {
                     calcMotion(theMotion);
                     theBlock.removeWord(i);
-                    if (theState.modalGroupsState[(uint8_t)modalGroup::FeedRate] == (uint8_t)modalGroupFeedRate::G93) {
-                        theState.letterValueState[(uint8_t)gCodeLetter::F] = 0;
+                    if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::FeedRate)] == static_cast<uint32_t>(modalGroupFeedRate::G93)) {
+                        theState.letterValueState[static_cast<uint32_t>(gCodeLetter::F)] = 0;
                     }
                     theError  = gCodeParseError::None;
                     theResult = gCodeParseResultType::OkContextUpdateAndMotion;
@@ -187,8 +187,8 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
                     return;
                 }
             } else if ((i = theBlock.searchWord('G', 20)) >= 0) {
-                theState.modalGroupsState[(uint8_t)modalGroup::Motion] = (uint8_t)modalGroupMotion::G2;
-                theMotion.type                                         = motionType::feedHelicalCW;
+                theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Motion)] = static_cast<uint32_t>(modalGroupMotion::G2);
+                theMotion.type                                                       = motionType::feedHelicalCW;
                 // check if feedrate > 0
                 calcMotion(theMotion);
                 theBlock.removeWord(i);
@@ -196,8 +196,8 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
                 theResult = gCodeParseResultType::OkContextUpdateAndMotion;
                 return;
             } else if ((i = theBlock.searchWord('G', 30)) >= 0) {
-                theState.modalGroupsState[(uint8_t)modalGroup::Motion] = (uint8_t)modalGroupMotion::G3;
-                theMotion.type                                         = motionType::feedHelicalCCW;
+                theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Motion)] = static_cast<uint32_t>(modalGroupMotion::G3);
+                theMotion.type                                                       = motionType::feedHelicalCCW;
                 // check if feedrate > 0
                 calcMotion(theMotion);
                 theBlock.removeWord(i);
@@ -206,17 +206,17 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
                 return;
             } else if (theBlock.hasAxis()) {        // no G-code, but axis words -> continue the current mode
                                                     // TODO : do I need additional checks ?
-                switch (theState.modalGroupsState[(uint8_t)modalGroup::Motion]) {
-                    case (uint8_t)modalGroupMotion::G0:
+                switch (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Motion)]) {
+                    case static_cast<uint32_t>(modalGroupMotion::G0):
                         theMotion.type = motionType::traverse;
                         break;
-                    case (uint8_t)modalGroupMotion::G1:
+                    case static_cast<uint32_t>(modalGroupMotion::G1):
                         theMotion.type = motionType::feedLinear;
                         break;
-                    case (uint8_t)modalGroupMotion::G2:
+                    case static_cast<uint32_t>(modalGroupMotion::G2):
                         theMotion.type = motionType::feedHelicalCW;
                         break;
-                    case (uint8_t)modalGroupMotion::G3:
+                    case static_cast<uint32_t>(modalGroupMotion::G3):
                         theMotion.type = motionType::feedHelicalCCW;
                         break;
                     default:
@@ -259,7 +259,6 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
     theError  = gCodeParseError::None;
     theResult = gCodeParseResultType::OkContextUpdateOnly;
     return;
-
 };
 
 void gCode::setdistanceMode() {
@@ -267,10 +266,10 @@ void gCode::setdistanceMode() {
         //	set distance mode (G90, G91)
         int32_t i;
         if ((i = theBlock.searchWord('G', 900U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Distance] = (uint8_t)modalGroupDistance::G90;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Distance)] = static_cast<uint32_t>(modalGroupDistance::G90);
             theBlock.removeWord(i);
         } else if ((i = theBlock.searchWord('G', 910U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Distance] = (uint8_t)modalGroupDistance::G91;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Distance)] = static_cast<uint32_t>(modalGroupDistance::G91);
             theBlock.removeWord(i);
         }
     }
@@ -281,37 +280,37 @@ void gCode::setWCSMode() {
         int32_t i;
         //	Coordinate system selection (G54, G55, G56, G57, G58, G59, G59.1, G59.2, G59.3)
         if ((i = theBlock.searchWord('G', 540U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G54;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G54);
             theBlock.removeWord(i);
         } else if ((i = theBlock.searchWord('G', 550U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G55;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G55);
             theBlock.removeWord(i);
 
         } else if ((i = theBlock.searchWord('G', 560U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G56;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G56);
             theBlock.removeWord(i);
 
         } else if ((i = theBlock.searchWord('G', 570U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G57;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G57);
             theBlock.removeWord(i);
 
         } else if ((i = theBlock.searchWord('G', 580U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G58;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G58);
             theBlock.removeWord(i);
 
         } else if ((i = theBlock.searchWord('G', 590U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G59;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G59);
             theBlock.removeWord(i);
 
         } else if ((i = theBlock.searchWord('G', 591U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G59_1;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G59_1);
             theBlock.removeWord(i);
 
         } else if ((i = theBlock.searchWord('G', 592U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G59_2;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G59_2);
             theBlock.removeWord(i);
         } else if ((i = theBlock.searchWord('G', 593U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet] = (uint8_t)modalGroupCoordinateSet::G59_3;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)] = static_cast<uint32_t>(modalGroupCoordinateSet::G59_3);
             theBlock.removeWord(i);
         }
     }
@@ -322,10 +321,10 @@ void gCode::setUnitsMode() {
         int32_t i;
         //	Set length units (G20, G21)
         if ((i = theBlock.searchWord('G', 200U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Unit] = (uint8_t)modalGroupUnit::G20;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)] = static_cast<uint32_t>(modalGroupUnit::G20);
             theBlock.removeWord(i);
         } else if ((i = theBlock.searchWord('G', 210U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Unit] = (uint8_t)modalGroupUnit::G21;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)] = static_cast<uint32_t>(modalGroupUnit::G21);
             theBlock.removeWord(i);
         }
     }
@@ -336,14 +335,14 @@ void gCode::setArcPlane() {
         int32_t i;
         // Set active plane (G17, G18, G19)
         if ((i = theBlock.searchWord('G', 170U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Plane] = (uint8_t)modalGroupPlane::G17;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Plane)] = static_cast<uint32_t>(modalGroupPlane::G17);
             theBlock.removeWord(i);
-        } else if (((i = theBlock.searchWord('G', 180U)) >= 0) && ((uint8_t)axis::nmbrAxis >= 3))        // G18 G19 only make sense on a 3D system so axis::nmbrAxis >= 3
+        } else if (((i = theBlock.searchWord('G', 180U)) >= 0) && (static_cast<uint32_t>(axis::nmbrAxis) >= 3))        // G18 G19 only make sense on a 3D system so axis::nmbrAxis >= 3
         {
-            theState.modalGroupsState[(uint8_t)modalGroup::Plane] = (uint8_t)modalGroupPlane::G18;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Plane)] = static_cast<uint32_t>(modalGroupPlane::G18);
             theBlock.removeWord(i);
-        } else if (((i = theBlock.searchWord('G', 190U)) >= 0) && ((uint8_t)axis::nmbrAxis >= 3)) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Plane] = (uint8_t)modalGroupPlane::G19;
+        } else if (((i = theBlock.searchWord('G', 190U)) >= 0) && (static_cast<uint32_t>(axis::nmbrAxis) >= 3)) {
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Plane)] = static_cast<uint32_t>(modalGroupPlane::G19);
             theBlock.removeWord(i);
         }
     }
@@ -354,10 +353,10 @@ void gCode::setOverrideMode() {
         int32_t i;
         //	enable or disable overrides (M48, M49)
         if ((i = theBlock.searchWord('M', 480U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::ManualOverride] = (uint8_t)modalGroupOverrides::M48;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::ManualOverride)] = static_cast<uint32_t>(modalGroupOverrides::M48);
             theBlock.removeWord(i);
         } else if ((i = theBlock.searchWord('M', 490U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::ManualOverride] = (uint8_t)modalGroupOverrides::M49;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::ManualOverride)] = static_cast<uint32_t>(modalGroupOverrides::M49);
             theBlock.removeWord(i);
         }
     }
@@ -368,16 +367,16 @@ void gCode::setCoolantMode() {
         int32_t i;
         //	Coolant on or off (M7, M8, M9)
         if ((i = theBlock.searchWord('M', 70U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoolantFlood] = (uint8_t)modalGroupCoolantFlood::M7;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantFlood)] = static_cast<uint32_t>(modalGroupCoolantFlood::M7);
             theBlock.removeWord(i);
         }
         if ((i = theBlock.searchWord('M', 80U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoolantMist] = (uint8_t)modalGroupCoolantMist::M8;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantMist)] = static_cast<uint32_t>(modalGroupCoolantMist::M8);
             theBlock.removeWord(i);
         }
         if ((i = theBlock.searchWord('M', 90U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::CoolantFlood] = (uint8_t)modalGroupCoolantFlood::M9;
-            theState.modalGroupsState[(uint8_t)modalGroup::CoolantMist]  = (uint8_t)modalGroupCoolantMist::M9;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantFlood)] = static_cast<uint32_t>(modalGroupCoolantFlood::M9);
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantMist)]  = static_cast<uint32_t>(modalGroupCoolantMist::M9);
             theBlock.removeWord(i);
         }
     }
@@ -388,13 +387,13 @@ void gCode::setSpindleMode() {
         int32_t i;
         //	spindle on or off (M3, M4, M5)
         if ((i = theBlock.searchWord('M', 30U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Spindle] = (uint8_t)modalGroupSpindle::M3;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Spindle)] = static_cast<uint32_t>(modalGroupSpindle::M3);
             theBlock.removeWord(i);
         } else if ((i = theBlock.searchWord('M', 40U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Spindle] = (uint8_t)modalGroupSpindle::M4;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Spindle)] = static_cast<uint32_t>(modalGroupSpindle::M4);
             theBlock.removeWord(i);
         } else if ((i = theBlock.searchWord('M', 50U)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::Spindle] = (uint8_t)modalGroupSpindle::M5;
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Spindle)] = static_cast<uint32_t>(modalGroupSpindle::M5);
             theBlock.removeWord(i);
         }
     }
@@ -405,7 +404,7 @@ void gCode::setSpindleSpeed() {
         int32_t i = theBlock.searchWord('S');
         if (i >= 0) {
             if (theBlock.gCodeWords[i].number >= 0) {
-                theState.letterValueState[(uint8_t)gCodeLetter::S] = theBlock.gCodeWords[i].number;
+                theState.letterValueState[static_cast<uint32_t>(gCodeLetter::S)] = theBlock.gCodeWords[i].number;
                 theBlock.removeWord(i);
             } else {
                 theResult = gCodeParseResultType::Error;
@@ -424,7 +423,7 @@ void gCode::setFeedrateValue() {
         if (i >= 0) {
             if (theBlock.gCodeWords[i].number > 0)        // Feedrate <= 0 is not allowed / makes no sense
             {
-                theState.letterValueState[(uint8_t)gCodeLetter::F] = theBlock.gCodeWords[i].number;
+                theState.letterValueState[static_cast<uint32_t>(gCodeLetter::F)] = theBlock.gCodeWords[i].number;
                 theBlock.removeWord(i);
             } else {
                 theResult = gCodeParseResultType::Error;
@@ -432,7 +431,7 @@ void gCode::setFeedrateValue() {
                 return;
             }
         } else {
-            if (theState.modalGroupsState[(uint8_t)modalGroup::FeedRate] == (uint8_t)modalGroupFeedRate::G93) {
+            if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::FeedRate)] == static_cast<uint32_t>(modalGroupFeedRate::G93)) {
                 theResult = gCodeParseResultType::Error;
                 theError  = gCodeParseError::MissingFeedrate;
                 return;
@@ -446,11 +445,11 @@ void gCode::setFeedrateMode() {
         //	Set feed rate mode (G93, G94 — inverse time or per minute)
         int32_t i;
         if ((i = theBlock.searchWord('G', 930)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::FeedRate] = (uint8_t)modalGroupFeedRate::G93;
-            theState.letterValueState[(uint8_t)gCodeLetter::F]       = 0.0;        // when changing feedrate mode, an F-word must be present - enforced by initializing to an invalid value..
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::FeedRate)] = static_cast<uint32_t>(modalGroupFeedRate::G93);
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::F)]       = 0.0;        // when changing feedrate mode, an F-word must be present - enforced by initializing to an invalid value..
         } else if ((i = theBlock.searchWord('G', 940)) >= 0) {
-            theState.modalGroupsState[(uint8_t)modalGroup::FeedRate] = (uint8_t)modalGroupFeedRate::G94;
-            theState.letterValueState[(uint8_t)gCodeLetter::F]       = 0.0;        // when changing feedrate mode, an F-word must be present - enforced by initializing to an invalid value..
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::FeedRate)] = static_cast<uint32_t>(modalGroupFeedRate::G94);
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::F)]       = 0.0;        // when changing feedrate mode, an F-word must be present - enforced by initializing to an invalid value..
         }
     }
 }
@@ -460,37 +459,37 @@ void gCode::getAxisOffsetRadiusWords() {
     if (theBlock.hasAxis()) {
         int32_t i;
         if ((i = theBlock.searchWord('X')) >= 0) {
-            theState.letterValueState[(uint8_t)gCodeLetter::X] = theBlock.gCodeWords[i].number;
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::X)] = theBlock.gCodeWords[i].number;
             theBlock.removeWord(i);
         }
         if ((i = theBlock.searchWord('Y')) >= 0) {
-            theState.letterValueState[(uint8_t)gCodeLetter::Y] = theBlock.gCodeWords[i].number;
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::Y)] = theBlock.gCodeWords[i].number;
             theBlock.removeWord(i);
         }
         if ((i = theBlock.searchWord('Z')) >= 0) {
-            theState.letterValueState[(uint8_t)gCodeLetter::Z] = theBlock.gCodeWords[i].number;
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::Z)] = theBlock.gCodeWords[i].number;
             theBlock.removeWord(i);
         }
     }
     if (theBlock.hasOffset()) {
         int32_t i;
         if ((i = theBlock.searchWord('I')) >= 0) {
-            theState.letterValueState[(uint8_t)gCodeLetter::I] = theBlock.gCodeWords[i].number;
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::I)] = theBlock.gCodeWords[i].number;
             theBlock.removeWord(i);
         }
         if ((i = theBlock.searchWord('J')) >= 0) {
-            theState.letterValueState[(uint8_t)gCodeLetter::J] = theBlock.gCodeWords[i].number;
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::J)] = theBlock.gCodeWords[i].number;
             theBlock.removeWord(i);
         }
         if ((i = theBlock.searchWord('K')) >= 0) {
-            theState.letterValueState[(uint8_t)gCodeLetter::K] = theBlock.gCodeWords[i].number;
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::K)] = theBlock.gCodeWords[i].number;
             theBlock.removeWord(i);
         }
     }
     if (theBlock.hasRadius()) {
         int32_t i;
         if ((i = theBlock.searchWord('R')) >= 0) {
-            theState.letterValueState[(uint8_t)gCodeLetter::R] = theBlock.gCodeWords[i].number;
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::R)] = theBlock.gCodeWords[i].number;
             theBlock.removeWord(i);
         }
     }
@@ -505,7 +504,7 @@ void gCode::getLineNumberWord() {
         return;
     } else if (0 == i) {
         if (theBlock.gCodeWords[i].number >= 0) {
-            theState.letterValueState[(uint8_t)gCodeLetter::N] = theBlock.gCodeWords[i].number;
+            theState.letterValueState[static_cast<uint32_t>(gCodeLetter::N)] = theBlock.gCodeWords[i].number;
             theBlock.removeWord(i);
         } else {
             theResult = gCodeParseResultType::Error;
@@ -529,15 +528,15 @@ void gCode::calcMotion(simplifiedMotion &theMotion) {
 void gCode::calcNextPosition(simplifiedMotion &theMotion) {
     for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
         double tmpValue = theState.letterValueState[anAxis];
-        if (theState.modalGroupsState[(uint8_t)modalGroup::Unit] == (uint8_t)modalGroupUnit::G20) {
+        if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)] == static_cast<uint32_t>(modalGroupUnit::G20)) {
             tmpValue = tmpValue * inches2mm;        // convert to mm
             // TODO - what if the axis is rotary in degrees / radians ?
         }
 
-        if (theState.modalGroupsState[(uint8_t)modalGroup::Distance] == (uint8_t)modalGroupDistance::G91) {
+        if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Distance)] == static_cast<uint32_t>(modalGroupDistance::G91)) {
             tmpValue = (theState.currentPosition[anAxis] + tmpValue);        // in case of relative coordinates
         }
-        theState.nextPosition[anAxis] = theState.WCSorigin[theState.modalGroupsState[(uint8_t)modalGroup::CoordinateSet]][anAxis] + tmpValue;
+        theState.nextPosition[anAxis] = theState.WCSorigin[theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)]][anAxis] + tmpValue;
 
         theMotion.trajectory.delta[anAxis]         = theState.nextPosition[anAxis] - theState.currentPosition[anAxis];
         theMotion.trajectory.startPosition[anAxis] = theState.currentPosition[anAxis];
@@ -546,7 +545,7 @@ void gCode::calcNextPosition(simplifiedMotion &theMotion) {
 
 void gCode::setArcAxisFromPlane(simplifiedMotion &theMotion) {
     if ((theMotion.type == motionType::feedHelicalCW) || (theMotion.type == motionType::feedHelicalCCW)) {
-        switch ((modalGroupPlane)theState.modalGroupsState[(uint8_t)modalGroup::Plane]) {
+        switch ((modalGroupPlane)theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Plane)]) {
             case modalGroupPlane::G17:
             default:
                 theMotion.trajectory.arcAxis[0] = axis::X;
@@ -575,15 +574,15 @@ void gCode::calcArcCenterAndRadius(simplifiedMotion &theMotion) {
 
     if (theBlock.hasOffset()) {        // IJK Mode
         for (uint32_t i = 0; i < 2; ++i) {
-            double tmpValue = 0.0;                                                                                                  // used in all kinds of calculations to hold intermediate results
-            tmpValue        = theState.letterValueState[(uint8_t)theMotion.trajectory.arcAxis[i] + (uint8_t)gCodeLetter::I];        // calculate arcCenter from XYZ values + IJK offsets
-            if (theState.modalGroupsState[(uint8_t)modalGroup::Unit] == (uint8_t)modalGroupUnit::G20)                               // Inches ??
+            double tmpValue = 0.0;                                                                                                                              // used in all kinds of calculations to hold intermediate results
+            tmpValue        = theState.letterValueState[static_cast<uint32_t>(theMotion.trajectory.arcAxis[i]) + static_cast<uint32_t>(gCodeLetter::I)];        // calculate arcCenter from XYZ values + IJK offsets
+            if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)] == static_cast<uint32_t>(modalGroupUnit::G20))                               // Inches ??
             {
                 tmpValue = tmpValue * inches2mm;        // convert to mm
             }
-            theMotion.trajectory.arcCenter[i] = theState.currentPosition[(uint8_t)theMotion.trajectory.arcAxis[i]] + tmpValue;
-            tmpRadius1                        = tmpRadius1 + (theState.currentPosition[(uint8_t)theMotion.trajectory.arcAxis[i]] - theMotion.trajectory.arcCenter[i]) * (theState.currentPosition[(uint8_t)theMotion.trajectory.arcAxis[i]] - theMotion.trajectory.arcCenter[i]);        // Calculate radius as distance between currentPosition and arcCenter
-            tmpRadius2                        = tmpRadius2 + (theState.nextPosition[(uint8_t)theMotion.trajectory.arcAxis[i]] - theMotion.trajectory.arcCenter[i]) * (theState.nextPosition[(uint8_t)theMotion.trajectory.arcAxis[i]] - theMotion.trajectory.arcCenter[i]);              // Calculate radius as distance between nextPosition and arcCenter
+            theMotion.trajectory.arcCenter[i] = theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[i])] + tmpValue;
+            tmpRadius1                        = tmpRadius1 + (theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[i])] - theMotion.trajectory.arcCenter[i]) * (theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[i])] - theMotion.trajectory.arcCenter[i]);        // Calculate radius as distance between currentPosition and arcCenter
+            tmpRadius2                        = tmpRadius2 + (theState.nextPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[i])] - theMotion.trajectory.arcCenter[i]) * (theState.nextPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[i])] - theMotion.trajectory.arcCenter[i]);              // Calculate radius as distance between nextPosition and arcCenter
         }
         tmpRadius1 = sqrt(tmpRadius1);
         tmpRadius2 = sqrt(tmpRadius2);
@@ -593,19 +592,26 @@ void gCode::calcArcCenterAndRadius(simplifiedMotion &theMotion) {
             // TODO : lastError = gCodeError::InvalidArcParameters;
         }
         theMotion.trajectory.radius = tmpRadius1;
-    } else if (theBlock.hasRadius()) {                                                                   // R mode
-        tmpRadius1 = theState.letterValueState[(uint8_t)gCodeLetter::R];                                 // get the R lettervalue
-        if (theState.modalGroupsState[(uint8_t)modalGroup::Unit] == (uint8_t)modalGroupUnit::G20)        // Inches
+    } else if (theBlock.hasRadius()) {                                                                                               // R mode
+        tmpRadius1 = theState.letterValueState[static_cast<uint32_t>(gCodeLetter::R)];                                               // get the R lettervalue
+        if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)] == static_cast<uint32_t>(modalGroupUnit::G20))        // Inches
         {
             tmpRadius1 = tmpRadius1 * inches2mm;        // convert to mm
         }
 
-        if ((4 * tmpRadius1 * tmpRadius1) < (theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]] * theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]]) - (theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]] * theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]])) {
+        if (
+            (4 * tmpRadius1 * tmpRadius1) <
+            (theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] *
+             theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])]) -
+                (theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] *
+                 theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])])) {
             // error - distance from start to endpoint is more than 2 * radius.. no ARC can be found
             // lastError = gCodeError::InvalidArcParameters;
         }
 
-        if ((theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]] == 0) && (theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]] == 0)) {
+        if (
+            (theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] == 0) &&
+            (theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] == 0)) {
             // error - startpoint is same as endpoint -> undefined arccenter for R mode arcs
             // lastError = gCodeError::InvalidArcParameters;
         }
@@ -614,8 +620,20 @@ void gCode::calcArcCenterAndRadius(simplifiedMotion &theMotion) {
         double tmpD;                  // used in calculation of the arcCenter for radius mode
         double tmpValue = 0.0;        // used in all kinds of calculations to hold intermediate results
 
-        tmpD     = sqrt((theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]] * theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]]) + (theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]] * theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]]));
-        tmpH     = sqrt((4 * tmpRadius1 * tmpRadius1) - (theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]] * theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]]) - (theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]] * theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]])) * 0.5;
+        tmpD = sqrt(
+            theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] *
+                theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] +
+            theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] *
+                theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])]);
+
+        tmpH = sqrt(
+                   (4 * tmpRadius1 * tmpRadius1) -
+                   (theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] *
+                    theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])]) -
+                   (theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] *
+                    theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])])) *
+               0.5;
+
         tmpValue = tmpH / tmpD;        // TODO : Catch Divide by Zero...
 
         // now set tmpValue sign according to G2/G3 or sign of Radius
@@ -628,8 +646,8 @@ void gCode::calcArcCenterAndRadius(simplifiedMotion &theMotion) {
             tmpRadius1 = -tmpRadius1;
         }
 
-        theMotion.trajectory.arcCenter[0] = theState.currentPosition[(uint8_t)theMotion.trajectory.arcAxis[0]] + ((theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]] * 0.5f) - (theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]] * tmpValue));
-        theMotion.trajectory.arcCenter[1] = theState.currentPosition[(uint8_t)theMotion.trajectory.arcAxis[1]] + ((theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[1]] * 0.5f) + (theMotion.trajectory.delta[(uint8_t)theMotion.trajectory.arcAxis[0]] * tmpValue));
+        theMotion.trajectory.arcCenter[0] = theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] + ((theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] * 0.5f) - (theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] * tmpValue));
+        theMotion.trajectory.arcCenter[1] = theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] + ((theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] * 0.5f) + (theMotion.trajectory.delta[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] * tmpValue));
         theMotion.trajectory.radius       = tmpRadius1;
     } else {
         // Error : no offsets AND no radius..
@@ -638,8 +656,8 @@ void gCode::calcArcCenterAndRadius(simplifiedMotion &theMotion) {
 }
 
 void gCode::calcArcAngles(simplifiedMotion &theMotion) {
-    theMotion.trajectory.startAngle = atan2(theState.currentPosition[(uint8_t)theMotion.trajectory.arcAxis[1]] - theMotion.trajectory.arcCenter[1], theState.currentPosition[(uint8_t)theMotion.trajectory.arcAxis[0]] - theMotion.trajectory.arcCenter[0]);
-    double endAngle                 = atan2(theState.nextPosition[(uint8_t)theMotion.trajectory.arcAxis[1]] - theMotion.trajectory.arcCenter[1], theState.nextPosition[(uint8_t)theMotion.trajectory.arcAxis[0]] - theMotion.trajectory.arcCenter[0]);
+    theMotion.trajectory.startAngle = atan2(theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] - theMotion.trajectory.arcCenter[1], theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] - theMotion.trajectory.arcCenter[0]);
+    double endAngle                 = atan2(theState.nextPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] - theMotion.trajectory.arcCenter[1], theState.nextPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] - theMotion.trajectory.arcCenter[0]);
 
     if ((motionType::feedHelicalCW == theMotion.type) || (motionType::feedHelicalCCW == theMotion.type)) {
         theMotion.trajectory.deltaAngle = endAngle - theMotion.trajectory.startAngle;
@@ -652,7 +670,7 @@ void gCode::calcTrajectoryLength(simplifiedMotion &theMotion) {
     double arcLength            = theMotion.trajectory.radius * fabs(theMotion.trajectory.deltaAngle);        // length of the ARC in [mm]
     theMotion.trajectory.length = arcLength * arcLength;                                                      // start with length of arc (squared), could be zero for linear move
     for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
-        if ((anAxis != (uint8_t)theMotion.trajectory.arcAxis[0]) && (anAxis != (uint8_t)theMotion.trajectory.arcAxis[1]))        // for all axis, except for the 2 of the arcPlane
+        if ((anAxis != static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])) && (anAxis != static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])))        // for all axis, except for the 2 of the arcPlane
         {
             theMotion.trajectory.length = theMotion.trajectory.length + (theMotion.trajectory.delta[anAxis] * theMotion.trajectory.delta[anAxis]);        // add square length
         }
@@ -676,17 +694,17 @@ void gCode::calcSpeedAndOrDuration(simplifiedMotion &theMotion) {
     } else if ((motionType::feedLinear == theMotion.type) ||
                (motionType::feedHelicalCW == theMotion.type) ||
                (motionType::feedHelicalCCW == theMotion.type)) {
-        tmpValue = theState.letterValueState[(uint8_t)gCodeLetter::F];        // Note - check for valid feedrate is done when processing the F-word
-        if (tmpValue <= 0)                                                    // here we check for the scenario where the F-word is missing, so F is still to its default of zero
+        tmpValue = theState.letterValueState[static_cast<uint32_t>(gCodeLetter::F)];        // Note - check for valid feedrate is done when processing the F-word
+        if (tmpValue <= 0)                                                                  // here we check for the scenario where the F-word is missing, so F is still to its default of zero
         {
             // lastError = gCodeError::InvalidFeedrate;
         }
-        if (theState.modalGroupsState[(uint8_t)modalGroup::FeedRate] == (uint8_t)modalGroupFeedRate::G93)        // Inverse Feedrate
+        if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::FeedRate)] == static_cast<uint32_t>(modalGroupFeedRate::G93))        // Inverse Feedrate
         {
             theMotion.speedProfile.vFeed    = (theMotion.trajectory.length * tmpValue) / 60.0;        // [mm/s] - G93 F indicates: complete the motion in 1/F minutes,= 60 / F seconds
             theMotion.speedProfile.duration = theMotion.trajectory.length / theMotion.speedProfile.vFeed;
         } else {
-            if (theState.modalGroupsState[(uint8_t)modalGroup::Unit] == (uint8_t)modalGroupUnit::G20)        // Inches
+            if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)] == static_cast<uint32_t>(modalGroupUnit::G20))        // Inches
             {
                 tmpValue = tmpValue * inches2mm;        // convert to mm
             }
@@ -695,7 +713,7 @@ void gCode::calcSpeedAndOrDuration(simplifiedMotion &theMotion) {
         }
     } else {
         theMotion.speedProfile.vFeed    = 0.0;
-        theMotion.speedProfile.duration = theState.letterValueState[(uint8_t)gCodeLetter::P];        // Get the duration of the Dwell from P letter value
+        theMotion.speedProfile.duration = theState.letterValueState[static_cast<uint32_t>(gCodeLetter::P)];        // Get the duration of the Dwell from P letter value
     }
 }
 
@@ -706,17 +724,17 @@ void gCode::calcPeripherals(simplifiedMotion &theMotion) {
 
     theMotion.peripherals.spindleSpeed     = 0;
     theMotion.peripherals.spindledirection = rotationDirection::clockwise;
-    if (theState.modalGroupsState[(uint8_t)modalGroup::Spindle] != (uint8_t)modalGroupSpindle::M5) {
-        theMotion.peripherals.spindleSpeed = theState.letterValueState[(uint8_t)gCodeLetter::S];
-        if (theState.modalGroupsState[(uint8_t)modalGroup::Spindle] != (uint8_t)modalGroupSpindle::M4) {
+    if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Spindle)] != static_cast<uint32_t>(modalGroupSpindle::M5)) {
+        theMotion.peripherals.spindleSpeed = theState.letterValueState[static_cast<uint32_t>(gCodeLetter::S)];
+        if (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Spindle)] != static_cast<uint32_t>(modalGroupSpindle::M4)) {
             theMotion.peripherals.spindledirection = rotationDirection::clockwise;
         } else {
             theMotion.peripherals.spindledirection = rotationDirection::counterClockwise;
         }
     }
 
-    theMotion.peripherals.coolantFlood = (theState.modalGroupsState[(uint8_t)modalGroup::CoolantFlood] == (uint8_t)modalGroupCoolantFlood::M7);
-    theMotion.peripherals.coolantMist  = (theState.modalGroupsState[(uint8_t)modalGroup::CoolantMist] == (uint8_t)modalGroupCoolantMist::M8);
+    theMotion.peripherals.coolantFlood = (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantFlood)] == static_cast<uint32_t>(modalGroupCoolantFlood::M7));
+    theMotion.peripherals.coolantMist  = (theState.modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantMist)] == static_cast<uint32_t>(modalGroupCoolantMist::M8));
 }
 
 void gCode::updatePosition() {
