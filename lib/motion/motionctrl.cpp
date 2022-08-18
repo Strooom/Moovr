@@ -226,30 +226,3 @@ void motionCtrl::move() {
     }
 }
 
-
-// void motionCtrl::positionInMm(uint32_t axis, float sNow, motionTrajectory& currentMotionTrajectory) {
-//     if (axis == static_cast<uint32_t>(currentMotionTrajectory.arcAxis0)) {
-//         nextPositionInMm[axis] = (currentMotionTrajectory.arcCenter0 + (currentMotionTrajectory.radius * cosf(currentMotionTrajectory.startAngle + (currentMotionTrajectory.deltaRealTime[axis] * sNow))));
-//     } else if (axis == static_cast<uint32_t>(currentMotionTrajectory.arcAxis1)) {
-//         nextPositionInMm[axis] = (currentMotionTrajectory.arcCenter1 + (currentMotionTrajectory.radius * sinf(currentMotionTrajectory.startAngle + (currentMotionTrajectory.deltaRealTime[axis] * sNow))));
-//     } else {
-//         nextPositionInMm[axis] = (currentMotionTrajectory.startPosition[axis] + currentMotionTrajectory.deltaRealTime[axis] * sNow);
-//     }
-// }
-
-
-// void motionCtrl::positionInSteps() {
-//     float sNow = theMotionBuffer.getHead().s(theSampleTime.timeInMotion);
-//     for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
-//         if (theMotionBuffer.getHead().isMoving(anAxis)) {
-//             positionInMm(anAxis, sNow, theMotionBuffer.getHead().trajectory);
-//             if (needStepForward(anAxis)) {
-//                 theStepSignals.stepForward(anAxis);
-//                 currentPositionInSteps[anAxis]++;
-//             } else if (needStepBackward(anAxis)) {
-//                 theStepSignals.stepBackward(anAxis);
-//                 currentPositionInSteps[anAxis]--;
-//             }
-//         }
-//     }
-// }

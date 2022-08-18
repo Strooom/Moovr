@@ -106,6 +106,7 @@ void test_calcNextPositionInSteps() {
 void nextStep_notRunning() {
     step aStep;
     motionCtrl theMotionCtrl;
+    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
 
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     TEST_ASSERT_EQUAL(0U, aStep.signals);                                  // we should get default stepSignals..
@@ -115,13 +116,13 @@ void nextStep_notRunning() {
 
 int main(int argc, char **argv) {
     UNITY_BEGIN();
-    RUN_TEST(initialize);
-    RUN_TEST(test_calcNextPositionInMm);
+    //RUN_TEST(initialize);
+    //RUN_TEST(test_calcNextPositionInMm);
 
-    RUN_TEST(test_optimize);
-    RUN_TEST(test_optimizePair);
-    RUN_TEST(test_vJunction);
-    RUN_TEST(test_calcNextPositionInSteps);
+    //RUN_TEST(test_optimize);
+    //RUN_TEST(test_optimizePair);
+    //RUN_TEST(test_vJunction);
+    //RUN_TEST(test_calcNextPositionInSteps);
     RUN_TEST(nextStep_notRunning);
     UNITY_END();
 }
