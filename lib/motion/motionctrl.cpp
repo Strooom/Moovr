@@ -165,38 +165,40 @@ float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
 // FASTRUN
 // #endif
 
-step motionCtrl::calcNextStepperMotorSignals() {
-    while (true) {
-        theStepSignals.next();
-        if (isRunning()) {
-            theSampleTime.next();
-            while (true) {
-                if (theSampleTime.isBeyondStop()) {
-                    theMotionCtrlState = motionState::stopped;
-                    theEventBuffer.pushEvent(event::motionStopped);
-                }
-                if (theSampleTime.isBeyondEndOfMotion()) {
-                    theSampleTime.initializeNextMotion();
-                    theMotionBuffer.pop();
-                    theEventBuffer.pushEvent(event::motionCompleted);
-                    if (theMotionBuffer.isEmpty()) {
-                        theMotionCtrlState = motionState::stopped;
-                        theEventBuffer.pushEvent(event::allMotionsCompleted);
-                        theEventBuffer.pushEvent(event::motionStopped);
-                        theSampleTime.initialize();
-                        break;
-                    }
-                } else {
-                    move();
-                    break;
-                }
-            }
-        }
-        if (theStepSignals.isModified() || theStepSignals.isTimedOut()) {
-            return theStepSignals.output();
-        }
-    }
-}
+// step motionCtrl::calcNextStepperMotorSignals() {
+//     while (true) {
+//         theStepSignals.next();
+//         if (isRunning()) {
+//             theSampleTime.next();
+//             while (true) {
+//                 if (theSampleTime.isBeyondStop()) {
+//                     theMotionCtrlState = motionState::stopped;
+//                     theEventBuffer.pushEvent(event::motionStopped);
+//                     break;
+//                 }
+
+//                 if (theSampleTime.isBeyondEndOfMotion()) {
+//                     theSampleTime.initializeNextMotion();
+//                     theMotionBuffer.pop();
+//                     theEventBuffer.pushEvent(event::motionCompleted);
+//                     if (theMotionBuffer.isEmpty()) {
+//                         theMotionCtrlState = motionState::stopped;
+//                         theEventBuffer.pushEvent(event::allMotionsCompleted);
+//                         theEventBuffer.pushEvent(event::motionStopped);
+//                         theSampleTime.initialize();
+//                         break;
+//                     }
+//                 } else {
+//                     move();
+//                     break;
+//                 }
+//             }
+//         }
+//         if (theStepSignals.isModified() || theStepSignals.isTimedOut()) {
+//             return theStepSignals.output();
+//         }
+//     }
+// }
 
 bool motionCtrl::needStepForward(uint32_t anAxis) {
     return (static_cast<int32_t>((nextPosition.inSteps[anAxis] - hysteresis) > currentPosition.inSteps[anAxis]));
@@ -226,3 +228,39 @@ void motionCtrl::move() {
     }
 }
 
+
+step motionCtrl::calcNextStepperMotorSignals() {
+    while (true) {
+        theStepSignals.next();
+        if (isRunning()) {
+            theSampleTime.next();
+            if (theSampleTime.isBeyondStop()) {
+                theMotionCtrlState = motionState::stopped;
+                theEventBuffer.pushEvent(event::motionStopped);
+            }
+            while (true) {
+                if (theSampleTime.isBeyondEndOfMotion()) {
+                    if (theMotionBuffer.getLevel() > 1) {
+                        theSampleTime.initializeNextMotion();
+                        theMotionBuffer.pop();
+                        theEventBuffer.pushEvent(event::motionCompleted);
+                    } else {
+                        theMotionBuffer.pop();
+                        theSampleTime.initialize();
+                        theMotionCtrlState = motionState::stopped;
+                        theEventBuffer.pushEvent(event::motionStopped);
+                        theEventBuffer.pushEvent(event::motionCompleted);
+                        theEventBuffer.pushEvent(event::allMotionsCompleted);
+                        break;
+                    }
+                } else {
+                    move();
+                    break;
+                }
+            }
+        }
+        if (theStepSignals.isModified() || theStepSignals.isTimedOut()) {
+            return theStepSignals.output();
+        }
+    }
+}

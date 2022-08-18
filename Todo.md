@@ -1,7 +1,15 @@
+
 Nxt Tasks
 =========
 
 * build a minimal main application, binding together all subsystems
+
+
+Application Initialization
+==========================
+* instance of motionControl
+* theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
+
 
 
 
