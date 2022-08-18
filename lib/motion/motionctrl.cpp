@@ -241,8 +241,9 @@ step motionCtrl::calcNextStepperMotorSignals() {
             while (true) {
                 if (theSampleTime.isBeyondEndOfMotion()) {
                     if (theMotionBuffer.getLevel() > 1) {
-                        theSampleTime.initializeNextMotion();
+                        theSampleTime.cleanupCurrentMotion();
                         theMotionBuffer.pop();
+                        theSampleTime.initializeNextMotion(theMotionBuffer.getHead().speedProfile.duration, theMotionBuffer.getHead().speedProfile.tStop);
                         theEventBuffer.pushEvent(event::motionCompleted);
                     } else {
                         theMotionBuffer.pop();
@@ -264,3 +265,4 @@ step motionCtrl::calcNextStepperMotorSignals() {
         }
     }
 }
+

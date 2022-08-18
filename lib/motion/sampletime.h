@@ -10,14 +10,17 @@
 
 class sampleTime {
   public:
-    sampleTime(const float theMinStepPulseWidth);        // constructor
-    void next();                                         // calculate the position of the next sampling point
-    void initialize();                                   //
-    bool isBeyondEndOfMotion() const;                    //
-    bool isBeyondStop() const;                           //
-    void initializeNextMotion();                         //
-    void setMotionTStop(float someStopTime);
-    void setMotionDuration(float someMotionDuration);
+    sampleTime();        // constructor
+    // sampleTime(const float theMinStepPulseWidth);                       // constructor
+    void next();                                                                    // calculate the position of the next sampling point
+    void initialize();                                                              //
+    bool isBeyondEndOfMotion() const;                                               //
+    bool isBeyondStop() const;                                                      //
+    void cleanupCurrentMotion();                                                    //
+    void initializeNextMotion(float someMotionDuration, float someStopTime);        //
+    void setMotionTStop(float someStopTime);                                        //
+    void setMotionDuration(float someMotionDuration);                               //
+    void setminStepPulseWidth(const float theMinStepPulseWidth);                    //
 
 #ifndef unitTesting
   private:
@@ -28,5 +31,5 @@ class sampleTime {
     uint32_t sampleIndex{0};              // zero-based index of sampling points inside the current motion
     float motionTStop{0.0F};              // time after which the motion comes to a stop [s]
     float motionDuration{0.0F};           // duration [s] of the complete motion
-    const float minStepPulseWidth;        // duration [s] of a single discrete timeTick, equals the time [s] between the sampling points
+    float minStepPulseWidth{1.0F};        // duration [s] of a single discrete timeTick, equals the time [s] between the sampling points
 };

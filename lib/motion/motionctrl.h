@@ -38,19 +38,17 @@ class motionCtrl {
 #endif
     motionState theMotionCtrlState = motionState::stopped;        //
     overrides theOverrides;
-    sampleTime theSampleTime = sampleTime(1);        // TODO : set a correct sample interval
-    motionBuffer theMotionBuffer;                    //
-    stepSignals theStepSignals;                      //
+    sampleTime theSampleTime;
+    motionBuffer theMotionBuffer;        //
+    stepSignals theStepSignals;          //
 
     point currentPosition;
     point nextPosition;
 
     float vJunction(uint32_t left, uint32_t right) const;        //
-    // void positionInSteps();                                                                           //
-    // void positionInMm(uint32_t anAxis, float sNow, motionTrajectory& currentMotionTrajectory);        //
-    bool needStepForward(uint32_t anAxis);           //
-    bool needStepBackward(uint32_t anAxis);          //
-    void optimizePair(int32_t junctionIndex);        //
-    void move();                                     // from currentPosition to newPosition
+    bool needStepForward(uint32_t anAxis);                       //
+    bool needStepBackward(uint32_t anAxis);                      //
+    void optimizePair(int32_t junctionIndex);                    //
+    void move();                                                 // from currentPosition to newPosition
     bool isOptimal{false};
 };

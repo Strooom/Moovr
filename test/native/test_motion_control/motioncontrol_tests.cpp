@@ -4,6 +4,7 @@
 #include "machineproperties.h"        // motionControl relies on an external dependency : there must be a global instance of machineProperties where it can read settings/properties
 #include "eventbuffer.h"              // motionControl relies on an external dependency : there must be a global instance of eventBuffer where it can notify/push events that occured
 #include <math.h>
+#include <limits>
 
 // ----------------------------------
 // --- to be tested API           ---
@@ -42,6 +43,7 @@ void setUp(void) {
     theMachineProperties.motors.dMax[2] = -1.0f;
     theMachineProperties.motors.vMax[2] = 1.0f;
 }
+
 void tearDown(void) {}        // after test
 
 void initialize() {
@@ -55,6 +57,31 @@ void initialize() {
         TEST_ASSERT_EQUAL(0, theMotionCtrl.currentPosition.inSteps[anAxis]);
         TEST_ASSERT_EQUAL(0.0F, theMotionCtrl.nextPosition.inMm[anAxis]);
     }
+}
+
+void nextStep_notRunning() {
+    step aStep;
+    motionCtrl theMotionCtrl;
+    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
+
+    aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    TEST_ASSERT_EQUAL(0U, aStep.signals);                                  // we should get default stepSignals..
+    TEST_ASSERT_EQUAL(maxTicksSinceLastOutput, aStep.timeBefore);          //
+    TEST_ASSERT_EQUAL(0U, theMotionCtrl.theSampleTime.sampleIndex);        // and the sampleTime should not proceed
+}
+
+void nextStep_emptyMotionBuffer() {
+    step aStep;
+    motionCtrl theMotionCtrl;
+    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
+
+    theMotionCtrl.theMotionCtrlState = motionState::running;
+
+    aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    TEST_ASSERT_EQUAL(0U, aStep.signals);                                  // we should get default stepSignals..
+    TEST_ASSERT_EQUAL(maxTicksSinceLastOutput, aStep.timeBefore);          //
+    TEST_ASSERT_EQUAL(0U, theMotionCtrl.theSampleTime.sampleIndex);        // and the sampleTime should be reset to zeroes
+    TEST_ASSERT_EQUAL(motionState::stopped, theMotionCtrl.getState());
 }
 
 void test_calcNextPositionInMm() {
@@ -98,46 +125,31 @@ void test_vJunction() {
     TEST_FAIL_MESSAGE("missing test");
 }
 
-void test_calcNextPositionInSteps() {
-    TEST_FAIL_MESSAGE("missing test");
-}
 
-void nextStep_notRunning() {
-    step aStep;
-    motionCtrl theMotionCtrl;
-    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
-
-    aStep = theMotionCtrl.calcNextStepperMotorSignals();
-    TEST_ASSERT_EQUAL(0U, aStep.signals);                                  // we should get default stepSignals..
-    TEST_ASSERT_EQUAL(maxTicksSinceLastOutput, aStep.timeBefore);          //
-    TEST_ASSERT_EQUAL(0U, theMotionCtrl.theSampleTime.sampleIndex);        // and the sampleTime should not proceed
-}
-
-void nextStep_emptyMotionBuffer() {
-    step aStep;
-    motionCtrl theMotionCtrl;
-    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
-    
-    theMotionCtrl.theMotionCtrlState = motionState::running;
-
-    aStep = theMotionCtrl.calcNextStepperMotorSignals();
-    TEST_ASSERT_EQUAL(0U, aStep.signals);                                  // we should get default stepSignals..
-    TEST_ASSERT_EQUAL(maxTicksSinceLastOutput, aStep.timeBefore);          //
-    TEST_ASSERT_EQUAL(0U, theMotionCtrl.theSampleTime.sampleIndex);        // and the sampleTime should be reset to zeroes
-    TEST_ASSERT_EQUAL(motionState::stopped, theMotionCtrl.getState());
-
-}
 
 int main(int argc, char **argv) {
     UNITY_BEGIN();
-    // RUN_TEST(initialize);
-    RUN_TEST(nextStep_notRunning);
-    RUN_TEST(nextStep_emptyMotionBuffer);
+    RUN_TEST(initialize);
+
+    // --- Testing generation of stepSignals ---
+
+    RUN_TEST(nextStep_notRunning);               // 1. output defaults when empty buffer
+    RUN_TEST(nextStep_emptyMotionBuffer);        //
+
+    // 2. output defaults when non-empty buffer but stopped
+    // 3. output steps when running and motionItems in the buffer
+    // 4. proceed to next motionItem after completing the current one
+    // 5. go to Stopped after completing last motionItem
+    // 6. go to Stopped after passing tStop
+    // 7. time should proceed only when not stopped = running or stopping
+    // 8. stepsignals should always proceed
+
     // RUN_TEST(test_calcNextPositionInMm);
 
-    // RUN_TEST(test_optimize);
-    // RUN_TEST(test_optimizePair);
-    // RUN_TEST(test_vJunction);
-    // RUN_TEST(test_calcNextPositionInSteps);
+    // --- Testing motionBuffer optimization ---
+
+    RUN_TEST(test_optimize);
+    RUN_TEST(test_optimizePair);
+    RUN_TEST(test_vJunction);
     UNITY_END();
 }
