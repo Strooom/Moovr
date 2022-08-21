@@ -161,89 +161,21 @@ float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
     return vResult;
 }
 
-// #if defined(__MK64FX512__) || defined(__MK66FX1M0__)        // Teensy 3.5 || Teensy 3.6
-// FASTRUN
-// #endif
-
-// step motionCtrl::calcNextStepperMotorSignals() {
-//     while (true) {
-//         theStepSignals.next();
-//         if (isRunning()) {
-//             theSampleTime.next();
-//             while (true) {
-//                 if (theSampleTime.isBeyondStop()) {
-//                     theMotionCtrlState = motionState::stopped;
-//                     theEventBuffer.pushEvent(event::motionStopped);
-//                     break;
-//                 }
-
-//                 if (theSampleTime.isBeyondEndOfMotion()) {
-//                     theSampleTime.initializeNextMotion();
-//                     theMotionBuffer.pop();
-//                     theEventBuffer.pushEvent(event::motionCompleted);
-//                     if (theMotionBuffer.isEmpty()) {
-//                         theMotionCtrlState = motionState::stopped;
-//                         theEventBuffer.pushEvent(event::allMotionsCompleted);
-//                         theEventBuffer.pushEvent(event::motionStopped);
-//                         theSampleTime.initialize();
-//                         break;
-//                     }
-//                 } else {
-//                     move();
-//                     break;
-//                 }
-//             }
-//         }
-//         if (theStepSignals.isModified() || theStepSignals.isTimedOut()) {
-//             return theStepSignals.output();
-//         }
-//     }
-// }
-
-bool motionCtrl::needStepForward(uint32_t anAxis) {
-    return (static_cast<int32_t>((nextPosition.inSteps[anAxis] - hysteresis) > currentPosition.inSteps[anAxis]));
-    // TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
-    // Should test this on the K64/K66 to see how it behaves there
-}
-
-bool motionCtrl::needStepBackward(uint32_t anAxis) {
-    return (static_cast<int32_t>((nextPosition.inSteps[anAxis] + hysteresis) < currentPosition.inSteps[anAxis]));
-    // TODO there is some problem here as the conversion from float to int rounds towards zero (discards the fractional part) which means the interval [-1,1] takes twice the time..
-    // Should test this on the K64/K66 to see how it behaves there
-}
-
-void motionCtrl::move() {
-    motion& currentMotion = theMotionBuffer.getHead();
-    float sNow            = currentMotion.s(theSampleTime.timeInMotion);
-    currentMotion.positionFromDistance(currentPosition, sNow);
-
-    for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
-        if (currentMotion.isMoving(anAxis)) {
-            if (needStepForward(anAxis)) {
-                theStepSignals.stepForward(anAxis);
-            } else if (needStepBackward(anAxis)) {
-                theStepSignals.stepBackward(anAxis);
-            }
-        }
-    }
-}
-
-
 step motionCtrl::calcNextStepperMotorSignals() {
     while (true) {
         theStepSignals.next();
         if (isRunning()) {
             theSampleTime.next();
-            if (theSampleTime.isBeyondStop()) {
+            if (theSampleTime.isBeyond(theMotionBuffer.getHead().speedProfile.tStop)) {
                 theMotionCtrlState = motionState::stopped;
                 theEventBuffer.pushEvent(event::motionStopped);
             }
             while (true) {
-                if (theSampleTime.isBeyondEndOfMotion()) {
+                if (theSampleTime.isBeyond(theMotionBuffer.getHead().speedProfile.duration)) {
                     if (theMotionBuffer.getLevel() > 1) {
-                        theSampleTime.cleanupCurrentMotion();
+                        theSampleTime.sampleZeroOffset = theSampleTime.timeInMotion - theMotionBuffer.getHead().speedProfile.duration;
                         theMotionBuffer.pop();
-                        theSampleTime.initializeNextMotion(theMotionBuffer.getHead().speedProfile.duration, theMotionBuffer.getHead().speedProfile.tStop);
+                        theSampleTime.initializeNextMotion();
                         theEventBuffer.pushEvent(event::motionCompleted);
                     } else {
                         theMotionBuffer.pop();
@@ -266,3 +198,39 @@ step motionCtrl::calcNextStepperMotorSignals() {
     }
 }
 
+void motionCtrl::move() {
+    motion& currentMotion   = theMotionBuffer.getHead();                          // get a reference to the current motionItem, to speed up reading its members
+    float distanceTravelled = currentMotion.s(theSampleTime.timeInMotion);        // at current time, what distance have we travelled over the trajectory
+
+    for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
+        if (currentMotion.isMoving(anAxis)) {
+            float positionInMm = currentMotion.positionInMmFromDistanceTravelled(anAxis, distanceTravelled);
+            if (needStepForward(anAxis, positionInMm)) {
+                stepForward(anAxis);
+            } else if (needStepBackward(anAxis, positionInMm)) {
+                stepBackward(anAxis);
+            }
+        }
+    }
+}
+
+bool motionCtrl::needStepForward(uint32_t anAxis, float positionInMm) {
+    float positionInStepsFloat = positionInMm * theMachineProperties.motors.stepsPerMm[anAxis];
+    int32_t newPosition        = roundf(positionInStepsFloat - hysteresis);
+    return (newPosition > currentPositionInSteps[anAxis]);
+}
+
+bool motionCtrl::needStepBackward(uint32_t anAxis, float positionInMm) {
+    float positionInStepsFloat = positionInMm * theMachineProperties.motors.stepsPerMm[anAxis];
+    return ((roundf(positionInStepsFloat + hysteresis)) < currentPositionInSteps[anAxis]);
+}
+
+void motionCtrl::stepForward(uint32_t anAxis) {
+    theStepSignals.stepForward(anAxis);
+    ++currentPositionInSteps[anAxis];
+}
+
+void motionCtrl::stepBackward(uint32_t anAxis) {
+    theStepSignals.stepBackward(anAxis);
+    --currentPositionInSteps[anAxis];
+}

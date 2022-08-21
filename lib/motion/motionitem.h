@@ -62,6 +62,7 @@ class motion {
     // trajectory calculations
 
     void positionFromDistance(point &aPosition, float s);        // calculates position from distance over trajectory
+    float positionInMmFromDistanceTravelled(uint32_t anAxis, float s);
 
   private:
 };

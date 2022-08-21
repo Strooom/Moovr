@@ -272,7 +272,7 @@ uint32_t motion::toString(char *output) const {
     return outputLenght;
 }
 
-void motion::positionFromDistance(point& aPosition, float s) {
+void motion::positionFromDistance(point &aPosition, float s) {
     // TODO s is confusion as parameter as it is also the name of a member function
     for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
         if (isMoving(anAxis)) {
@@ -290,6 +290,15 @@ void motion::positionFromDistance(point& aPosition, float s) {
     }
 }
 
+float motion::positionInMmFromDistanceTravelled(uint32_t anAxis, float distanceTravelled) {
+    if (anAxis == static_cast<uint32_t>(trajectory.arcAxis0)) {
+        return (trajectory.arcCenter0 + (trajectory.radius * cosf(trajectory.startAngle + (trajectory.deltaRealTime[anAxis] * distanceTravelled))));
+    } else if (anAxis == static_cast<uint32_t>(trajectory.arcAxis1)) {
+        return (trajectory.arcCenter1 + (trajectory.radius * sinf(trajectory.startAngle + (trajectory.deltaRealTime[anAxis] * distanceTravelled))));
+    } else {
+        return (trajectory.startPosition[anAxis] + trajectory.deltaRealTime[anAxis] * distanceTravelled);
+    }
+}
 
 // void motion::export2csv(const char *outputFilename, uint32_t nmbrDataPoints) {
 // // #ifdef WIN32

@@ -8,16 +8,17 @@ constexpr uint32_t outputTimerFrequency = 60'000U;
 constexpr float minStepPulseWidth       = 1.0F / outputTimerFrequency;
 
 void initialization() {
-    sampleTime theTime(minStepPulseWidth);
+    sampleTime theTime;
+    theTime.setminStepPulseWidth(minStepPulseWidth);
     TEST_ASSERT_EQUAL_UINT32(0U, theTime.sampleIndex);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, theTime.sampleZeroOffset);
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, theTime.motionTStop);
+    // TEST_ASSERT_EQUAL_FLOAT(0.0F, theTime.motionTStop); 
     TEST_ASSERT_EQUAL_FLOAT(0.0F, theTime.motionDuration);
     TEST_ASSERT_EQUAL_FLOAT(minStepPulseWidth, theTime.minStepPulseWidth);
 }
 
 void next() {
-    sampleTime theTime(minStepPulseWidth);
+    sampleTime theTime;
     theTime.next();
     TEST_ASSERT_EQUAL_UINT32(1U, theTime.sampleIndex);
     theTime.next();

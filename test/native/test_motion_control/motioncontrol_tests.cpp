@@ -33,15 +33,7 @@ machineProperties theMachineProperties;        //
 eventBuffer theEventBuffer;                    //
 
 void setUp(void) {
-    theMachineProperties.motors.aMax[0] = 1.0f;
-    theMachineProperties.motors.dMax[0] = -1.0f;
-    theMachineProperties.motors.vMax[0] = 1.0f;
-    theMachineProperties.motors.aMax[1] = 1.0f;
-    theMachineProperties.motors.dMax[1] = -1.0f;
-    theMachineProperties.motors.vMax[1] = 1.0f;
-    theMachineProperties.motors.aMax[2] = 1.0f;
-    theMachineProperties.motors.dMax[2] = -1.0f;
-    theMachineProperties.motors.vMax[2] = 1.0f;
+    theMachineProperties.setForTest(1U);
 }
 
 void tearDown(void) {}        // after test
@@ -64,10 +56,29 @@ void nextStep_notRunning() {
     motionCtrl theMotionCtrl;
     theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
 
+    // empty motionBuffer and motionState == stopped (= default), we should get default stepSignals, and the sampleTime should not proceed
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     TEST_ASSERT_EQUAL(0U, aStep.signals);                                  // we should get default stepSignals..
     TEST_ASSERT_EQUAL(maxTicksSinceLastOutput, aStep.timeBefore);          //
     TEST_ASSERT_EQUAL(0U, theMotionCtrl.theSampleTime.sampleIndex);        // and the sampleTime should not proceed
+
+    // add a motionItem to the motionBuffer but keep motionState == stopped, we should get default stepSignals, and the sampleTime should not proceed
+    simplifiedMotion aMotion;
+    aMotion.setForTest(0U);
+    theMotionCtrl.append(aMotion);
+    aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    TEST_ASSERT_EQUAL(0U, aStep.signals);                                  // we should get default stepSignals..
+    TEST_ASSERT_EQUAL(maxTicksSinceLastOutput, aStep.timeBefore);          //
+    TEST_ASSERT_EQUAL(0U, theMotionCtrl.theSampleTime.sampleIndex);        // and the sampleTime should not proceed
+
+    // Push some steps in the stepSignals, and verify they are coming out, ie. theStepSignals are always running, even when motionControl is stopped
+    theMotionCtrl.theStepSignals.stepForward(0);
+    aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
+    TEST_ASSERT_EQUAL(0x01, aStep.signals);                     //
+    TEST_ASSERT_EQUAL(1, aStep.timeBefore);                     //
+    aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
+    TEST_ASSERT_EQUAL(0x00, aStep.signals);                     //
+    TEST_ASSERT_EQUAL(1, aStep.timeBefore);                     //
 }
 
 void nextStep_emptyMotionBuffer() {
@@ -84,48 +95,38 @@ void nextStep_emptyMotionBuffer() {
     TEST_ASSERT_EQUAL(motionState::stopped, theMotionCtrl.getState());
 }
 
-void test_calcNextPositionInMm() {
+void nextStep_sequenceMotionItems() {
+    step aStep;
     motionCtrl theMotionCtrl;
-    simplifiedMotion aSimpleMotion;
-    aSimpleMotion.setForTest(0U);
-    theMotionCtrl.append(aSimpleMotion);
-    theMotionCtrl.start();        // now start moving...
-
-    // initial position should be all zero..
-
-    // for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
-    //     theMotionCtrl.positionInMm(anAxis, 0.0F, theMotionCtrl.theMotionBuffer.getHead().trajectory);
-    //     TEST_ASSERT_EQUAL(0.0F, theMotionCtrl.nextPositionInMm[anAxis]);
-    // }
-
-    // for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
-    //     theMotionCtrl.positionInMm(anAxis, 0.5F, theMotionCtrl.theMotionBuffer.getHead().trajectory);
-    // }
-    // TEST_ASSERT_EQUAL(0.0F, theMotionCtrl.nextPositionInMm[2]);
-    // TEST_ASSERT_EQUAL(0.0F, theMotionCtrl.nextPositionInMm[1]);
-    // TEST_ASSERT_EQUAL(0.5F, theMotionCtrl.nextPositionInMm[0]);
-
-    // for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
-    //     theMotionCtrl.positionInMm(anAxis, 1.0F, theMotionCtrl.theMotionBuffer.getHead().trajectory);
-    // }
-    // TEST_ASSERT_EQUAL(0.0F, theMotionCtrl.nextPositionInMm[2]);
-    // TEST_ASSERT_EQUAL(0.0F, theMotionCtrl.nextPositionInMm[1]);
-    // TEST_ASSERT_EQUAL(1.0F, theMotionCtrl.nextPositionInMm[0]);
+    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(std::numeric_limits<uint32_t>::max());        // not interested in (interfering) these dummy stepsignals, so disabling them
+    theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 8.0f);
+    simplifiedMotion aMotion;
+    aMotion.setForTest(0U);        // TODO : need 3 movements that fit to each other, eg X1, X0, X1
+    theMotionCtrl.append(aMotion);
+    theMotionCtrl.append(aMotion);
+    theMotionCtrl.append(aMotion);
+    TEST_ASSERT_EQUAL(03, theMotionCtrl.theMotionBuffer.getLevel());
+    theMotionCtrl.start();
+    
+    for (int i = 0; i < 8; i++) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
+    }
 }
 
 void test_optimize() {
-    TEST_FAIL_MESSAGE("missing test");
+    TEST_MESSAGE("missing test");
+    TEST_IGNORE();
 }
 
 void test_optimizePair() {
-    TEST_FAIL_MESSAGE("missing test");
+    TEST_MESSAGE("missing test");
+    TEST_IGNORE();
 }
 
 void test_vJunction() {
-    TEST_FAIL_MESSAGE("missing test");
+    TEST_MESSAGE("missing test");
+    TEST_IGNORE();
 }
-
-
 
 int main(int argc, char **argv) {
     UNITY_BEGIN();
@@ -133,8 +134,9 @@ int main(int argc, char **argv) {
 
     // --- Testing generation of stepSignals ---
 
-    RUN_TEST(nextStep_notRunning);               // 1. output defaults when empty buffer
-    RUN_TEST(nextStep_emptyMotionBuffer);        //
+    RUN_TEST(nextStep_notRunning);                 // 1. output defaults when empty buffer
+    RUN_TEST(nextStep_emptyMotionBuffer);          //
+    RUN_TEST(nextStep_sequenceMotionItems);        //
 
     // 2. output defaults when non-empty buffer but stopped
     // 3. output steps when running and motionItems in the buffer
@@ -143,8 +145,6 @@ int main(int argc, char **argv) {
     // 6. go to Stopped after passing tStop
     // 7. time should proceed only when not stopped = running or stopping
     // 8. stepsignals should always proceed
-
-    // RUN_TEST(test_calcNextPositionInMm);
 
     // --- Testing motionBuffer optimization ---
 

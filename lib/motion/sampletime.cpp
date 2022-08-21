@@ -2,6 +2,7 @@
 #include "sampletime.h"
 
 sampleTime::sampleTime() {
+    initialize();
 }
 
 // sampleTime::sampleTime(const float theMinStepPulseWidth) : minStepPulseWidth(theMinStepPulseWidth) {
@@ -14,35 +15,17 @@ void sampleTime::next() {
 
 void sampleTime::initialize() {
     sampleIndex      = 0;
-    sampleZeroOffset = 0.0F;
-    timeInMotion     = 0.0F;
-    motionTStop      = std::numeric_limits<float>::infinity();
+    sampleZeroOffset = 0.0f;
+    timeInMotion     = 0.0f;
 }
 
-bool sampleTime::isBeyondEndOfMotion() const {
-    return (timeInMotion > motionDuration);
+bool sampleTime::isBeyond(float someTime) const {
+    return (timeInMotion > someTime);
 }
 
-bool sampleTime::isBeyondStop() const {
-    return (timeInMotion > motionTStop);
-}
-
-void sampleTime::cleanupCurrentMotion() {
-    sampleZeroOffset = timeInMotion - motionDuration;
-}
-
-void sampleTime::initializeNextMotion(float someMotionDuration, float someStopTime) {
+void sampleTime::initializeNextMotion() {
     sampleIndex    = 0;
-    motionDuration = someMotionDuration;
-    motionTStop    = someStopTime;
     timeInMotion   = sampleZeroOffset;
-}
-
-void sampleTime::setMotionTStop(float someStopTime) {
-    motionTStop = someStopTime;
-}
-void sampleTime::setMotionDuration(float someMotionDuration) {
-    motionDuration = someMotionDuration;
 }
 
 void sampleTime::setminStepPulseWidth(const float theMinStepPulseWidth) {

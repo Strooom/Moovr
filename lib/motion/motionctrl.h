@@ -36,19 +36,22 @@ class motionCtrl {
 #ifndef unitTesting
   private:
 #endif
-    motionState theMotionCtrlState = motionState::stopped;        //
-    overrides theOverrides;
-    sampleTime theSampleTime;
-    motionBuffer theMotionBuffer;        //
-    stepSignals theStepSignals;          //
+    motionState theMotionCtrlState = motionState::stopped;        // eg running, stopping or stopped
+    overrides theOverrides;                                       // override values for feedrate and spindlespeed
+    sampleTime theSampleTime;                                     // object keeping track of sampling the trajectory at regular time intervals
+    motionBuffer theMotionBuffer;                                 // buffer with motion segments to be executed
+    stepSignals theStepSignals;                                   // signals to be sent to the motors with their timing
 
-    point currentPosition;
-    point nextPosition;
+    point currentPosition;        // position we are now, on the previous sampleTime sample
+    int32_t currentPositionInSteps[nmbrAxis]{0};
+    point nextPosition;        // position we will be on the next sampleTime sample
 
-    float vJunction(uint32_t left, uint32_t right) const;        //
-    bool needStepForward(uint32_t anAxis);                       //
-    bool needStepBackward(uint32_t anAxis);                      //
-    void optimizePair(int32_t junctionIndex);                    //
-    void move();                                                 // from currentPosition to newPosition
+    float vJunction(uint32_t left, uint32_t right) const;              // max speed at the boundary of two motion segments
+    bool needStepForward(uint32_t anAxis, float positionInMm);         //
+    bool needStepBackward(uint32_t anAxis, float positionInMm);        //
+    void stepForward(uint32_t anAxis);                                 //
+    void stepBackward(uint32_t anAxis);                                //
+    void optimizePair(int32_t junctionIndex);                          //
+    void move();                                                       // decide for each axis if it should make a step when going from currentPosition to newPosition
     bool isOptimal{false};
 };
