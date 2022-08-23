@@ -134,7 +134,13 @@ void motion::optimize(overrides theOverrides, motionStrategy theStrategy) {
         case motionType::feedHelicalCW:
         case motionType::feedHelicalCCW: {
             float vMid;
-            speedProfileOrder order = speedProfileOrder::secondOrder;
+            speedProfileOrder order;
+
+            if (trajectory.length < theMachineProperties.minLengthSProfile) {
+                order = speedProfileOrder::firstOrder;
+            } else {
+                order = speedProfileOrder::secondOrder;
+            }
 
             if (theStrategy == motionStrategy::maximizeSpeed) {
                 vMid = speedProfile.vFeed * theOverrides.feedOverride;

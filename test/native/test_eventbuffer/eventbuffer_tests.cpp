@@ -62,6 +62,18 @@ void boundariesOverflow() {
     TEST_ASSERT_EQUAL(event::eventBufferOverflow, theBuffer.getLastError());
 }
 
+void test_initialize() {
+    eventBuffer theBuffer = eventBuffer();
+    theBuffer.pushEvent(event::allMotionsCompleted);
+    (void)theBuffer.popEvent();
+    theBuffer.initialize();
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.head);
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.level);
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.levelMax);
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.getLevelMax());
+    TEST_ASSERT_FALSE(theBuffer.hasEvents());
+}
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(initialization);
@@ -69,5 +81,6 @@ int main(int argc, char **argv) {
     RUN_TEST(pushPop);
     RUN_TEST(boundariesUnderflow);
     RUN_TEST(boundariesOverflow);
+    RUN_TEST(test_initialize);
     UNITY_END();
 }

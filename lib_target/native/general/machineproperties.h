@@ -22,7 +22,7 @@ static constexpr float minSteppingFrequency           = (float)maxSteppingFreque
 static constexpr float maxMotionDuration              = (float)(std::numeric_limits<uint32_t>::max() / outputTimerFrequency);             //
 static constexpr uint32_t inputTimerFrequency         = 100U;                                                                             // Design parameter : 100 Hz = 10ms
 static constexpr uint32_t inputSamplingRate           = inputTimerFrequency;                                                              //
-static constexpr float hysteresis                     = 0.2F;                                                                            // hysteresis, to avoid setting steps forward and backwards due to floating point rounding errors. In fact the value put here is half of the hysteresis
+static constexpr float hysteresis                     = 0.1F;                                                                             // hysteresis, to avoid setting steps forward and backwards due to floating point rounding errors. In fact the value put here is half of the hysteresis
 
 static constexpr float oneSixth{1.0F / 6.0F};        // constant to avoid having to divide by 6, as division is slower than multiplication
 
@@ -59,6 +59,6 @@ class machineProperties {
         bool hasCoolantMist{true};
     } coolant;
 
-    double minLengthSProfile{100.0F};                                            // [mm] all motions with a length smaller will be 2nd order T-profile - larger will be 3rd order S-profile
+    double minLengthSProfile{0.0F};                                              // [mm] all motions with a length smaller will be 2nd order T-profile - larger will be 3rd order S-profile
     float vMaxHoming{motors.jMax * motors.jMax * motors.jMax * oneSixth};        //
 };

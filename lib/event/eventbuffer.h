@@ -11,6 +11,7 @@
 
 class eventBuffer {
   public:
+    void initialize();
     void pushEvent(event anEvent);        // push an event onto the eventBuffer
     event popEvent();                     // pop an event from the eventbuffer
     bool hasEvents();                     // check if there are any events

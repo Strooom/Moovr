@@ -1,5 +1,12 @@
 #include "eventbuffer.h"
 
+void eventBuffer::initialize() {
+    head      = 0;
+    level     = 0;
+    levelMax  = 0;
+    lastError = event::none;
+}
+
 void eventBuffer::pushEvent(event theEvent) {
     if (event::none != theEvent) {
         if (level < length) {

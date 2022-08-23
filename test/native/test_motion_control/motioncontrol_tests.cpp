@@ -101,14 +101,16 @@ void nextStep_sequenceMotionItems() {
     theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(std::numeric_limits<uint32_t>::max());        // not interested in (interfering) these dummy stepsignals, so disabling them
     theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 8.0f);
     simplifiedMotion aMotion;
-    aMotion.setForTest(0U);        // TODO : need 3 movements that fit to each other, eg X1, X0, X1
+    aMotion.setForTest(10U);
     theMotionCtrl.append(aMotion);
+    aMotion.setForTest(11U);
     theMotionCtrl.append(aMotion);
+    aMotion.setForTest(10U);
     theMotionCtrl.append(aMotion);
     TEST_ASSERT_EQUAL(03, theMotionCtrl.theMotionBuffer.getLevel());
     theMotionCtrl.start();
     
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 12; i++) {
         aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
     }
 }

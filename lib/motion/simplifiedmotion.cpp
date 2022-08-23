@@ -73,6 +73,14 @@ void simplifiedMotion::setForTest(uint32_t aSet) {
             speedProfile.vFeed  = 1.0f;
             break;
 
+        case 11U:
+            type                        = motionType::feedLinear;
+            trajectory.startPosition[0] = 1.0f;
+            trajectory.length           = 1.0f;
+            trajectory.delta[0]         = -1.0f;
+            speedProfile.vFeed          = 1.0f;
+            break;
+
         case 20U:
             type                    = motionType::feedHelicalCW;
             trajectory.length       = (float)(0.5 * pi);

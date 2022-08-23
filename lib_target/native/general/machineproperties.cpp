@@ -41,6 +41,7 @@ void machineProperties::setForTest(uint32_t aSet) {
                 motors.vMax[anAxis] = 1.0f;
                 motors.stepsPerMm[anAxis] = 4.0f;
             }
+            minLengthSProfile = 1000.0f;
             break;
     }
 }
