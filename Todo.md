@@ -7,9 +7,17 @@ Nxt Tasks
 
 Application Initialization
 ==========================
+* instance of eventBuffer
 * instance of motionControl
-* theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
+* instance of gCodeParser
+* instance of simplifiedMotion to pass results from gCodeParser to motionControl
+* instance of stepBuffer
 
+* theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput( ... );
+* theMotionCtrl.theSampleTime.setminStepPulseWidth( ... );
+
+* load some gCode
+* keep stepBuffer filled from motionControl
 
 
 

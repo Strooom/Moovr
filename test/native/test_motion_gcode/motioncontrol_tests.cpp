@@ -151,10 +151,44 @@ void test_003() {
     TEST_ASSERT_TRUE(theMotionCtrl.isRunning());
 }
 
+// test_004 : add a single motion, start(), take a number of steps, then adjust feed override to see the motion being recalculated
+
+void optimize() {
+    theEventBuffer.initialize();
+    theMachineProperties.setForTest(1U);
+    motionCtrl theMotionCtrl;
+    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(1000U);        // not interested in (interfering) these dummy stepsignals, so disabling them, //  theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(std::numeric_limits<uint32_t>::max());
+    theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 32.0f);
+
+    simplifiedMotion aMotion;
+    gCode theParser;
+    step aStep;
+
+    theParser.theBlock.getBlockFromString("G1 X10 F30");
+    theParser.parseBlock(aMotion);
+    theMotionCtrl.append(aMotion);
+
+    theMotionCtrl.start();
+    TEST_ASSERT_EQUAL(20.5f, theMotionCtrl.theMotionBuffer.getHead().speedProfile.duration);
+
+    theMotionCtrl.theOverrides.feedOverride = 0.5f;
+    theMotionCtrl.optimize();
+    TEST_ASSERT_EQUAL(40.25f, theMotionCtrl.theMotionBuffer.getHead().speedProfile.duration);
+
+    theMotionCtrl.theOverrides.feedOverride = 2.0f;
+    theMotionCtrl.optimize();
+    TEST_ASSERT_EQUAL(11.0f, theMotionCtrl.theMotionBuffer.getHead().speedProfile.duration);
+
+    theMotionCtrl.theOverrides.feedOverride = 3.0f; // this 300# exceeds vMax, so it will limit to 
+    theMotionCtrl.optimize();
+    TEST_ASSERT_EQUAL(11.0f, theMotionCtrl.theMotionBuffer.getHead().speedProfile.duration);
+}
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(test_001);
     RUN_TEST(test_002);
     RUN_TEST(test_003);
+    RUN_TEST(optimize);
     UNITY_END();
 }
