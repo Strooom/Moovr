@@ -67,9 +67,9 @@ void test_001() {
 
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     TEST_ASSERT_EQUAL(3U, theEventBuffer.level);
-    TEST_ASSERT_EQUAL(theEventBuffer.theEventBuffer[0], event::motionStopped);
-    TEST_ASSERT_EQUAL(theEventBuffer.theEventBuffer[1], event::motionCompleted);
-    TEST_ASSERT_EQUAL(theEventBuffer.theEventBuffer[2], event::allMotionsCompleted);
+    TEST_ASSERT_EQUAL(event::motionStopped, theEventBuffer.theEventBuffer[0]);
+    TEST_ASSERT_EQUAL(event::motionCompleted, theEventBuffer.theEventBuffer[1]);
+    TEST_ASSERT_EQUAL(event::allMotionsCompleted, theEventBuffer.theEventBuffer[2]);
 }
 
 // test_002 : add two motions, start() and check if after the correct number of steps, the control proceeds to the second motion
@@ -83,6 +83,7 @@ void test_002() {
 
     simplifiedMotion aMotion;
     gCode theParser;
+    step aStep;
 
     theParser.theBlock.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
     theParser.parseBlock(aMotion);
@@ -94,8 +95,6 @@ void test_002() {
 
     theMotionCtrl.start();
 
-    step aStep;
-
     for (int i = 0; i < 16; i++) {
         aStep = theMotionCtrl.calcNextStepperMotorSignals();
     }
@@ -103,12 +102,53 @@ void test_002() {
     TEST_ASSERT_FALSE(theEventBuffer.hasEvents());
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     TEST_ASSERT_EQUAL(1U, theEventBuffer.level);
-    TEST_ASSERT_EQUAL(theEventBuffer.theEventBuffer[0], event::motionCompleted);
+    TEST_ASSERT_EQUAL(event::motionCompleted, theEventBuffer.theEventBuffer[0]);
+
+    // TODO : add some asserts to check that everything is properly initialised after switching to the second motion
 }
 
 // test_003 : add a single motion, start(), take a number of steps, then stop() and see the motion come to a stop and send the related events
+// then check that steps are dummies
+// then resume and check that steps are back to normal and total number of steps is correct for the length of the motion segment
 
 void test_003() {
+    theEventBuffer.initialize();
+    theMachineProperties.setForTest(1U);
+    motionCtrl theMotionCtrl;
+    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(1000U);        // not interested in (interfering) these dummy stepsignals, so disabling them, //  theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(std::numeric_limits<uint32_t>::max());
+    theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 32.0f);
+
+    simplifiedMotion aMotion;
+    gCode theParser;
+    step aStep;
+
+    theParser.theBlock.getBlockFromString("G0 X10");        // 10 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 11 seconds
+    theParser.parseBlock(aMotion);
+    theMotionCtrl.append(aMotion);
+
+    theMotionCtrl.start();
+
+    for (int i = 0; i < 8; i++) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    }
+
+    theMotionCtrl.stop();
+
+    for (int i = 0; i < 6; i++) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    }
+
+    TEST_ASSERT_FALSE(theMotionCtrl.isRunning());
+    TEST_ASSERT_EQUAL(1U, theEventBuffer.level);
+    TEST_ASSERT_EQUAL(event::motionStopped, theEventBuffer.theEventBuffer[0]);
+
+    theMotionCtrl.start();
+
+    for (int i = 0; i < 8; i++) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    }
+
+    TEST_ASSERT_TRUE(theMotionCtrl.isRunning());
 }
 
 int main(int argc, char **argv) {
