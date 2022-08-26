@@ -38,7 +38,7 @@ class machineProperties {
         float jMax{1000.0F};                                    // [mm/s^3] // TODO should we not set jMax per axis ?
         float aMax[nmbrAxis]{200.0F, 200.0F, 200.0F};           // [mm/s^2]
         float dMax[nmbrAxis]{-200.0F, -200.0F, -200.0F};        // [mm/s^2]
-        float vMax[nmbrAxis]{200.0F, 200.0F, 200.0F};           // [mm/s]
+        float vMax[nmbrAxis]{600.0F, 200.0F, 200.0F};           // [mm/s]
         float sMax[nmbrAxis]{600.0F, 800.0F, 130.0F};           // [mm]
         float stepsPerMm[nmbrAxis]{50.0F, 50.0F, 50.0F};        // [1/mm]
     } motors;
@@ -61,7 +61,7 @@ class machineProperties {
         bool hasCoolantMist{true};
     } coolant;
 
-    double minLengthSProfile{100.0F};                                            // [mm] all motions with a length smaller will be 2nd order T-profile - larger will be 3rd order S-profile
+    double minLengthSProfile{10.0F};                                            // [mm] all motions with a length smaller will be 2nd order T-profile - larger will be 3rd order S-profile
     float vMaxHoming{motors.jMax * motors.jMax * motors.jMax * oneSixth};        //
 
     // static constexpr float t = limits.maxLimitswitchTravel * 6.0 / motors.jMax;

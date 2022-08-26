@@ -20,6 +20,8 @@
 #include "debouncedinput.h"
 #include "runtimer.h"
 #include "stepbuffer.h"
+#include "gcode.h"
+// #include "logging.h"
 
 // -------------------------------------------------
 // ---    application/HW-specific include files  ---
@@ -30,23 +32,21 @@
 #include "steppermotor.h"
 #include "hostinterface_uart.h"
 
-// #include "logging.h"
-// #include "overrides.h"
-// #include "digitalinputs.h"
-
 // -------------------------------------------------
 // --- application top-level components          ---
 // -------------------------------------------------
 // ---    generic componentsles                  ---
 // -------------------------------------------------
 
-version theVersion(0, 0, 3);
+version theVersion(0, 0, 9);
 machineProperties theMachineProperties;
 eventBuffer theEventBuffer;
 mainController theMainCtrl;
 motionCtrl theMotionController;
 intervalTimer sampleInputsTimer(inputSamplingInterval);
 stepBuffer theStepBuffer(minStepBufferTotalTimeTicks, minStepBufferLevel);
+gCode theParser;
+simplifiedMotion aMotion;
 
 // -------------------------------------------------
 // ---    application/HW-specific components     ---
@@ -84,20 +84,12 @@ stepperMotorOutputs theStepperMotorOutputs;
 // --- interrupt handlers         ---
 // ----------------------------------
 
-bool forward{false};
-
 void pit1_isr() {
-    theOutputTimer.reload(6000U);        // reload timer
-    forward   = true;
-    PIT_TFLG1 = 0x1;        // clear timer interrupt flag
+    step theStep = theStepBuffer.read();                  // read step from the stepBuffer
+    theOutputTimer.reload(theStep.timeBefore - 1);        // reload timer
+    theStepperMotorOutputs.write(theStep.signals);        // set output-pins
+    PIT_TFLG1 = 0x1;                                      // clear timer interrupt flag
 }
-
-// void pit1_isr() {
-//     step theStep = theStepBuffer.read();                             // read step from the stepBuffer
-//     outputTimer.reload(theStep.timeBefore - 1);        // reload timer
-//     //theMotorOutputs.write(theStep.signals);                          // set output-pins
-//     PIT_TFLG1 = 0x1;                                                 // clear timer interrupt flag
-// }
 
 // void uart0_status_isr(void) {        //
 //     uint8_t status;
@@ -117,11 +109,15 @@ void pit1_isr() {
 // ----------------------------------
 
 void setup() {
-    delay(5000);        // give platformio some time to switch from upload to monitoring
+    delay(3000);        // give platformio some time to switch from upload to monitoring
 
     Serial.begin(115200);
     Serial.flush();
-    Serial.println("Moovr T0.1 - cnc3axis");
+    Serial.println("Moovr");
+    Serial.println("cnc3axis");
+    Serial.println(theVersion.toString());
+
+    theEventBuffer.initialize();
 
     allSwitchAndButtons.initialize();        // setup GPIO as inputs
     allSwitchAndButtons.sample();
@@ -129,50 +125,71 @@ void setup() {
         myInputs[inputIndex].initialize(allSwitchAndButtons.get(inputIndex));
     }
 
-    // read config from nvs
+    theMotionController.initialize(maxTicksSinceLastOutput, minStepPulseWidth);
     theStepperMotorOutputs.initialize();
+    theStepperMotorOutputs.enableMotors123(true);
     theOutputTimer.initialize();
     theOutputTimer.enable();
+
+    // theParser.getBlockFromString("G1 X100 F3600");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+    // theParser.getBlockFromString("X0");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+    // theParser.getBlockFromString("X100 Y50 Z25");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+    // theParser.getBlockFromString("X0Y0Z0");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+    // theMotionController.start();
+
+    theParser.getBlockFromString("G2 X100 Z20 I50 F3600");
+    theParser.parseBlock(aMotion);
+    theMotionController.append(aMotion);
+    theParser.getBlockFromString("G1X0Y0Z0");
+    theParser.parseBlock(aMotion);
+    theMotionController.append(aMotion);
+    theMotionController.start();
 }
 
 void loop() {
-    if (forward) {
-        Serial.print(".");
-        forward = false;
+    // run motionControl
+    while (theStepBuffer.needsFilling()) {
+        step aStep = theMotionController.calcNextStepperMotorSignals();        // get next step from Motion...
+        NVIC_DISABLE_IRQ(IRQ_PIT_CH1);                                         // TODO disable timer interrupts to make this threadsafe
+        theStepBuffer.write(aStep);                                            // ... and pump it to buffer
+        NVIC_ENABLE_IRQ(IRQ_PIT_CH1);                                          // TODO re-enable timer interrupts
     }
 
-    // run motionControl
-    // TODO : disable/re-enable timerInterrupt PITx around adding step to stepBuffer to make this threadsafe
-    // This is a cooperation between motionCtrl and stepBuffer which could be at the main application level. So maybe not put it in either of those classes but just in main()
-    // void motionCtrl::run() {
-    //     while (theStepBuffer.needsFilling()) {
-    //         step aStep = calcNextStepperMotorSignals();           // get next step from Motion...
-    //         theStepBuffer.write(aStep);        // ... and pump it to buffer
-    //     }
-    // }
+    if (theEventBuffer.hasEvents()) {
+        event anEvent = theEventBuffer.popEvent();
+        Serial.println(toString(anEvent));
+    }
 
     // sample inputs and send to mainControl
-    if (sampleInputsTimer.expired()) {
-        allSwitchAndButtons.sample();
-        for (uint32_t i = 0; i < nmbrInputs; i++) {
-            event anEvent = myInputs[i].getEvent(allSwitchAndButtons.get(i));
-            switch (anEvent) {
-                case event::emergencyStopButtonPressed:
-                    theStepperMotorOutputs.enableMotors123(true);
-                    break;
+    // if (sampleInputsTimer.expired()) {
+    //     allSwitchAndButtons.sample();
+    //     for (uint32_t i = 0; i < nmbrInputs; i++) {
+    //         event anEvent = myInputs[i].getEvent(allSwitchAndButtons.get(i));
+    //         switch (anEvent) {
+    //             case event::emergencyStopButtonPressed:
+    //                 theStepperMotorOutputs.enableMotors123(true);
+    //                 break;
 
-                case event::emergencyStopButtonReleased:
-                    theStepperMotorOutputs.enableMotors123(false);
-                    break;
+    //             case event::emergencyStopButtonReleased:
+    //                 theStepperMotorOutputs.enableMotors123(false);
+    //                 break;
 
-                default:
-                    break;
-            }
-            // if (event::none != anEvent) {
-            // Serial.println(toString(anEvent));
-            // theEventBuffer.pushEvent(anEvent);
-        }
-    }
+    //             default:
+    //                 break;
+    //         }
+    //         // if (event::none != anEvent) {
+    //         // Serial.println(toString(anEvent));
+    //         // theEventBuffer.pushEvent(anEvent);
+    //     }
+    // }
 
     // poll hostinterface
     // TODO : also here deal with temporarily disabling the related interrupt to be threadsafe

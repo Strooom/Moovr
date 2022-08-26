@@ -12,8 +12,6 @@ void initialization() {
     theTime.setminStepPulseWidth(minStepPulseWidth);
     TEST_ASSERT_EQUAL_UINT32(0U, theTime.sampleIndex);
     TEST_ASSERT_EQUAL_FLOAT(0.0F, theTime.sampleZeroOffset);
-    // TEST_ASSERT_EQUAL_FLOAT(0.0F, theTime.motionTStop); 
-    TEST_ASSERT_EQUAL_FLOAT(0.0F, theTime.motionDuration);
     TEST_ASSERT_EQUAL_FLOAT(minStepPulseWidth, theTime.minStepPulseWidth);
 }
 

@@ -19,6 +19,7 @@
 
 class motionCtrl {
   public:
+    void initialize(uint32_t maxTicksSinceLastOutput, float minStepPulseWidth);
     void append(simplifiedMotion& aSimpleMotion);
     void start();
     void hold();

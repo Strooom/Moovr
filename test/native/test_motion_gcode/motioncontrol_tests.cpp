@@ -32,7 +32,7 @@ void test_001() {
     simplifiedMotion aMotion;
     gCode theParser;
 
-    theParser.theBlock.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
+    theParser.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
     theParser.parseBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
@@ -85,11 +85,11 @@ void test_002() {
     gCode theParser;
     step aStep;
 
-    theParser.theBlock.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
+    theParser.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
     theParser.parseBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
-    theParser.theBlock.getBlockFromString("G0 X0");
+    theParser.getBlockFromString("G0 X0");
     theParser.parseBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
@@ -122,7 +122,7 @@ void test_003() {
     gCode theParser;
     step aStep;
 
-    theParser.theBlock.getBlockFromString("G0 X10");        // 10 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 11 seconds
+    theParser.getBlockFromString("G0 X10");        // 10 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 11 seconds
     theParser.parseBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
@@ -164,7 +164,7 @@ void optimize() {
     gCode theParser;
     step aStep;
 
-    theParser.theBlock.getBlockFromString("G1 X10 F30");
+    theParser.getBlockFromString("G1 X10 F30");
     theParser.parseBlock(aMotion);
     theMotionCtrl.append(aMotion);
 

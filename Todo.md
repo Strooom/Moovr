@@ -28,7 +28,9 @@ TODO :
 3. Get rid of char and replace with uint8_t uint32_t
 4. Add critical sections for access to rx/txBuffer !! sei(); cli();
 5. Add a lastError and test that it triggers when it should and not if it shouldn't
-
+6. make parameters which are needed to initialize motionCtrl and stepBuffer, defaults, which can be passed in constructor
+    -> if you don't pass anything, it will take values from machineProperties
+    -> if you want, for testing, you can pass something else
 
 
 

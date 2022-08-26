@@ -6,6 +6,7 @@
 // #############################################################################
 
 #include <math.h>
+#include <stdlib.h>
 #include "gcodeblock.h"
 
 void gCodeBlock::initialize() {
@@ -23,7 +24,7 @@ void gCodeBlock::initialize() {
     }
 }
 
-void gCodeBlock::getBlockFromString(const uint8_t *commandLine) {
+void gCodeBlock::getBlockFromString(const uint8_t *gCodeAsString) {
     uint32_t currentByte;
     uint32_t readPos  = 0;
     uint32_t writePos = 0;
@@ -34,7 +35,7 @@ void gCodeBlock::getBlockFromString(const uint8_t *commandLine) {
     initialize();
 
     // 1. Strip all Whitespace and Comments
-    while ((currentByte = commandLine[readPos]))        // read new byte from source for as long as they are not zero, which indicated rxBuffer underrun
+    while ((currentByte = gCodeAsString[readPos]))        // read new byte from source for as long as they are not zero, which indicated rxBuffer underrun
     {
         if ('\n' == currentByte)        // if linefeed...
         {
@@ -103,8 +104,8 @@ void gCodeBlock::getBlockFromString(const uint8_t *commandLine) {
     }
 }
 
-void gCodeBlock::getBlockFromString(const char *commandLine) {
-    getBlockFromString(reinterpret_cast<const uint8_t *>(commandLine));
+void gCodeBlock::getBlockFromString(const char *gCodeAsString) {
+    getBlockFromString(reinterpret_cast<const uint8_t *>(gCodeAsString));
 };
 
 uint32_t gCodeBlock::getNmbrWords() const {

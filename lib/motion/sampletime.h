@@ -10,13 +10,12 @@
 
 class sampleTime {
   public:
-    sampleTime();        // constructor
-    // sampleTime(const float theMinStepPulseWidth);                       // constructor
+    sampleTime();                                                       // constructor
     void next();                                                        // calculate the position of the next sampling point
     void initialize();                                                  //
-    bool isBeyond(float someTime) const;           //
+    bool isBeyond(float someTime) const;                                //
     float getRemainingTime();                                           //
-    void initializeNextMotion();               //
+    void initializeNextMotion();                                        //
     void setminStepPulseWidth(const float theMinStepPulseWidth);        //
 
 #ifndef unitTesting

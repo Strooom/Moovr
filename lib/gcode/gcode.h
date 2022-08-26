@@ -21,7 +21,8 @@ class gCode {
 
     void saveState();           // Save the state of the Parser, so we can do some interim stuff and afterwards restore the state back to what is was..
     void restoreState();        // Restore the state from previous saveState
-
+    void getBlockFromString(const uint8_t *gCodeAsString);
+    void getBlockFromString(const char *gCodeAsString);
     void parseBlock(simplifiedMotion &theMotion);        // Process all words in block, update gCode context and spawn a motion if the block contains one..
 
 #ifndef unitTesting
@@ -35,7 +36,7 @@ class gCode {
     gCodeParseResultType theResult;        //
     gCodeParseError theError;              //
 
-        void getAxisOffsetRadiusWords();
+    void getAxisOffsetRadiusWords();
     void getLineNumberWord();
     void setFeedrateMode();
     void setFeedrateValue();

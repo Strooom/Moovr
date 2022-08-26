@@ -5,9 +5,6 @@ sampleTime::sampleTime() {
     initialize();
 }
 
-// sampleTime::sampleTime(const float theMinStepPulseWidth) : minStepPulseWidth(theMinStepPulseWidth) {
-// }
-
 void sampleTime::next() {
     sampleIndex++;
     timeInMotion = (static_cast<float>(sampleIndex) * minStepPulseWidth) + sampleZeroOffset;

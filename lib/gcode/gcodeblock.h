@@ -20,8 +20,8 @@ struct gCodeBlock {
     uint8_t modalGroupCount[(uint8_t)modalGroup::nmbrModalGroups];        // counts how many words from each modal group as found - needed to check modalgroup violations
     uint8_t valueWordCount[(uint8_t)gCodeLetter::nmbrLetters];            // counts how many words from each axis, as all these letters should appear maximum once in a block
 
-    void getBlockFromString(const uint8_t *commandLine);
-    void getBlockFromString(const char *commandLine);
+    void getBlockFromString(const uint8_t *gCodeAsString);
+    void getBlockFromString(const char *gCodeAsString);
     uint32_t getNmbrWords() const;
     bool hasWords() const;
 

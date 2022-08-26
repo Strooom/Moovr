@@ -18,6 +18,11 @@ extern machineProperties theMachineProperties;
 extern eventBuffer theEventBuffer;
 extern stepBuffer theStepBuffer;
 
+void motionCtrl::initialize(uint32_t maxTicksSinceLastOutput, float minStepPulseWidth) {
+    theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
+    theSampleTime.setminStepPulseWidth(minStepPulseWidth);
+}
+
 motionState motionCtrl::getState() const {
     return theMotionCtrlState;
 }

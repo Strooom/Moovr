@@ -750,3 +750,10 @@ void gCode::saveState() {
 void gCode::restoreState() {
     // TODO
 }
+
+void gCode::getBlockFromString(const uint8_t *gCodeAsString) {
+    theBlock.getBlockFromString(gCodeAsString);
+}
+void gCode::getBlockFromString(const char *gCodeAsString) {
+    theBlock.getBlockFromString(reinterpret_cast<const uint8_t *>(gCodeAsString));
+}
