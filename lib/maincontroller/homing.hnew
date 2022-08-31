@@ -1,0 +1,28 @@
+// #############################################################################
+// ### This file is part of the source code for the Moovr CNC Controller     ###
+// ### https://github.com/Strooom/Moovr                                      ###
+// ### Author : Pascal Roobrouck - @strooom                                  ###
+// ### License : https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode ###
+// #############################################################################
+
+#pragma once
+
+#include <stdint.h>
+#include "event.h"
+#include "homingstate.h"
+
+class homingController {
+  public:
+    void home();
+    void home(axis theAxis);
+    homingState getState();
+    void handleEvents(event theEvent);               //
+    void handleTimeouts();                           //
+    void goTo(homingState theNewHomingState);        //
+    void enterState(homingState theNewState);        //
+    void exitState(homingState theOldState);         //
+
+  private:
+    homingState theHomingState{homingState::lost};        // current state of the homing process
+    uint32_t axisIndex{0};                                // index to which axis we are currently homing
+};

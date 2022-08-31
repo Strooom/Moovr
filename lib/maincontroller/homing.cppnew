@@ -1,0 +1,56 @@
+#include "homing.h"
+#include "motionctrl.h"
+#include "motionstate.h"
+
+extern motionCtrl theMotionController;
+extern machineProperties theMachineProperties;
+
+void homingController::home() {
+    for (uint32_t aixsIndex = 0; axisIndex < nmbrAxis; axisIndex++) {
+        axis theAxis   = theMachineProperties.homingSequence[axisIndex];
+        bool direction = theMachineProperties.homingDirection[axisIndex];
+        home(theAxis);
+    }
+
+}
+
+void homingController::home(axis theAxis) {
+    theMotionController.reset();
+    // select a motion depending on which axis to home
+    // what to do when switch is already closed.. ?
+    theMotionController.append();
+    theMotionController.start();
+    goTo(homingState::closingZ);
+}
+
+// void homingController::stop() {
+//  stop motion
+//  when stopped, clear motionbuffer
+//}
+
+void homingController::handleEvents(event theEvent) {
+    switch (theHomingState) {
+        case homingState::lost:
+            switch (theEvent) {
+                case event::emergencyStopButtonPressed:
+                    break;
+            }
+    }
+}
+void homingController::handleTimeouts() {
+}
+
+homingState homingController::getState() {
+    return theHomingState;
+}
+
+void homingController::goTo(homingState theNewState) {
+    exitState(theHomingState);
+    enterState(theNewState);
+}
+
+void homingController::enterState(homingState theNewState) {
+}
+
+void homingController::exitState(homingState theOldState) {
+}

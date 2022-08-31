@@ -31,11 +31,6 @@ class mainController {
     // IO Objects
     char commandLine[512];        // string to store message ready at host computer receiver interface
     char responseMsg[512];        // string to build message to report back to host computer
-                                                                                             //		SDcard theStorage																		// SDcard storage for config files etc.
-    // gCode theParser;                                                                         // contains a GCode parser to handle all gCode processing
-    // gCodeParserResult theParseResult;                                                        // object to pass results from gCode parser on to machine motion control
-    // Motion theMotion = Motion(theEventBuffer);                                               // contains a motion (controller) to handle all machine motion logic and calculations
-    // ButtonSwitch switchesAndButtons[(uint8_t)limitSwitchButton::nmbrSwitchesButtons];        // array of objects handling limitswitches and general purpose buttons
 
     // Methods
     void handleEvents();          // handles the events such as switch close/open and end-of-motion

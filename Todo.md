@@ -2,22 +2,8 @@
 Nxt Tasks
 =========
 
-* build a minimal main application, binding together all subsystems
+* make homing work
 
-
-Application Initialization
-==========================
-* instance of eventBuffer
-* instance of motionControl
-* instance of gCodeParser
-* instance of simplifiedMotion to pass results from gCodeParser to motionControl
-* instance of stepBuffer
-
-* theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput( ... );
-* theMotionCtrl.theSampleTime.setminStepPulseWidth( ... );
-
-* load some gCode
-* keep stepBuffer filled from motionControl
 
 
 
@@ -34,9 +20,17 @@ TODO :
 
 
 
+# How to get collaboration from the community
+* provide some standard builds which can be flashed on a standard HW setup
+* provide a YouTube channel with video's on how the software works
+* make it work with standard GRBL gcode senders..
 
 
 
+Machine properties could be organized in two ways :
+* property[axis] eg. vMax[axis::X]
+* axis object, with properties per instance.. eg axis X {vMax{100}}
 
-
+Question is what is the easiest way to iterate over axis or to get properties for a certain axis.
+Currently we are often passing axis as an index io object.. this would not work in the second approach
 

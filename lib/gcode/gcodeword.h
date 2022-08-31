@@ -10,9 +10,13 @@
 
 class gCodeWord {
   public:
+#ifndef unitTesting
+  private:
+#endif
+    friend class gCode;             // gCode parser is allowed to access privates of gCodeWord
+    friend class gCodeBlock;        // gCodeblock is allowed to access privates of gCodeWord
+
     uint8_t letter{};            // gCode letter,eg 'G', 'M', 'X', etc
     double number{};             // value after the letter
     uint32_t intNumber{};        // for G or M letter words, contains number * 10, as integer , eg G38.1 holds 381, this simplifies lookup via switch statements
-
-    friend class gCodeBlock;        // gCodeBlock is allowed to access privates of gCodeWord
 };

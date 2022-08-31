@@ -21,6 +21,7 @@
 #include "runtimer.h"
 #include "stepbuffer.h"
 #include "gcode.h"
+#include "mcuload.h"
 // #include "logging.h"
 
 // -------------------------------------------------
@@ -47,6 +48,10 @@ intervalTimer sampleInputsTimer(inputSamplingInterval);
 stepBuffer theStepBuffer(minStepBufferTotalTimeTicks, minStepBufferLevel);
 gCode theParser;
 simplifiedMotion aMotion;
+mcuLoad theMcuLoad;
+
+intervalTimer reportMcuLoad;
+uint32_t nmbrRuns{0};
 
 // -------------------------------------------------
 // ---    application/HW-specific components     ---
@@ -145,13 +150,45 @@ void setup() {
     // theMotionController.append(aMotion);
     // theMotionController.start();
 
-    theParser.getBlockFromString("G2 X100 Z20 I50 F3600");
+    theParser.getBlockFromString("G0 X300");
     theParser.parseBlock(aMotion);
     theMotionController.append(aMotion);
-    theParser.getBlockFromString("G1X0Y0Z0");
+    theParser.getBlockFromString("G0 Y160");
     theParser.parseBlock(aMotion);
     theMotionController.append(aMotion);
+    theParser.getBlockFromString("G0 Z60");
+    theParser.parseBlock(aMotion);
+    theMotionController.append(aMotion);
+
+    theParser.getBlockFromString("G0 X0Y0Z0");
+    theParser.parseBlock(aMotion);
+    theMotionController.append(aMotion);
+
+
+    // theParser.getBlockFromString("G2 X-50 I-50 F1500");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+    // theParser.getBlockFromString("G3 X50 I50 F1500");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+    // theParser.getBlockFromString("G1 X0 F1500");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+
+    // theParser.getBlockFromString("G1 Y50");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+    // theParser.getBlockFromString("G1 Z10");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+    // theParser.getBlockFromString("G1 X0Y0Z0");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+
     theMotionController.start();
+
+    reportMcuLoad.start(500U);
+    theMcuLoad.start();
 }
 
 void loop() {
@@ -166,6 +203,39 @@ void loop() {
     if (theEventBuffer.hasEvents()) {
         event anEvent = theEventBuffer.popEvent();
         Serial.println(toString(anEvent));
+        if (event::allMotionsCompleted == anEvent) {
+            Serial.print("Max load : ");
+            Serial.print(theMcuLoad.getMaxLoad());
+            Serial.println(" %");
+
+            // if (nmbrRuns > 0) {
+            //     --nmbrRuns;
+
+            //     theParser.getBlockFromString("G0 X300");
+            //     theParser.parseBlock(aMotion);
+            //     theMotionController.append(aMotion);
+            //     theParser.getBlockFromString("G0 Y160");
+            //     theParser.parseBlock(aMotion);
+            //     theMotionController.append(aMotion);
+            //     theParser.getBlockFromString("G0 Z60");
+            //     theParser.parseBlock(aMotion);
+            //     theMotionController.append(aMotion);
+
+            //     theParser.getBlockFromString("G0 X0Y0Z0");
+            //     theParser.parseBlock(aMotion);
+            //     theMotionController.append(aMotion);
+
+            //     theMotionController.start();
+            // }
+        }
+    }
+
+    theMcuLoad.run();
+
+    if (reportMcuLoad.expired()) {
+        Serial.print("MCU load : ");
+        Serial.print(theMcuLoad.getLoad());
+        Serial.println(" %");
     }
 
     // sample inputs and send to mainControl
