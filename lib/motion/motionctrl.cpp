@@ -62,7 +62,14 @@ void motionCtrl::stop() {
 }
 
 void motionCtrl::hold() {
-    // TOFO : is this different from stop() ?
+    // TODO : is this different from stop() ?
+}
+
+void motionCtrl::flush() {
+    if (!isRunning()) {
+        theSampleTime.initialize();
+        theMotionBuffer.flush();
+    }
 }
 
 void motionCtrl::optimize() {

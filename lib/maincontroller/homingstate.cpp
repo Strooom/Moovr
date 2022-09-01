@@ -5,41 +5,23 @@ const char* toString(homingState aHomingState) {
         case homingState::lost:
             return "lost";
             break;
-        case homingState::closingZ:
-            return "closingZ";
+        case homingState::stopping:
+            return "stopping";
             break;
-        case homingState::closedZ:
-            return "closedZ";
+        case homingState::closing:
+            return "closing";
             break;
-        case homingState::openingZ:
-            return "openingZ";
+        case homingState::closedWaitForStop:
+            return "closedWaitForStop";
             break;
-        case homingState::openedZ:
-            return "openedZ";
+        case homingState::opening:
+            return "opening";
             break;
-        case homingState::closingY:
-            return "closingY";
+        case homingState::openedWaitForStop:
+            return "openedWaitForStop";
             break;
-        case homingState::closedY:
-            return "closedY";
-            break;
-        case homingState::openingY:
-            return "openingY";
-            break;
-        case homingState::openedY:
-            return "openedY";
-            break;
-        case homingState::closingX:
-            return "closingX";
-            break;
-        case homingState::closedX:
-            return "closedX";
-            break;
-        case homingState::openingX:
-            return "openingX";
-            break;
-        case homingState::openedX:
-            return "openedX";
+        case homingState::offsettingWaitForStop:
+            return "offsettingWaitForStop";
             break;
         case homingState::found:
             return "found";

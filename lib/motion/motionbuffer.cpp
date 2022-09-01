@@ -39,6 +39,11 @@ uint32_t motionBuffer::getLevel() const {
     return level;
 }
 
+void motionBuffer::flush() {
+    head  = 0;
+    level = 0;
+}
+
 // void motionBuffer::export2csv(const char* outputFilename) {
 // #ifdef WIN32
 

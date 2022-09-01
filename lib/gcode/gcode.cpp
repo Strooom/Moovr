@@ -656,13 +656,22 @@ void gCode::calcArcCenterAndRadius(simplifiedMotion &theMotion) {
 }
 
 void gCode::calcArcAngles(simplifiedMotion &theMotion) {
-    theMotion.trajectory.startAngle = atan2(theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] - theMotion.trajectory.arcCenter[1], theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] - theMotion.trajectory.arcCenter[0]);
-    double endAngle                 = atan2(theState.nextPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] - theMotion.trajectory.arcCenter[1], theState.nextPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] - theMotion.trajectory.arcCenter[0]);
-
     if ((motionType::feedHelicalCW == theMotion.type) || (motionType::feedHelicalCCW == theMotion.type)) {
+        theMotion.trajectory.startAngle = atan2(theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] - theMotion.trajectory.arcCenter[1], theState.currentPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] - theMotion.trajectory.arcCenter[0]);
+        double endAngle                 = atan2(theState.nextPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[1])] - theMotion.trajectory.arcCenter[1], theState.nextPosition[static_cast<uint32_t>(theMotion.trajectory.arcAxis[0])] - theMotion.trajectory.arcCenter[0]);
         theMotion.trajectory.deltaAngle = endAngle - theMotion.trajectory.startAngle;
+        if (motionType::feedHelicalCW == theMotion.type) {
+            if (theMotion.trajectory.deltaAngle >= 0) {
+                theMotion.trajectory.deltaAngle -= (2 * pi);
+            }
+        } else {
+            if (theMotion.trajectory.deltaAngle <= 0) {
+                theMotion.trajectory.deltaAngle += (2 * pi);
+            }
+        }
     } else {
-        // TODO : maybe set them to zero to make it clean
+        theMotion.trajectory.startAngle = 0.0F;
+        theMotion.trajectory.deltaAngle = 0.0F;
     }
 }
 

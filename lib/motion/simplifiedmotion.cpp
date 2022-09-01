@@ -6,9 +6,10 @@
 // #############################################################################
 
 #include "simplifiedmotion.h"
+#include "position.h"
 #include <stdio.h>        // needed for sprintf()
-#include <limits>
-#include <math.h>
+#include <limits>         // needed for infinity
+#include <math.h>         // needed for sqrt and others
 
 uint32_t simplifiedMotion::toString(char* output) {
     uint32_t outputLenght{0};
@@ -40,6 +41,17 @@ uint32_t simplifiedMotion::toString(char* output) {
     // } peripherals;
 
     return outputLenght;
+}
+
+void simplifiedMotion::setForHoming(positionInDouble current, axis anAxis, double offset, double speed) {
+    // only changing the fields which are different from the initialization values
+    type = motionType::feedLinear;
+    trajectory.length  = offset;
+    speedProfile.vFeed = speed;
+    for (uint32_t axisIndex = 0; axisIndex < nmbrAxis; axisIndex++){
+        trajectory.startPosition[axisIndex] = current.coordinate[axisIndex];
+    }
+    trajectory.delta[static_cast<uint32_t>(anAxis)] = offset;
 }
 
 void simplifiedMotion::setForTest(uint32_t aSet) {

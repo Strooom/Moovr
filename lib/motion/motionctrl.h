@@ -25,7 +25,7 @@ class motionCtrl {
     void hold();
     void resume();
     void stop();
-
+    void flush();
     void optimize();
 
     motionState getState() const;

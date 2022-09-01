@@ -77,8 +77,27 @@ const char* toString(event anEvent) {
         case event::motionBufferOverflow:
             return "motionBufferOverflow";
             break;
+        case event::homingStarted:
+            return "homingStarted";
+            break;
+        case event::homingCompleted:
+            return "homingCompleted";
+            break;
+        case event::probingStarted:
+            return "probingStarted";
+            break;
+        case event::probingCompleted:
+            return "probingCompleted";
+            break;
+        case event::stepBufferUnderflow:
+            return "stepBufferUnderflow";
+            break;
+        case event::stepBufferOverflow:
+            return "stepBufferOverflow";
+            break;
         default:
             return "unknown";
             break;
     }
 }
+

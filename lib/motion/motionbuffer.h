@@ -17,6 +17,7 @@ class motionBuffer {
     uint32_t push();                  // pushes 1 item on the buffer and returns an index to it..
     void pop();                       // pops the oldest item on from the buffer and adjusts indexes and level
     motion& getHead();                // returns a reference to the first motion to be / being executed
+    void flush();
 
     // void export2csv(const char* outputFilename);        //
 

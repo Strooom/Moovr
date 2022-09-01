@@ -136,44 +136,24 @@ void setup() {
     theOutputTimer.initialize();
     theOutputTimer.enable();
 
-    // theParser.getBlockFromString("G1 X100 F3600");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-    // theParser.getBlockFromString("X0");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-    // theParser.getBlockFromString("X100 Y50 Z25");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-    // theParser.getBlockFromString("X0Y0Z0");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-    // theMotionController.start();
-
-    theParser.getBlockFromString("G0 X300");
-    theParser.parseBlock(aMotion);
-    theMotionController.append(aMotion);
-    theParser.getBlockFromString("G0 Y160");
-    theParser.parseBlock(aMotion);
-    theMotionController.append(aMotion);
-    theParser.getBlockFromString("G0 Z60");
+    theParser.getBlockFromString("G0 X20");
     theParser.parseBlock(aMotion);
     theMotionController.append(aMotion);
 
-    theParser.getBlockFromString("G0 X0Y0Z0");
+    // theParser.getBlockFromString("G0 Y80");
+    // theParser.parseBlock(aMotion);
+    // theMotionController.append(aMotion);
+
+    theParser.getBlockFromString("G2 X20 Z20 I-20 F4500");
+    theParser.parseBlock(aMotion);
+    theMotionController.append(aMotion);
+    theParser.getBlockFromString("G2 X20 Z40 I-20 F4500");
     theParser.parseBlock(aMotion);
     theMotionController.append(aMotion);
 
-
-    // theParser.getBlockFromString("G2 X-50 I-50 F1500");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-    // theParser.getBlockFromString("G3 X50 I50 F1500");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-    // theParser.getBlockFromString("G1 X0 F1500");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
+    theParser.getBlockFromString("G0 X0 Z0");
+    theParser.parseBlock(aMotion);
+    theMotionController.append(aMotion);
 
     // theParser.getBlockFromString("G1 Y50");
     // theParser.parseBlock(aMotion);
@@ -207,6 +187,7 @@ void loop() {
             Serial.print("Max load : ");
             Serial.print(theMcuLoad.getMaxLoad());
             Serial.println(" %");
+            Serial.println(toString(theStepBuffer.getLastError()));
 
             // if (nmbrRuns > 0) {
             //     --nmbrRuns;

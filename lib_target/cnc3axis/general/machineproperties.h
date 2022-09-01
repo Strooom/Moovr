@@ -37,7 +37,7 @@ class machineProperties {
     void save();
 
     struct Motors {
-        float jMax{200.0F};                                       // [mm/s^3] // TODO should we not set jMax per axis ?
+        float jMax{500.0F};                                        // [mm/s^3] // TODO should we not set jMax per axis ?
         float aMax[nmbrAxis]{200.0F, 200.0F, 200.0F};              // [mm/s^2]
         float dMax[nmbrAxis]{-200.0F, -200.0F, -200.0F};           // [mm/s^2]
                                                                    //        float vMax[nmbrAxis]{60.0F, 60.0F, 60.0F};              // [mm/s]
@@ -47,8 +47,10 @@ class machineProperties {
     } motors;
 
     struct Limits {
-        bool hasLimitsMin[nmbrAxis]{true, true, true};        // limit switches towards the negative direction of the Axis
         bool hasLimitsMax[nmbrAxis]{true, true, true};        // limit switches towards the positive direction of the Axis
+        uint32_t limitMaxIndex[nmbrAxis]{1, 3, 5};            // index into myInputs[] telling which input is the matching limit switch
+        bool hasLimitsMin[nmbrAxis]{true, true, true};        // limit switches towards the negative direction of the Axis
+        uint32_t limitMinIndex[nmbrAxis]{0, 2, 4};            // index into myInputs[] telling which input is the matching limit switch
         float maxLimitswitchTravel{2.0F};                     // [mm]
     } limits;
 

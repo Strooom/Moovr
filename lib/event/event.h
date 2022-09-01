@@ -40,10 +40,16 @@ enum class event : uint32_t {
     motionStarted,
     motionStopped,
     motionBufferOverflow,
+    // homing
+    homingStarted,
+    homingCompleted,
+    // probing
+    probingStarted,
+    probingCompleted,
+
     // eventBuffer
     eventBufferUnderflow,
     eventBufferOverflow
 };
-
 
 const char* toString(event anEvent);
