@@ -44,5 +44,5 @@ class simplifiedMotion {
     void setForTest(uint32_t aSet);
     void setForTest(motionType theType, uint32_t trajectoryIndex, uint32_t speedprofileIndex);
 
-    void setForHoming(positionInDouble current, axis anAxis, double offset, double speed);
+    void setForHoming(axis anAxis, double offset, double speed);
 };

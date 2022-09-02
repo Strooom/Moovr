@@ -21,7 +21,10 @@
 #include "runtimer.h"
 #include "stepbuffer.h"
 #include "gcode.h"
-#include "mcuload.h"
+
+#include "homing.h"
+
+// #include "mcuload.h"
 // #include "logging.h"
 
 // -------------------------------------------------
@@ -39,19 +42,23 @@
 // ---    generic componentsles                  ---
 // -------------------------------------------------
 
-version theVersion(0, 0, 9);
+version theVersion(1, 0, 0);
 machineProperties theMachineProperties;
 eventBuffer theEventBuffer;
 mainController theMainCtrl;
 motionCtrl theMotionController;
-intervalTimer sampleInputsTimer(inputSamplingInterval);
+intervalTimer sampleInputsTimer;
 stepBuffer theStepBuffer(minStepBufferTotalTimeTicks, minStepBufferLevel);
-gCode theParser;
-simplifiedMotion aMotion;
-mcuLoad theMcuLoad;
 
-intervalTimer reportMcuLoad;
-uint32_t nmbrRuns{0};
+homingController theHomer;
+
+// gCode theParser;
+// simplifiedMotion aMotion;
+// mcuLoad theMcuLoad;
+
+// -------------------------------------------------
+// --- TMP variables for dev / test              ---
+// -------------------------------------------------
 
 // -------------------------------------------------
 // ---    application/HW-specific components     ---
@@ -129,6 +136,7 @@ void setup() {
     for (uint32_t inputIndex = 0; inputIndex < nmbrInputs; inputIndex++) {
         myInputs[inputIndex].initialize(allSwitchAndButtons.get(inputIndex));
     }
+    sampleInputsTimer.start(inputSamplingInterval);
 
     theMotionController.initialize(maxTicksSinceLastOutput, minStepPulseWidth);
     theStepperMotorOutputs.initialize();
@@ -136,115 +144,30 @@ void setup() {
     theOutputTimer.initialize();
     theOutputTimer.enable();
 
-    theParser.getBlockFromString("G0 X20");
-    theParser.parseBlock(aMotion);
-    theMotionController.append(aMotion);
-
-    // theParser.getBlockFromString("G0 Y80");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-
-    theParser.getBlockFromString("G2 X20 Z20 I-20 F4500");
-    theParser.parseBlock(aMotion);
-    theMotionController.append(aMotion);
-    theParser.getBlockFromString("G2 X20 Z40 I-20 F4500");
-    theParser.parseBlock(aMotion);
-    theMotionController.append(aMotion);
-
-    theParser.getBlockFromString("G0 X0 Z0");
-    theParser.parseBlock(aMotion);
-    theMotionController.append(aMotion);
-
-    // theParser.getBlockFromString("G1 Y50");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-    // theParser.getBlockFromString("G1 Z10");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-    // theParser.getBlockFromString("G1 X0Y0Z0");
-    // theParser.parseBlock(aMotion);
-    // theMotionController.append(aMotion);
-
-    theMotionController.start();
-
-    reportMcuLoad.start(500U);
-    theMcuLoad.start();
+    theHomer.start();
 }
 
 void loop() {
-    // run motionControl
     while (theStepBuffer.needsFilling()) {
         step aStep = theMotionController.calcNextStepperMotorSignals();        // get next step from Motion...
-        NVIC_DISABLE_IRQ(IRQ_PIT_CH1);                                         // TODO disable timer interrupts to make this threadsafe
+        NVIC_DISABLE_IRQ(IRQ_PIT_CH1);                                         // disable timer interrupts to make this threadsafe
         theStepBuffer.write(aStep);                                            // ... and pump it to buffer
-        NVIC_ENABLE_IRQ(IRQ_PIT_CH1);                                          // TODO re-enable timer interrupts
+        NVIC_ENABLE_IRQ(IRQ_PIT_CH1);                                          // re-enable timer interrupts
+    }
+
+    if (sampleInputsTimer.expired()) {
+        allSwitchAndButtons.sample();
+        for (uint32_t i = 0; i < nmbrInputs; i++) {
+            event anEvent = myInputs[i].getEvent(allSwitchAndButtons.get(i));
+            if (event::none != anEvent) {
+                theEventBuffer.pushEvent(anEvent);
+            }
+        }
     }
 
     if (theEventBuffer.hasEvents()) {
         event anEvent = theEventBuffer.popEvent();
         Serial.println(toString(anEvent));
-        if (event::allMotionsCompleted == anEvent) {
-            Serial.print("Max load : ");
-            Serial.print(theMcuLoad.getMaxLoad());
-            Serial.println(" %");
-            Serial.println(toString(theStepBuffer.getLastError()));
-
-            // if (nmbrRuns > 0) {
-            //     --nmbrRuns;
-
-            //     theParser.getBlockFromString("G0 X300");
-            //     theParser.parseBlock(aMotion);
-            //     theMotionController.append(aMotion);
-            //     theParser.getBlockFromString("G0 Y160");
-            //     theParser.parseBlock(aMotion);
-            //     theMotionController.append(aMotion);
-            //     theParser.getBlockFromString("G0 Z60");
-            //     theParser.parseBlock(aMotion);
-            //     theMotionController.append(aMotion);
-
-            //     theParser.getBlockFromString("G0 X0Y0Z0");
-            //     theParser.parseBlock(aMotion);
-            //     theMotionController.append(aMotion);
-
-            //     theMotionController.start();
-            // }
-        }
+        theHomer.handleEvents(anEvent);
     }
-
-    theMcuLoad.run();
-
-    if (reportMcuLoad.expired()) {
-        Serial.print("MCU load : ");
-        Serial.print(theMcuLoad.getLoad());
-        Serial.println(" %");
-    }
-
-    // sample inputs and send to mainControl
-    // if (sampleInputsTimer.expired()) {
-    //     allSwitchAndButtons.sample();
-    //     for (uint32_t i = 0; i < nmbrInputs; i++) {
-    //         event anEvent = myInputs[i].getEvent(allSwitchAndButtons.get(i));
-    //         switch (anEvent) {
-    //             case event::emergencyStopButtonPressed:
-    //                 theStepperMotorOutputs.enableMotors123(true);
-    //                 break;
-
-    //             case event::emergencyStopButtonReleased:
-    //                 theStepperMotorOutputs.enableMotors123(false);
-    //                 break;
-
-    //             default:
-    //                 break;
-    //         }
-    //         // if (event::none != anEvent) {
-    //         // Serial.println(toString(anEvent));
-    //         // theEventBuffer.pushEvent(anEvent);
-    //     }
-    // }
-
-    // poll hostinterface
-    // TODO : also here deal with temporarily disabling the related interrupt to be threadsafe
-
-    // run mainControl stateMachine
-    // theMainCtrl.run();
 }

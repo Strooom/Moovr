@@ -83,6 +83,9 @@ const char* toString(event anEvent) {
         case event::homingCompleted:
             return "homingCompleted";
             break;
+        case event::homingError:
+            return "homingError";
+            break;
         case event::probingStarted:
             return "probingStarted";
             break;
@@ -100,4 +103,3 @@ const char* toString(event anEvent) {
             break;
     }
 }
-

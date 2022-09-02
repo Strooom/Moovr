@@ -65,7 +65,7 @@ void motionCtrl::hold() {
     // TODO : is this different from stop() ?
 }
 
-void motionCtrl::flush() {
+void motionCtrl::flushMotionBuffer() {
     if (!isRunning()) {
         theSampleTime.initialize();
         theMotionBuffer.flush();
@@ -229,20 +229,26 @@ void motionCtrl::move() {
 bool motionCtrl::needStepForward(uint32_t anAxis, float positionInMm) {
     float positionInStepsFloat = positionInMm * theMachineProperties.motors.stepsPerMm[anAxis];
     int32_t newPosition        = roundf(positionInStepsFloat - hysteresis);
-    return (newPosition > currentPositionInSteps[anAxis]);
+    return (newPosition > machinePositionInSteps[anAxis]);
 }
 
 bool motionCtrl::needStepBackward(uint32_t anAxis, float positionInMm) {
     float positionInStepsFloat = positionInMm * theMachineProperties.motors.stepsPerMm[anAxis];
-    return ((roundf(positionInStepsFloat + hysteresis)) < currentPositionInSteps[anAxis]);
+    return ((roundf(positionInStepsFloat + hysteresis)) < machinePositionInSteps[anAxis]);
 }
 
 void motionCtrl::stepForward(uint32_t anAxis) {
     theStepSignals.stepForward(anAxis);
-    ++currentPositionInSteps[anAxis];
+    ++machinePositionInSteps[anAxis];
 }
 
 void motionCtrl::stepBackward(uint32_t anAxis) {
     theStepSignals.stepBackward(anAxis);
-    --currentPositionInSteps[anAxis];
+    --machinePositionInSteps[anAxis];
+}
+
+void motionCtrl::resetMachinePosition() {
+    for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
+        machinePositionInSteps[nmbrAxis] = 0;
+    }
 }

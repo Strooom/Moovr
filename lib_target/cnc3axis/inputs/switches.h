@@ -18,11 +18,12 @@
 class inputs {
   public:
     static constexpr uint32_t nmbrInputs{12U};        // how many inputs does this particular HW have
-    void initialize();                                     // configures the hardware's GPIO registers
+    void initialize();                                // configures the hardware's GPIO registers
     bool get(uint32_t index);                         // get a specific bit of inputs HAL-copy
     void sample();                                    // read HW inputs into HAL-copy
 
-  private:        // commented out during unit testing
+  private:
     uint32_t theInputs{0};
-    static constexpr uint32_t inputMask{0x00'00'00'00};        // this mask allows to invert individual bits in case of active low signals, io active high TODO : this should go to machineProperties
+    static constexpr uint32_t inputMask{0x00'00'00'00};        // this mask allows to invert individual bits in case of active low signals, io active high
+    // TODO : this should go to machineProperties
 };

@@ -1,5 +1,6 @@
 #include "machineproperties.h"
 #include "event.h"
+#include "eventbuffer.h"
 #include "homing.h"
 #include "motionctrl.h"
 #include "motionstate.h"
@@ -8,44 +9,85 @@
 extern motionCtrl theMotionController;
 extern machineProperties theMachineProperties;
 extern debouncedInput myInputs[nmbrInputs];
+extern eventBuffer theEventBuffer;
 
 void homingController::start() {
-    axisIndex = 0;
-    selectAxis();
-    if (theMotionController.isRunning()) {
-        goTo(homingState::stopping);
-    } else {
-        if (myInputs[theLimitSwitch].getState()) {
-            goTo(homingState::opening);
+    goTo(homingState::lost);
+    axisIndex = 0;        // TODO : maybe I could move this to enterstate lost
+    if (selectAxis()) {
+        theEventBuffer.pushEvent(event::homingStarted);
+        if (theMotionController.isRunning()) {
+            goTo(homingState::stopping);
         } else {
-            goTo(homingState::closing);
+            if (myInputs[theLimitSwitch].getState()) {
+                goTo(homingState::opening);
+            } else {
+                goTo(homingState::closing);
+            }
         }
+    } else {
+        theEventBuffer.pushEvent(event::homingError);
     }
 }
 
-void homingController::selectAxis() {
-    axis theAxis = theMachineProperties.homingSequence[axisIndex];
-    if (theMachineProperties.homingDirection[static_cast<uint32_t>(theAxis)]) {
-        if (theMachineProperties.limits.hasLimitsMax[static_cast<uint32_t>(theAxis)]) {
-            theLimitSwitch = theMachineProperties.limits.limitMaxIndex[static_cast<uint32_t>(theAxis)];
-        } else {
-            // error : cannot home if machine does not have this switch -> skip
+bool homingController::nextAxis() {
+    axisIndex++;
+    return selectAxis();
+}
+
+bool homingController::selectAxis() {
+    while (axisIndex < nmbrAxis) {
+        currentAxis = theMachineProperties.homingSequence[axisIndex];
+        if (static_cast<uint32_t>(currentAxis) < nmbrAxis) {
+            if (theMachineProperties.homingDirection[static_cast<uint32_t>(currentAxis)]) {
+                if (theMachineProperties.limits.hasLimitsMax[static_cast<uint32_t>(currentAxis)]) {
+                    theLimitSwitch = theMachineProperties.limits.limitMaxIndex[static_cast<uint32_t>(currentAxis)];
+                    switch (currentAxis) {
+                        default:
+                        case axis::X:
+                            limitSwitchClose = event::limitSwitchXMaxClosed;
+                            limitSwitchOpen  = event::limitSwitchXMaxOpened;
+                            break;
+
+                        case axis::Y:
+                            limitSwitchClose = event::limitSwitchYMaxClosed;
+                            limitSwitchOpen  = event::limitSwitchYMaxOpened;
+                            break;
+
+                        case axis::Z:
+                            limitSwitchClose = event::limitSwitchZMaxClosed;
+                            limitSwitchOpen  = event::limitSwitchZMaxOpened;
+                            break;
+                    }
+                    return true;
+                }
+            } else {
+                if (theMachineProperties.limits.hasLimitsMin[static_cast<uint32_t>(currentAxis)]) {
+                    theLimitSwitch = theMachineProperties.limits.limitMinIndex[static_cast<uint32_t>(currentAxis)];
+                    switch (currentAxis) {
+                        default:
+                        case axis::X:
+                            limitSwitchClose = event::limitSwitchXMinClosed;
+                            limitSwitchOpen  = event::limitSwitchXMinOpened;
+                            break;
+
+                        case axis::Y:
+                            limitSwitchClose = event::limitSwitchYMinClosed;
+                            limitSwitchOpen  = event::limitSwitchYMinOpened;
+                            break;
+
+                        case axis::Z:
+                            limitSwitchClose = event::limitSwitchZMinClosed;
+                            limitSwitchOpen  = event::limitSwitchZMinOpened;
+                            break;
+                    }
+                    return true;
+                }
+            }
         }
-    } else {
-        if (theMachineProperties.limits.hasLimitsMin[static_cast<uint32_t>(theAxis)]) {
-            theLimitSwitch = theMachineProperties.limits.limitMinIndex[static_cast<uint32_t>(theAxis)];
-        } else {
-            // error : cannot home if machine does not have this switch -> skip
-        }
+        axisIndex++;
     }
-
-// TODO : also select
-// which limitswitch events to listen to
-// which gcode to send for
-// * closing : move in + or - direction, for maximum distance of sMax @ homingSpeed
-// * opening : move in - or + direction, for maximum distance of 2 * limitswitchtravel @ (homingSpeed / 4)
-// * offsetting : 3 mm (could set an offset in machineProperties)
-
+    return false;
 }
 
 void homingController::handleEvents(event theEvent) {
@@ -56,54 +98,78 @@ void homingController::handleEvents(event theEvent) {
 
         case homingState::stopping:
             switch (theEvent) {
-                default:
-                    break;
                 case event::motionStopped:
+                    if (myInputs[theLimitSwitch].getState()) {
+                        goTo(homingState::opening);
+                    } else {
+                        goTo(homingState::closing);
+                    }
+                    break;
+
+                default:
                     break;
             }
             break;
         case homingState::closing:
-            // if closing event...
+            if (limitSwitchClose == theEvent) {
+                goTo(homingState::closedWaitForStop);
+            }
             break;
+
         case homingState::closedWaitForStop:
             switch (theEvent) {
-                default:
-                    break;
                 case event::motionStopped:
+                    goTo(homingState::opening);
+                    break;
+
+                default:
                     break;
             }
             break;
+
         case homingState::opening:
-            // if opening event
+            if (limitSwitchOpen == theEvent) {
+                goTo(homingState::openedWaitForStop);
+            }
             break;
+
         case homingState::openedWaitForStop:
             switch (theEvent) {
-                default:
-                    break;
                 case event::motionStopped:
+                    goTo(homingState::offsettingWaitForStop);
+                    break;
+
+                default:
                     break;
             }
             break;
+
         case homingState::offsettingWaitForStop:
             switch (theEvent) {
-                default:
-                    break;
                 case event::motionStopped:
+                    if (nextAxis()) {
+                        if (myInputs[theLimitSwitch].getState()) {
+                            goTo(homingState::opening);
+                        } else {
+                            goTo(homingState::closing);
+                        }
+                    } else {
+                        goTo(homingState::found);
+                    }
+                    break;
+
+                default:
                     break;
             }
             break;
+
         case homingState::found:
-            // move to next axis or complete
             break;
     }
 }
 
 void homingController::handleTimeouts() {
 }
-
-// homingState homingController::getState() {
-//     return theHomingState;
-// }
 
 void homingController::goTo(homingState theNewState) {
     exitState(theHomingState);
@@ -113,14 +179,22 @@ void homingController::goTo(homingState theNewState) {
 
 void homingController::enterState(homingState theNewState) {
     switch (theHomingState) {
+        case homingState::lost:
+            break;
+
         case homingState::stopping:
             theMotionController.stop();
             break;
 
         case homingState::closing:
-            theMotionController.flush();
-            //theMotionController.append(gCodeCommand);
-            //theMotionController.start();
+            theMotionController.flushMotionBuffer();
+            theMotionController.resetMachinePosition();
+            {
+                simplifiedMotion aMotion;
+                aMotion.setForHoming(currentAxis, theMachineProperties.motors.sMax[static_cast<uint32_t>(currentAxis)], theMachineProperties.vHoming);
+                theMotionController.append(aMotion);
+            }
+            theMotionController.start();
             break;
 
         case homingState::closedWaitForStop:
@@ -128,9 +202,14 @@ void homingController::enterState(homingState theNewState) {
             break;
 
         case homingState::opening:
-            theMotionController.flush();
-            //theMotionController.append(gCodeCommand);
-            //theMotionController.start();
+            theMotionController.flushMotionBuffer();
+            theMotionController.resetMachinePosition();
+            {
+                simplifiedMotion aMotion;
+                aMotion.setForHoming(currentAxis, -10.0, theMachineProperties.vHomingSlow);
+                theMotionController.append(aMotion);
+            }
+            theMotionController.start();
             break;
 
         case homingState::openedWaitForStop:
@@ -138,12 +217,18 @@ void homingController::enterState(homingState theNewState) {
             break;
 
         case homingState::offsettingWaitForStop:
-            theMotionController.flush();
-            //.append(gCodeCommand);
-            //theMotionController.start();
+            theMotionController.flushMotionBuffer();
+            theMotionController.resetMachinePosition();
+            {
+                simplifiedMotion aMotion;
+                aMotion.setForHoming(currentAxis, theMachineProperties.homingOffset[static_cast<uint32_t>(currentAxis)], theMachineProperties.vHoming);
+                theMotionController.append(aMotion);
+            }
+            theMotionController.start();
             break;
 
         case homingState::found:
+            // TODO put all actions here when homing is complete
             break;
 
         default:
@@ -152,9 +237,5 @@ void homingController::enterState(homingState theNewState) {
 }
 
 void homingController::exitState(homingState theOldState) {
+    timeOut.stop();        // TODO : this could be different for each state, but currently this is good enough
 }
-
-// void homingController::stop() {
-//  stop motion
-//  when stopped, clear motionbuffer
-//}

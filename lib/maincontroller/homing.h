@@ -11,22 +11,30 @@
 #include "event.h"
 #include "homingstate.h"
 #include "axis.h"
+#include "runtimer.h"
 
 class homingController {
   public:
     void start();
-    bool isHomed() const;
-    bool isHomed(axis theAxis) const;
-    void handleEvents(event theEvent);               //
-    void handleTimeouts();                           //
-    void goTo(homingState theNewHomingState);        //
-    void enterState(homingState theNewState);        //
-    void exitState(homingState theOldState);         //
+    bool nextAxis();
+    void handleEvents(event theEvent);        //
+    void handleTimeouts();                    //
 
   private:
+    void goTo(homingState theNewHomingState);        // transitions in the stateMachine
+    void enterState(homingState theNewState);        // actions when entering a state
+    void exitState(homingState theOldState);         // actions when leaving a state
+
+    bool selectAxis();        // true if homeable axis is selected, false if no homeable axis found
+
     homingState theHomingState{homingState::lost};        // current state of the homing process for selected axis
-    void selectAxis();                                    //
     uint32_t axisIndex{0};                                // index to which axis we are currently homing
+    axis currentAxis{axis::nmbrAxis};                     //
     uint32_t theLimitSwitch{0};                           // index into myInputs[] telling which input is the matching limit switch
-    char gCodeCommand[16];                                // holds the piece of gcode to make the selected axis make the homing movement
+
+    event limitSwitchClose{event::none};        // to which event should we listen for closing the limitswitch for selected axis
+    event limitSwitchOpen{event::none};         // to which event should we listen for opening the limitswitch for selected axis
+
+    singleTimer timeOut;        // used to put a timeout on homing movements, eg, when the axis would not move due to a hw problem..
+    // TODO : how to set this timeout to a meaninfull value, should be calculated from machineProperties...
 };

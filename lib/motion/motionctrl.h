@@ -25,14 +25,17 @@ class motionCtrl {
     void hold();
     void resume();
     void stop();
-    void flush();
+    void flushMotionBuffer();
+    void resetMachinePosition();
     void optimize();
 
     motionState getState() const;
     bool isRunning() const;
     motionStrategy theStrategy() const;
-
+    
     step calcNextStepperMotorSignals();
+
+    int32_t machinePositionInSteps[nmbrAxis]{0}; // TODO : this needs to be private, but made it public to make homing easier fttb
 
 #ifndef unitTesting
   private:
@@ -42,10 +45,6 @@ class motionCtrl {
     sampleTime theSampleTime;                                     // object keeping track of sampling the trajectory at regular time intervals
     motionBuffer theMotionBuffer;                                 // buffer with motion segments to be executed
     stepSignals theStepSignals;                                   // signals to be sent to the motors with their timing
-
-    point currentPosition;        // position we are now, on the previous sampleTime sample
-    int32_t currentPositionInSteps[nmbrAxis]{0};
-    point nextPosition;        // position we will be on the next sampleTime sample
 
     float vJunction(uint32_t left, uint32_t right) const;              // max speed at the boundary of two motion segments
     bool needStepForward(uint32_t anAxis, float positionInMm);         //

@@ -43,6 +43,7 @@ enum class event : uint32_t {
     // homing
     homingStarted,
     homingCompleted,
+    homingError,
     // probing
     probingStarted,
     probingCompleted,

@@ -1,5 +1,6 @@
 Next Steps :
-* solve gCodeParser and motionController reset, needed for a fresh start when homing
+* nextAxis should skip axis which can't home
+
 
 
 

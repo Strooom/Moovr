@@ -43,16 +43,17 @@ uint32_t simplifiedMotion::toString(char* output) {
     return outputLenght;
 }
 
-void simplifiedMotion::setForHoming(positionInDouble current, axis anAxis, double offset, double speed) {
+void simplifiedMotion::setForHoming(axis anAxis, double offset, double speed) {
     // only changing the fields which are different from the initialization values
     type = motionType::feedLinear;
     trajectory.length  = offset;
     speedProfile.vFeed = speed;
-    for (uint32_t axisIndex = 0; axisIndex < nmbrAxis; axisIndex++){
-        trajectory.startPosition[axisIndex] = current.coordinate[axisIndex];
-    }
     trajectory.delta[static_cast<uint32_t>(anAxis)] = offset;
 }
+
+
+
+
 
 void simplifiedMotion::setForTest(uint32_t aSet) {
     static constexpr double pi{3.141592653589793238463};        // constant for calculations in radians

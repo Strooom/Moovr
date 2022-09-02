@@ -3,6 +3,10 @@ Nxt Tasks
 =========
 
 * make homing work
+* think about how to make machineProperties more structured..
+  - motors (j, a, d, v)
+  - axis (s, limits)
+  
 
 
 
