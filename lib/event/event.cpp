@@ -71,6 +71,9 @@ const char* toString(event anEvent) {
         case event::motionStarted:
             return "motion started";
             break;
+        case event::stopRequested:
+            return "stop requested";
+            break;
         case event::motionStopped:
             return "motion stopped";
             break;
@@ -78,13 +81,13 @@ const char* toString(event anEvent) {
             return "motionBufferOverflow";
             break;
         case event::homingStarted:
-            return "homingStarted";
+            return "homing started";
             break;
         case event::homingCompleted:
-            return "homingCompleted";
+            return "homing completed";
             break;
         case event::homingError:
-            return "homingError";
+            return "homing error";
             break;
         case event::probingStarted:
             return "probingStarted";

@@ -11,7 +11,6 @@
 #include "event.h"
 #include "homingstate.h"
 #include "axis.h"
-#include "runtimer.h"
 
 class homingController {
   public:
@@ -20,7 +19,9 @@ class homingController {
     void handleEvents(event theEvent);        //
     void handleTimeouts();                    //
 
+#ifndef unitTesting
   private:
+#endif
     void goTo(homingState theNewHomingState);        // transitions in the stateMachine
     void enterState(homingState theNewState);        // actions when entering a state
     void exitState(homingState theOldState);         // actions when leaving a state
@@ -28,13 +29,14 @@ class homingController {
     bool selectAxis();        // true if homeable axis is selected, false if no homeable axis found
 
     homingState theHomingState{homingState::lost};        // current state of the homing process for selected axis
-    uint32_t axisIndex{0};                                // index to which axis we are currently homing
-    axis currentAxis{axis::nmbrAxis};                     //
+    uint32_t homingAxisIndex{0};                          // index into machineProperties.homingSequence[] : 0 for 1st axis homing (eg. Z), 1 for second axis homing...
+    axis currentHomingAxis{axis::nmbrAxis};               // value of machineProperties.homingSequence[homingAxisIndex]
+    uint32_t currentHomingAxisIndex{nmbrAxis};            // same as currentHomingAxis but as integer value (io enum) so we can use it to index arrays
     uint32_t theLimitSwitch{0};                           // index into myInputs[] telling which input is the matching limit switch
 
     event limitSwitchClose{event::none};        // to which event should we listen for closing the limitswitch for selected axis
     event limitSwitchOpen{event::none};         // to which event should we listen for opening the limitswitch for selected axis
 
-    singleTimer timeOut;        // used to put a timeout on homing movements, eg, when the axis would not move due to a hw problem..
-    // TODO : how to set this timeout to a meaninfull value, should be calculated from machineProperties...
+    // singleTimer timeOut;        // used to put a timeout on homing movements, eg, when the axis would not move due to a hw problem..
+    //  TODO : how to set this timeout to a meaninfull value, should be calculated from machineProperties...
 };

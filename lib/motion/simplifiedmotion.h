@@ -43,6 +43,5 @@ class simplifiedMotion {
     uint32_t toString(char* destBuffer);
     void setForTest(uint32_t aSet);
     void setForTest(motionType theType, uint32_t trajectoryIndex, uint32_t speedprofileIndex);
-
     void setForHoming(axis anAxis, double offset, double speed);
 };

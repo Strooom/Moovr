@@ -46,6 +46,7 @@ void motionCtrl::append(simplifiedMotion& theMotion) {
 
 void motionCtrl::start() {
     if (!theMotionBuffer.isEmpty()) {
+        theEventBuffer.pushEvent(event::motionStarted);
         theMotionCtrlState = motionState::running;
         optimize();
     } else {
@@ -57,6 +58,7 @@ void motionCtrl::resume() {
 }
 
 void motionCtrl::stop() {
+    theEventBuffer.pushEvent(event::stopRequested);
     theMotionCtrlState = motionState::stopping;
     optimize();
 }
@@ -249,6 +251,6 @@ void motionCtrl::stepBackward(uint32_t anAxis) {
 
 void motionCtrl::resetMachinePosition() {
     for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
-        machinePositionInSteps[nmbrAxis] = 0;
+        machinePositionInSteps[anAxis] = 0;
     }
 }

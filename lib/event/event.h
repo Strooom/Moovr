@@ -38,6 +38,7 @@ enum class event : uint32_t {
     motionCompleted,
     allMotionsCompleted,
     motionStarted,
+    stopRequested,
     motionStopped,
     motionBufferOverflow,
     // homing

@@ -12,14 +12,13 @@ extern debouncedInput myInputs[nmbrInputs];
 extern eventBuffer theEventBuffer;
 
 void homingController::start() {
-    goTo(homingState::lost);
-    axisIndex = 0;        // TODO : maybe I could move this to enterstate lost
+    homingAxisIndex = 0;
     if (selectAxis()) {
         theEventBuffer.pushEvent(event::homingStarted);
         if (theMotionController.isRunning()) {
             goTo(homingState::stopping);
         } else {
-            if (myInputs[theLimitSwitch].getState()) {
+            if (!myInputs[theLimitSwitch].getState()) {
                 goTo(homingState::opening);
             } else {
                 goTo(homingState::closing);
@@ -31,18 +30,19 @@ void homingController::start() {
 }
 
 bool homingController::nextAxis() {
-    axisIndex++;
+    homingAxisIndex++;
     return selectAxis();
 }
 
 bool homingController::selectAxis() {
-    while (axisIndex < nmbrAxis) {
-        currentAxis = theMachineProperties.homingSequence[axisIndex];
-        if (static_cast<uint32_t>(currentAxis) < nmbrAxis) {
-            if (theMachineProperties.homingDirection[static_cast<uint32_t>(currentAxis)]) {
-                if (theMachineProperties.limits.hasLimitsMax[static_cast<uint32_t>(currentAxis)]) {
-                    theLimitSwitch = theMachineProperties.limits.limitMaxIndex[static_cast<uint32_t>(currentAxis)];
-                    switch (currentAxis) {
+    while (homingAxisIndex < nmbrAxis) {
+        currentHomingAxis = theMachineProperties.homingSequence[homingAxisIndex];
+        currentHomingAxisIndex = static_cast<uint32_t>(currentHomingAxis);
+        if (static_cast<uint32_t>(currentHomingAxis) < nmbrAxis) {
+            if (theMachineProperties.homingDirection[currentHomingAxisIndex]) {
+                if (theMachineProperties.limits.hasLimitsMax[currentHomingAxisIndex]) {
+                    theLimitSwitch = theMachineProperties.limits.limitMaxIndex[currentHomingAxisIndex];
+                    switch (currentHomingAxis) {
                         default:
                         case axis::X:
                             limitSwitchClose = event::limitSwitchXMaxClosed;
@@ -62,9 +62,9 @@ bool homingController::selectAxis() {
                     return true;
                 }
             } else {
-                if (theMachineProperties.limits.hasLimitsMin[static_cast<uint32_t>(currentAxis)]) {
-                    theLimitSwitch = theMachineProperties.limits.limitMinIndex[static_cast<uint32_t>(currentAxis)];
-                    switch (currentAxis) {
+                if (theMachineProperties.limits.hasLimitsMin[currentHomingAxisIndex]) {
+                    theLimitSwitch = theMachineProperties.limits.limitMinIndex[currentHomingAxisIndex];
+                    switch (currentHomingAxis) {
                         default:
                         case axis::X:
                             limitSwitchClose = event::limitSwitchXMinClosed;
@@ -85,7 +85,7 @@ bool homingController::selectAxis() {
                 }
             }
         }
-        axisIndex++;
+        homingAxisIndex++;
     }
     return false;
 }
@@ -148,7 +148,7 @@ void homingController::handleEvents(event theEvent) {
             switch (theEvent) {
                 case event::motionStopped:
                     if (nextAxis()) {
-                        if (myInputs[theLimitSwitch].getState()) {
+                        if (!myInputs[theLimitSwitch].getState()) {
                             goTo(homingState::opening);
                         } else {
                             goTo(homingState::closing);
@@ -173,11 +173,13 @@ void homingController::handleTimeouts() {
 
 void homingController::goTo(homingState theNewState) {
     exitState(theHomingState);
+    //Serial.printf("homingState from %s to %s\n",toString(theHomingState), toString(theNewState));
     theHomingState = theNewState;
     enterState(theNewState);
 }
 
 void homingController::enterState(homingState theNewState) {
+    // Serial.printf("[%d, %d, %d]\n", theMotionController.machinePositionInSteps[0], theMotionController.machinePositionInSteps[1], theMotionController.machinePositionInSteps[2]);
     switch (theHomingState) {
         case homingState::lost:
             break;
@@ -191,7 +193,7 @@ void homingController::enterState(homingState theNewState) {
             theMotionController.resetMachinePosition();
             {
                 simplifiedMotion aMotion;
-                aMotion.setForHoming(currentAxis, theMachineProperties.motors.sMax[static_cast<uint32_t>(currentAxis)], theMachineProperties.vHoming);
+                aMotion.setForHoming(currentHomingAxis, theMachineProperties.motors.sMax[currentHomingAxisIndex], theMachineProperties.vHoming);
                 theMotionController.append(aMotion);
             }
             theMotionController.start();
@@ -206,7 +208,7 @@ void homingController::enterState(homingState theNewState) {
             theMotionController.resetMachinePosition();
             {
                 simplifiedMotion aMotion;
-                aMotion.setForHoming(currentAxis, -10.0, theMachineProperties.vHomingSlow);
+                aMotion.setForHoming(currentHomingAxis, -100.0, theMachineProperties.vHomingSlow);
                 theMotionController.append(aMotion);
             }
             theMotionController.start();
@@ -221,10 +223,12 @@ void homingController::enterState(homingState theNewState) {
             theMotionController.resetMachinePosition();
             {
                 simplifiedMotion aMotion;
-                aMotion.setForHoming(currentAxis, theMachineProperties.homingOffset[static_cast<uint32_t>(currentAxis)], theMachineProperties.vHoming);
+                aMotion.setForHoming(currentHomingAxis, theMachineProperties.homingOffset[currentHomingAxisIndex], theMachineProperties.vHoming);
                 theMotionController.append(aMotion);
             }
             theMotionController.start();
+            //Serial.printf("[%d, %d, %d]\n", theMotionController.machinePositionInSteps[0], theMotionController.machinePositionInSteps[1], theMotionController.machinePositionInSteps[2]);
+            //Serial.printf("going to [%f]\n", theMachineProperties.homingOffset[currentHomingAxisIndex] * theMachineProperties.motors.stepsPerMm[currentHomingAxisIndex]);
             break;
 
         case homingState::found:
@@ -237,5 +241,14 @@ void homingController::enterState(homingState theNewState) {
 }
 
 void homingController::exitState(homingState theOldState) {
-    timeOut.stop();        // TODO : this could be different for each state, but currently this is good enough
+    switch (theOldState) {
+        case homingState::offsettingWaitForStop:
+            //Serial.printf("[%d, %d, %d]\n", theMotionController.machinePositionInSteps[0], theMotionController.machinePositionInSteps[1], theMotionController.machinePositionInSteps[2]);
+            break;
+
+        default:
+            break;
+    }
+
+    //    timeOut.stop();        // TODO : this could be different for each state, but currently this is good enough
 }

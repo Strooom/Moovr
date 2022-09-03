@@ -11,6 +11,9 @@
 #include <stdint.h>
 #include "axis.h"
 
+static constexpr uint32_t nmbrInputs = 9U;
+static constexpr uint32_t inputSamplingInterval{10U};        // [ms] interval between sampling inputs like buttons and limitswitches
+
 static constexpr uint32_t outputTimerFrequency        = 60'000U;                                                                          // Design parameter resulting in a certain maximum stepping frequency, as well as a minimum Step pulse width and Dir setup timeBefore
 static constexpr uint32_t maxSteppingFrequency        = outputTimerFrequency / 2U;                                                        //
 static constexpr float minStepPulseWidth              = 1.0F / outputTimerFrequency;                                                      // period of the PIT1 timer, this will automatically become the DIR setup timeBefore, as well as the STEP pulse width
@@ -42,9 +45,11 @@ class machineProperties {
     } motors;
 
     struct Limits {
-        bool hasLimitsMin[nmbrAxis]{true, true, true};        // limit switches towards the negative direction of the Axis
-        bool hasLimitsMax[nmbrAxis]{true, true, true};        // limit switches towards the positive direction of the Axis
-        float maxLimitswitchTravel{2.0F};                     // [mm]
+        bool hasLimitsMax[nmbrAxis]{true, false, true};          // limit switches towards the positive direction of the Axis
+        uint32_t limitMaxIndex[nmbrAxis]{1, 2, 0};               // index into myInputs[] telling which input is the matching limit switch
+        bool hasLimitsMin[nmbrAxis]{false, false, false};        // limit switches towards the negative direction of the Axis
+        uint32_t limitMinIndex[nmbrAxis]{0, 2, 4};               // index into myInputs[] telling which input is the matching limit switch
+        float maxLimitswitchTravel{2.0F};                        // [mm]
     } limits;
 
     struct Spindle {
@@ -61,4 +66,13 @@ class machineProperties {
 
     double minLengthSProfile{0.0F};                                              // [mm] all motions with a length smaller will be 2nd order T-profile - larger will be 3rd order S-profile
     float vMaxHoming{motors.jMax * motors.jMax * motors.jMax * oneSixth};        //
+
+    float vHoming{15};           // faster homing speed, towards switch closing
+    float vHomingSlow{1};        // slower homing, towards opening limitswitch
+
+    axis homingSequence[nmbrAxis]{axis::Z, axis::X, axis::nmbrAxis};        // in which sequence do we want to home axis.
+    bool homingDirection[nmbrAxis]{true, true, true};                       // in which direction do we want to home : true = positive, false = negative
+    double homingOffset[nmbrAxis]{-10.0, -10.0, -10.0};                     // after homing, what distance from the limitswitches do we set the machine zero
+
+
 };

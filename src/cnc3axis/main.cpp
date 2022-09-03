@@ -60,6 +60,8 @@ homingController theHomer;
 // --- TMP variables for dev / test              ---
 // -------------------------------------------------
 
+intervalTimer startHoming;
+
 // -------------------------------------------------
 // ---    application/HW-specific components     ---
 // -------------------------------------------------
@@ -69,12 +71,12 @@ homingController theHomer;
 inputs allSwitchAndButtons;
 
 debouncedInput myInputs[nmbrInputs] = {
-    debouncedInput(event::limitSwitchXMinClosed, event::limitSwitchXMinOpened),
-    debouncedInput(event::limitSwitchXMaxClosed, event::limitSwitchXMaxOpened),
-    debouncedInput(event::limitSwitchYMinClosed, event::limitSwitchYMinOpened),
-    debouncedInput(event::limitSwitchYMaxClosed, event::limitSwitchYMaxOpened),
-    debouncedInput(event::limitSwitchZMinClosed, event::limitSwitchZMinOpened),
     debouncedInput(event::limitSwitchZMaxClosed, event::limitSwitchZMaxOpened),
+    debouncedInput(event::limitSwitchXMaxClosed, event::limitSwitchXMaxOpened),
+    debouncedInput(event::limitSwitchYMaxClosed, event::limitSwitchYMaxOpened),
+    debouncedInput(event::limitSwitchYMinClosed, event::limitSwitchYMinOpened),
+    debouncedInput(event::limitSwitchZMinClosed, event::limitSwitchZMinOpened),
+    debouncedInput(event::limitSwitchXMinClosed, event::limitSwitchXMinOpened),
     debouncedInput(event::emergencyStopButtonPressed, event::emergencyStopButtonReleased),
     debouncedInput(event::feedHoldResumeButtonPressed, event::feedHoldResumeButtonReleased),
     debouncedInput(event::probeSwitchClosed, event::probeSwitchOpened)};
@@ -144,6 +146,9 @@ void setup() {
     theOutputTimer.initialize();
     theOutputTimer.enable();
 
+    theMotionController.resetMachinePosition();
+
+    startHoming.start(30000);
     theHomer.start();
 }
 
@@ -167,7 +172,12 @@ void loop() {
 
     if (theEventBuffer.hasEvents()) {
         event anEvent = theEventBuffer.popEvent();
+        Serial.print("E : ");
         Serial.println(toString(anEvent));
         theHomer.handleEvents(anEvent);
+    }
+
+    if (startHoming.expired()) {
+        theHomer.start();
     }
 }

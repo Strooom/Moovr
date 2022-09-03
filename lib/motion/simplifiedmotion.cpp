@@ -46,7 +46,7 @@ uint32_t simplifiedMotion::toString(char* output) {
 void simplifiedMotion::setForHoming(axis anAxis, double offset, double speed) {
     // only changing the fields which are different from the initialization values
     type = motionType::feedLinear;
-    trajectory.length  = offset;
+    trajectory.length  = fabs(offset);
     speedProfile.vFeed = speed;
     trajectory.delta[static_cast<uint32_t>(anAxis)] = offset;
 }

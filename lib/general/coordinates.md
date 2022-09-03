@@ -7,4 +7,9 @@ Origin is:
  * the position at an offset of all limitswitches of all axis, after homing
 
  These coordinates are internally kept in int32_t machinePositionInSteps[nmbrAxis]
- They can be converted to mm  
+ They can be converted to mm through <xxx> TODO
+
+
+ ## GCODE Coordinates = World Coordinates
+ These are the positions calculated from gcode.
+ They are internally kept as double-precision floating point
