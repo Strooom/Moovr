@@ -70,15 +70,15 @@ void motionTrajectory::set(const simplifiedMotion &theMotion) {
 
 // TODO : how to handle here length = 0.0F ?? Apparently this does not lead to an error in floating point..
 
-    for (uint8_t i = 0; i < nmbrAxis; ++i) {
-        if ((i == (uint8_t)theMotion.trajectory.arcAxis[0]) || (i == (uint8_t)theMotion.trajectory.arcAxis[1])) {
-            deltaRealTime[i]       = static_cast<float>(theMotion.trajectory.deltaAngle / theMotion.trajectory.length);        // for the ARC part
-            directionUnitVector[i] = 1.0;                                                                                                              // ### For circular moving Axis, we don't know the fraction, so we assume worst case
+    for (uint8_t axisIndex = 0; axisIndex < nmbrAxis; ++axisIndex) {
+        if ((axisIndex == (uint8_t)theMotion.trajectory.arcAxis[0]) || (axisIndex == (uint8_t)theMotion.trajectory.arcAxis[1])) {
+            deltaRealTime[axisIndex]       = static_cast<float>(theMotion.trajectory.deltaAngle / theMotion.trajectory.length);        // for the ARC part
+            directionUnitVector[axisIndex] = 1.0;                                                                                                              // ### For circular moving Axis, we don't know the fraction, so we assume worst case
         } else {
-            deltaRealTime[i]       = static_cast<float>(theMotion.trajectory.delta[i] / theMotion.trajectory.length);        // for the LINEAR part
-            directionUnitVector[i] = static_cast<float>(theMotion.trajectory.delta[i] / theMotion.trajectory.length);        // ### For linear moving Axis, take into account that this Axis is doing only a fraction of the speed of the 3d-move - the projection part..
+            deltaRealTime[axisIndex]       = static_cast<float>(theMotion.trajectory.delta[axisIndex] / theMotion.trajectory.length);        // for the LINEAR part
+            directionUnitVector[axisIndex] = static_cast<float>(theMotion.trajectory.delta[axisIndex] / theMotion.trajectory.length);        // ### For linear moving Axis, take into account that this Axis is doing only a fraction of the speed of the 3d-move - the projection part..
         }
-        startPosition[i] = static_cast<float>(theMotion.trajectory.startPosition[i]);
-        delta[i]         = static_cast<float>(theMotion.trajectory.delta[i]);
+        startPosition[axisIndex] = static_cast<float>(theMotion.trajectory.startPosition[axisIndex]);
+        delta[axisIndex]         = static_cast<float>(theMotion.trajectory.delta[axisIndex]);
     }
 }

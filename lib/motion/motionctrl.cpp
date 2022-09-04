@@ -216,13 +216,13 @@ void motionCtrl::move() {
     motion& currentMotion   = theMotionBuffer.getHead();                          // get a reference to the current motionItem, to speed up reading its members
     float distanceTravelled = currentMotion.s(theSampleTime.timeInMotion);        // at current time, what distance have we travelled over the trajectory
 
-    for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
-        if (currentMotion.isMoving(anAxis)) {
-            float positionInMm = currentMotion.positionInMmFromDistanceTravelled(anAxis, distanceTravelled);
-            if (needStepForward(anAxis, positionInMm)) {
-                stepForward(anAxis);
-            } else if (needStepBackward(anAxis, positionInMm)) {
-                stepBackward(anAxis);
+    for (uint32_t axisIndex = 0; axisIndex < nmbrAxis; ++axisIndex) {
+        if (currentMotion.isMoving(axisIndex)) {
+            float positionInMm = currentMotion.positionInMmFromDistanceTravelled(axisIndex, distanceTravelled);
+            if (needStepForward(axisIndex, positionInMm)) {
+                stepForward(axisIndex);
+            } else if (needStepBackward(axisIndex, positionInMm)) {
+                stepBackward(axisIndex);
             }
         }
     }
@@ -250,14 +250,14 @@ void motionCtrl::stepBackward(uint32_t anAxis) {
 }
 
 void motionCtrl::resetMachinePosition() {
-    for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
-        machinePositionInSteps[anAxis] = 0;
+    for (uint32_t axisIndex = 0; axisIndex < nmbrAxis; ++axisIndex) {
+        machinePositionInSteps[axisIndex] = 0;
     }
 }
 
 void motionCtrl::getMachinePosition(point& aPosition) {
-    for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
-        aPosition.inSteps[anAxis] = machinePositionInSteps[anAxis];
-        aPosition.inMm[anAxis]    = machinePositionInSteps[anAxis] * theMachineProperties.motors.stepsPerMm[anAxis];
+    for (uint32_t axisIndex = 0; axisIndex < nmbrAxis; ++axisIndex) {
+        aPosition.inSteps[axisIndex] = machinePositionInSteps[axisIndex];
+        aPosition.inMm[axisIndex]    = static_cast<float>(machinePositionInSteps[axisIndex]) / theMachineProperties.motors.stepsPerMm[axisIndex];
     }
 }

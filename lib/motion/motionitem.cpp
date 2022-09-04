@@ -126,7 +126,6 @@ void motion::optimize(overrides theOverrides, motionStrategy theStrategy, float 
     optimize(theOverrides, theStrategy);
 }
 
-//
 void motion::optimize(overrides theOverrides, motionStrategy theStrategy) {
     switch (type) {
         case motionType::traverse:
@@ -280,18 +279,18 @@ uint32_t motion::toString(char *output) const {
 
 void motion::positionFromDistance(point &aPosition, float s) {
     // TODO s is confusion as parameter as it is also the name of a member function
-    for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
-        if (isMoving(anAxis)) {
+    for (uint32_t axisIndex = 0; axisIndex < nmbrAxis; axisIndex++) {
+        if (isMoving(axisIndex)) {
             // first calculation the position in mm
-            if (anAxis == static_cast<uint32_t>(trajectory.arcAxis0)) {
-                aPosition.inMm[anAxis] = (trajectory.arcCenter0 + (trajectory.radius * cosf(trajectory.startAngle + (trajectory.deltaRealTime[anAxis] * s))));
-            } else if (anAxis == static_cast<uint32_t>(trajectory.arcAxis1)) {
-                aPosition.inMm[anAxis] = (trajectory.arcCenter1 + (trajectory.radius * sinf(trajectory.startAngle + (trajectory.deltaRealTime[anAxis] * s))));
+            if (axisIndex == static_cast<uint32_t>(trajectory.arcAxis0)) {
+                aPosition.inMm[axisIndex] = (trajectory.arcCenter0 + (trajectory.radius * cosf(trajectory.startAngle + (trajectory.deltaRealTime[axisIndex] * s))));
+            } else if (axisIndex == static_cast<uint32_t>(trajectory.arcAxis1)) {
+                aPosition.inMm[axisIndex] = (trajectory.arcCenter1 + (trajectory.radius * sinf(trajectory.startAngle + (trajectory.deltaRealTime[axisIndex] * s))));
             } else {
-                aPosition.inMm[anAxis] = (trajectory.startPosition[anAxis] + trajectory.deltaRealTime[anAxis] * s);
+                aPosition.inMm[axisIndex] = (trajectory.startPosition[axisIndex] + trajectory.deltaRealTime[axisIndex] * s);
             }
             // then calculate position in steps
-            aPosition.inSteps[anAxis] = static_cast<int32_t>(aPosition.inMm[anAxis] * theMachineProperties.motors.stepsPerMm[anAxis]);
+            aPosition.inSteps[axisIndex] = static_cast<int32_t>(aPosition.inMm[axisIndex] * theMachineProperties.motors.stepsPerMm[axisIndex]);
         }
     }
 }

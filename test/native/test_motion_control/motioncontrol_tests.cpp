@@ -7,6 +7,12 @@
 #include <limits>
 
 // ----------------------------------
+// --- tmp                        ---
+// ----------------------------------
+
+#include "gcode.h"
+
+// ----------------------------------
 // --- to be tested API           ---
 // ----------------------------------
 
@@ -33,7 +39,6 @@ machineProperties theMachineProperties;        //
 eventBuffer theEventBuffer;                    //
 
 void setUp(void) {
-    theMachineProperties.setForTest(1U);
 }
 
 void tearDown(void) {}        // after test
@@ -45,12 +50,13 @@ void initialize() {
     TEST_ASSERT_EQUAL(1.0f, theMotionCtrl.theOverrides.feedOverride);
     TEST_ASSERT_EQUAL(1.0f, theMotionCtrl.theOverrides.spindleOverride);
     TEST_ASSERT_FALSE(theMotionCtrl.isOptimal);
-    for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
-        TEST_ASSERT_EQUAL(0, theMotionCtrl.machinePositionInSteps[anAxis]);
+    for (uint32_t axisIndex = 0; axisIndex < nmbrAxis; axisIndex++) {
+        TEST_ASSERT_EQUAL(0, theMotionCtrl.machinePositionInSteps[axisIndex]);
     }
 }
 
 void nextStep_notRunning() {
+    theMachineProperties.setForTest(1U);
     step aStep;
     motionCtrl theMotionCtrl;
     theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
@@ -81,6 +87,7 @@ void nextStep_notRunning() {
 }
 
 void nextStep_emptyMotionBuffer() {
+    theMachineProperties.setForTest(1U);
     step aStep;
     motionCtrl theMotionCtrl;
     theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(maxTicksSinceLastOutput);
@@ -95,6 +102,7 @@ void nextStep_emptyMotionBuffer() {
 }
 
 void nextStep_sequenceMotionItems() {
+    theMachineProperties.setForTest(1U);
     step aStep;
     motionCtrl theMotionCtrl;
     theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(std::numeric_limits<uint32_t>::max());        // not interested in (interfering) these dummy stepsignals, so disabling them
@@ -138,6 +146,44 @@ void setSimplifiedMotion() {
     TEST_MESSAGE("missing test");
 }
 
+void compare() {
+    step aStep;
+    point currentPosition;
+    simplifiedMotion aMotion;
+    motionCtrl theMotionCtrl;
+    theMotionCtrl.initialize(maxTicksSinceLastOutput, minStepPulseWidth);
+    gCode theParser;
+
+    // theParser.getBlockFromString("G1 X10 F300");
+    // theParser.parseBlock(aMotion);
+    // theMotionCtrl.append(aMotion);
+    aMotion.set(currentPosition, axis::X, 10.0, 5.0);
+    theMotionCtrl.append(aMotion);
+    theMotionCtrl.start();
+
+    while (theMotionCtrl.isRunning()) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
+    }
+
+    theMotionCtrl.getMachinePosition(currentPosition);
+
+    // theParser.getBlockFromString("G1 X0");
+    // theParser.parseBlock(aMotion);
+    // theMotionCtrl.append(aMotion);
+    aMotion.set(currentPosition, axis::X, -10.0, 5.0);
+    theMotionCtrl.append(aMotion);
+    theMotionCtrl.start();
+
+    while (theMotionCtrl.isRunning()) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
+    }
+
+    theMotionCtrl.getMachinePosition(currentPosition);
+
+
+    TEST_MESSAGE("end of test");
+}
+
 void test_optimize() {
     TEST_MESSAGE("missing test");
     TEST_IGNORE();
@@ -155,6 +201,7 @@ void test_vJunction() {
 
 int main(int argc, char **argv) {
     UNITY_BEGIN();
+    RUN_TEST(compare);
     RUN_TEST(initialize);
     RUN_TEST(setSimplifiedMotion);
 

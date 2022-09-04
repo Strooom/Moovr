@@ -37,9 +37,9 @@ class machineProperties {
     void save();
 
     struct Motors {
-        float jMax{1000.0F};                                       // [mm/s^3] // TODO should we not set jMax per axis ?
-        float aMax[nmbrAxis]{200.0F, 200.0F, 200.0F};              // [mm/s^2]
-        float dMax[nmbrAxis]{-200.0F, -200.0F, -200.0F};           // [mm/s^2]
+        float jMax{200.0F};                                       // [mm/s^3] // TODO should we not set jMax per axis ?
+        float aMax[nmbrAxis]{100.0F, 100.0F, 100.0F};              // [mm/s^2]
+        float dMax[nmbrAxis]{-100.0F, -100.0F, -100.0F};           // [mm/s^2]
                                                                    //        float vMax[nmbrAxis]{60.0F, 60.0F, 60.0F};              // [mm/s]
         float vMax[nmbrAxis]{30.0F, 30.0F, 30.0F};                 // [mm/s]
         float sMax[nmbrAxis]{300.0F, 160.0F, 60.0F};               // [mm]

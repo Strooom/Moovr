@@ -50,17 +50,14 @@ motionCtrl theMotionController;
 intervalTimer sampleInputsTimer;
 stepBuffer theStepBuffer(minStepBufferTotalTimeTicks, minStepBufferLevel);
 
-homingController theHomer;
+gCode theParser;
 
-// gCode theParser;
 // simplifiedMotion aMotion;
 // mcuLoad theMcuLoad;
 
 // -------------------------------------------------
 // --- TMP variables for dev / test              ---
 // -------------------------------------------------
-
-intervalTimer startHoming;
 
 // -------------------------------------------------
 // ---    application/HW-specific components     ---
@@ -119,6 +116,43 @@ void pit1_isr() {
 // }
 
 // ----------------------------------
+// --- development temp code      ---
+// ----------------------------------
+
+bool upDown{false};
+
+void test() {
+    point currentPosition;
+    simplifiedMotion aMotion;
+    theMotionController.getMachinePosition(currentPosition);
+
+    if (upDown) {
+        aMotion.set(currentPosition, axis::Z, 10.0, theMachineProperties.vHoming);
+        // theParser.getBlockFromString("G1 X50 F1200");
+        // theParser.parseBlock(aMotion);
+
+        upDown = false;
+    } else {
+        aMotion.set(currentPosition, axis::Z, -10.0, theMachineProperties.vHoming);
+        // theParser.getBlockFromString("G1 X0 F1200");
+        // theParser.parseBlock(aMotion);
+        upDown = true;
+    }
+    theMotionController.append(aMotion);
+    theMotionController.start();
+}
+
+intervalTimer dispStatusTimer;
+void dispStatus() {
+    // point currentPosition;
+    // theMotionController.getMachinePosition(currentPosition);
+    // Serial.printf("X:%d, Y:%d, Z:%d\n", currentPosition.inSteps[0], currentPosition.inSteps[1], currentPosition.inSteps[2]);
+    Serial.printf("X:%d, Y:%d, Z:%d\n", theMotionController.machinePositionInSteps[0], theMotionController.machinePositionInSteps[1], theMotionController.machinePositionInSteps[2]);
+}
+
+homingController theHomer;
+
+// ----------------------------------
 // --- main application           ---
 // ----------------------------------
 
@@ -148,7 +182,9 @@ void setup() {
 
     theMotionController.resetMachinePosition();
 
-    startHoming.start(30000);
+    dispStatusTimer.start(100U);
+
+    dispStatus();
     theHomer.start();
 }
 
@@ -172,12 +208,14 @@ void loop() {
 
     if (theEventBuffer.hasEvents()) {
         event anEvent = theEventBuffer.popEvent();
-        Serial.print("E : ");
         Serial.println(toString(anEvent));
         theHomer.handleEvents(anEvent);
+        if (event::homingCompleted == anEvent) {
+            dispStatusTimer.stop();
+        }
     }
 
-    if (startHoming.expired()) {
-        theHomer.start();
+    if (dispStatusTimer.expired()) {
+        dispStatus();
     }
 }
