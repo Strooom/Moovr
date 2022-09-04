@@ -10,12 +10,12 @@
 void point::toString() const {
 }
 
-void point::stepForward(uint32_t anAxis) {
-    ++inSteps[anAxis];
-    inMm[anAxis] = inSteps[anAxis] / 1.0f;
-}
+// void point::stepForward(uint32_t anAxis) {
+//     ++inSteps[anAxis];
+//     inMm[anAxis] = inSteps[anAxis] / 1.0f;
+// }
 
-void point::stepBackward(uint32_t anAxis) {
-    --inSteps[anAxis];
-    inMm[anAxis] = inSteps[anAxis] / 1.0f;
-}
+// void point::stepBackward(uint32_t anAxis) {
+//     --inSteps[anAxis];
+//     inMm[anAxis] = inSteps[anAxis] / 1.0f;
+// }

@@ -46,8 +46,7 @@ void initialize() {
     TEST_ASSERT_EQUAL(1.0f, theMotionCtrl.theOverrides.spindleOverride);
     TEST_ASSERT_FALSE(theMotionCtrl.isOptimal);
     for (uint32_t anAxis = 0; anAxis < nmbrAxis; anAxis++) {
-        TEST_ASSERT_EQUAL(0, theMotionCtrl.currentPosition.inSteps[anAxis]);
-        TEST_ASSERT_EQUAL(0.0F, theMotionCtrl.nextPosition.inMm[anAxis]);
+        TEST_ASSERT_EQUAL(0, theMotionCtrl.machinePositionInSteps[anAxis]);
     }
 }
 
@@ -109,10 +108,34 @@ void nextStep_sequenceMotionItems() {
     theMotionCtrl.append(aMotion);
     TEST_ASSERT_EQUAL(03, theMotionCtrl.theMotionBuffer.getLevel());
     theMotionCtrl.start();
-    
+
     for (int i = 0; i < 12; i++) {
         aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
     }
+}
+
+void setSimplifiedMotion() {
+    step aStep;
+    point currentPosition;
+    simplifiedMotion aMotion;
+    aMotion.set(currentPosition, axis::X, 123.4, 12.3);
+    motionCtrl theMotionCtrl;
+    theMotionCtrl.append(aMotion);
+    theMotionCtrl.start();
+
+    for (int i = 0; i < 16; i++) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
+    }
+    theMotionCtrl.stop();
+    for (int i = 0; i < 4; i++) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();        //
+    }
+    theMotionCtrl.flushMotionBuffer();
+    theMotionCtrl.getMachinePosition(currentPosition);
+    aMotion.set(currentPosition, axis::X, -23.4, 12.3);
+    theMotionCtrl.append(aMotion);
+    theMotionCtrl.start();
+    TEST_MESSAGE("missing test");
 }
 
 void test_optimize() {
@@ -133,6 +156,7 @@ void test_vJunction() {
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(initialize);
+    RUN_TEST(setSimplifiedMotion);
 
     // --- Testing generation of stepSignals ---
 

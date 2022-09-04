@@ -10,6 +10,7 @@
 #include <stdio.h>        // needed for sprintf()
 #include <limits>         // needed for infinity
 #include <math.h>         // needed for sqrt and others
+#include "point.h"
 
 uint32_t simplifiedMotion::toString(char* output) {
     uint32_t outputLenght{0};
@@ -43,17 +44,17 @@ uint32_t simplifiedMotion::toString(char* output) {
     return outputLenght;
 }
 
-void simplifiedMotion::setForHoming(axis anAxis, double offset, double speed) {
-    // only changing the fields which are different from the initialization values
-    type = motionType::feedLinear;
-    trajectory.length  = fabs(offset);
-    speedProfile.vFeed = speed;
-    trajectory.delta[static_cast<uint32_t>(anAxis)] = offset;
+void simplifiedMotion::set(point& aPosition, axis anAxis, double offset, double speed) {
+    uint32_t axisIndex          = static_cast<uint32_t>(anAxis);
+    type                        = motionType::feedLinear;
+    trajectory.length           = fabs(offset);
+    speedProfile.vFeed          = speed;
+    trajectory.delta[axisIndex] = offset;
+
+    for (axisIndex = 0; axisIndex < nmbrAxis; ++axisIndex) {
+        trajectory.startPosition[axisIndex] = aPosition.inMm[axisIndex];
+    }
 }
-
-
-
-
 
 void simplifiedMotion::setForTest(uint32_t aSet) {
     static constexpr double pi{3.141592653589793238463};        // constant for calculations in radians
@@ -141,21 +142,3 @@ void simplifiedMotion::setForTest(uint32_t aSet) {
             break;
     }
 }
-
-// void simplifiedMotion::setForTest(motionType theType, uint32_t trajectoryIndex, uint32_t speedprofileIndex) {
-//     type = theType;
-//     switch (trajectoryIndex) {
-//         case 0U:
-//             break;
-
-//         default:
-//             break;
-//     }
-//     switch (speedprofileIndex) {
-//         case 0U:
-//             break;
-
-//         default:
-//             break;
-//     }
-// }

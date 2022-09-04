@@ -68,7 +68,7 @@ class machineProperties {
 
     double minLengthSProfile{0.0F};        // [mm] all motions with a length smaller will be 2nd order T-profile - larger will be 3rd order S-profile
 
-    float vHoming{15};           // faster homing speed, towards switch closing
+    float vHoming{5};           // faster homing speed, towards switch closing
     float vHomingSlow{1};        // slower homing, towards opening limitswitch
 
     axis homingSequence[nmbrAxis]{axis::Z, axis::X, axis::nmbrAxis};        // in which sequence do we want to home axis.

@@ -26,6 +26,14 @@ bool debouncedInput::getState() const {
     return currentState;
 }
 
+bool debouncedInput::isClosed() const {
+    return (false == currentState);
+}
+
+bool debouncedInput::isOpen() const {
+    return (true == currentState);
+}
+
 event debouncedInput::getEvent(bool undebouncedInput) {
     if (undebouncedInput) {
         if (debounceCounter < debounceMaxCount) {

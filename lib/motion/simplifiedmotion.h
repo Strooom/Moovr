@@ -11,7 +11,7 @@
 #include "axis.h"
 #include "motiontype.h"
 #include "rotationdirection.h"
-#include "position.h"
+#include "point.h"
 
 class simplifiedMotion {
   public:
@@ -43,5 +43,9 @@ class simplifiedMotion {
     uint32_t toString(char* destBuffer);
     void setForTest(uint32_t aSet);
     void setForTest(motionType theType, uint32_t trajectoryIndex, uint32_t speedprofileIndex);
-    void setForHoming(axis anAxis, double offset, double speed);
+    void set(point &aPosition, axis anAxis, double offset, double speed);
+
+    //void setRelative(point &aPosition, axis anAxis, double offset, double speed);
+    //void setAbsolute(point &aPosition, axis anAxis, double offset, double speed);
+
 };

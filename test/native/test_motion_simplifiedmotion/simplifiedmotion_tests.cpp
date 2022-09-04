@@ -1,6 +1,6 @@
 #include <unity.h>
 #include "simplifiedmotion.h"
-
+#include "point.h"
 // ----------------------------------
 // --- to be tested API           ---
 // ----------------------------------
@@ -19,8 +19,9 @@ void testInitialize() {
 }
 
 void testSetForHoming() {
+    point currentPosition;
     simplifiedMotion aMotion;
-    aMotion.setForHoming(axis::X, 123.4, 12.3);
+    aMotion.set(currentPosition, axis::X, 123.4, 12.3);
     TEST_ASSERT_EQUAL(123.4, aMotion.trajectory.length);
     TEST_ASSERT_EQUAL(0.0, aMotion.trajectory.startPosition[0]);
     TEST_ASSERT_EQUAL(123.4, aMotion.trajectory.delta[0]);

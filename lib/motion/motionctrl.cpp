@@ -254,3 +254,10 @@ void motionCtrl::resetMachinePosition() {
         machinePositionInSteps[anAxis] = 0;
     }
 }
+
+void motionCtrl::getMachinePosition(point& aPosition) {
+    for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
+        aPosition.inSteps[anAxis] = machinePositionInSteps[anAxis];
+        aPosition.inMm[anAxis]    = machinePositionInSteps[anAxis] * theMachineProperties.motors.stepsPerMm[anAxis];
+    }
+}

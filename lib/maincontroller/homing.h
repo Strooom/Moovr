@@ -29,7 +29,7 @@ class homingController {
     bool selectAxis();        // true if homeable axis is selected, false if no homeable axis found
 
     homingState theHomingState{homingState::lost};        // current state of the homing process for selected axis
-    uint32_t homingAxisIndex{0};                          // index into machineProperties.homingSequence[] : 0 for 1st axis homing (eg. Z), 1 for second axis homing...
+    uint32_t homingSequenceIndex{0};                          // index into machineProperties.homingSequence[] : 0 for 1st axis homing (eg. Z), 1 for second axis homing...
     axis currentHomingAxis{axis::nmbrAxis};               // value of machineProperties.homingSequence[homingAxisIndex]
     uint32_t currentHomingAxisIndex{nmbrAxis};            // same as currentHomingAxis but as integer value (io enum) so we can use it to index arrays
     uint32_t theLimitSwitch{0};                           // index into myInputs[] telling which input is the matching limit switch

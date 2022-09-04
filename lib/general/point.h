@@ -16,7 +16,5 @@ class point {
     int32_t inSteps[nmbrAxis]{0}; // caution, SIGNED int, as this could go negative..
 
     void toString() const;
-    void stepForward(uint32_t anAxis);
-    void stepBackward(uint32_t anAxis);
   private:
 };

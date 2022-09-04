@@ -66,10 +66,11 @@ void test_001() {
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
 
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
-    TEST_ASSERT_EQUAL(3U, theEventBuffer.level);
-    TEST_ASSERT_EQUAL(event::motionStopped, theEventBuffer.theEventBuffer[0]);
-    TEST_ASSERT_EQUAL(event::motionCompleted, theEventBuffer.theEventBuffer[1]);
-    TEST_ASSERT_EQUAL(event::allMotionsCompleted, theEventBuffer.theEventBuffer[2]);
+    TEST_ASSERT_EQUAL(4U, theEventBuffer.level);
+    TEST_ASSERT_EQUAL(event::motionStarted, theEventBuffer.theEventBuffer[0]);
+    TEST_ASSERT_EQUAL(event::motionStopped, theEventBuffer.theEventBuffer[1]);
+    TEST_ASSERT_EQUAL(event::motionCompleted, theEventBuffer.theEventBuffer[2]);
+    TEST_ASSERT_EQUAL(event::allMotionsCompleted, theEventBuffer.theEventBuffer[3]);
 }
 
 // test_002 : add two motions, start() and check if after the correct number of steps, the control proceeds to the second motion
@@ -99,10 +100,12 @@ void test_002() {
         aStep = theMotionCtrl.calcNextStepperMotorSignals();
     }
 
-    TEST_ASSERT_FALSE(theEventBuffer.hasEvents());
-    aStep = theMotionCtrl.calcNextStepperMotorSignals();
     TEST_ASSERT_EQUAL(1U, theEventBuffer.level);
-    TEST_ASSERT_EQUAL(event::motionCompleted, theEventBuffer.theEventBuffer[0]);
+    TEST_ASSERT_EQUAL(event::motionStarted, theEventBuffer.theEventBuffer[0]);
+
+    aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    TEST_ASSERT_EQUAL(2U, theEventBuffer.level);
+    TEST_ASSERT_EQUAL(event::motionCompleted, theEventBuffer.theEventBuffer[1]);
 
     // TODO : add some asserts to check that everything is properly initialised after switching to the second motion
 }
@@ -139,8 +142,10 @@ void test_003() {
     }
 
     TEST_ASSERT_FALSE(theMotionCtrl.isRunning());
-    TEST_ASSERT_EQUAL(1U, theEventBuffer.level);
-    TEST_ASSERT_EQUAL(event::motionStopped, theEventBuffer.theEventBuffer[0]);
+    TEST_ASSERT_EQUAL(3U, theEventBuffer.level);
+    TEST_ASSERT_EQUAL(event::motionStarted, theEventBuffer.theEventBuffer[0]);
+    TEST_ASSERT_EQUAL(event::stopRequested, theEventBuffer.theEventBuffer[1]);
+    TEST_ASSERT_EQUAL(event::motionStopped, theEventBuffer.theEventBuffer[2]);
 
     theMotionCtrl.start();
 
