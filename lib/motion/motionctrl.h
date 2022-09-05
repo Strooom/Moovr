@@ -40,7 +40,7 @@ class motionCtrl {
     int32_t machinePositionInSteps[nmbrAxis]{0}; // TODO make this private again, currently public so we can print it..
 
 #ifndef unitTesting
-  private:
+  //private:
 #endif
     motionState theMotionCtrlState = motionState::stopped;        // eg running, stopping or stopped
     overrides theOverrides;                                       // override values for feedrate and spindlespeed

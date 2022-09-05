@@ -3,6 +3,8 @@
 
 void motionSpeedProfile::setSpeed(const simplifiedMotion &theMotion) {
     vFeed = static_cast<float>(theMotion.speedProfile.vFeed);
+    done.duration = 0.0F;
+    done.length = 0.0F;
     left.setMax(aMax, dMax, jMax);
     left.setvStart(0.0F);
     right.setMax(aMax, dMax, jMax);

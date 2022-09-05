@@ -5,7 +5,6 @@
 #include "motionctrl.h"
 #include "motionstate.h"
 #include "debouncedinput.h"
-#include "Arduino.h"
 
 extern motionCtrl theMotionController;
 extern machineProperties theMachineProperties;
@@ -20,10 +19,10 @@ void homingController::start() {
             goTo(homingState::stopping);
         } else {
             if (myInputs[theLimitSwitch].isClosed()) {
-                Serial.printf("limitSwitch %s is closed\n", toString(currentHomingAxis));
+                // Serial.printf("limitSwitch %s is closed\n", toString(currentHomingAxis));
                 goTo(homingState::opening);
             } else {
-                Serial.printf("limitSwitch %s is open\n", toString(currentHomingAxis));
+                // Serial.printf("limitSwitch %s is open\n", toString(currentHomingAxis));
                 goTo(homingState::closing);
             }
         }
@@ -103,10 +102,10 @@ void homingController::handleEvents(event theEvent) {
             switch (theEvent) {
                 case event::motionStopped:
                     if (myInputs[theLimitSwitch].isClosed()) {
-                        Serial.printf("limitSwitch %s is closed\n", toString(currentHomingAxis));
+                        // Serial.printf("limitSwitch %s is closed\n", toString(currentHomingAxis));
                         goTo(homingState::opening);
                     } else {
-                        Serial.printf("limitSwitch %s is open\n", toString(currentHomingAxis));
+                        // Serial.printf("limitSwitch %s is open\n", toString(currentHomingAxis));
                         goTo(homingState::closing);
                     }
                     break;
@@ -155,13 +154,13 @@ void homingController::handleEvents(event theEvent) {
                 case event::motionStopped: {
                     point currentPosition;
                     simplifiedMotion aMotion;
-                    Serial.printf("axis %s : [%d], stopped\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
+                    // Serial.printf("axis %s : [%d], stopped\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
                     if (nextAxis()) {
                         if (myInputs[theLimitSwitch].isClosed()) {
-                            Serial.printf("limitSwitch %s is closed\n", toString(currentHomingAxis));
+                            // Serial.printf("limitSwitch %s is closed\n", toString(currentHomingAxis));
                             goTo(homingState::opening);
                         } else {
-                            Serial.printf("limitSwitch %s is open\n", toString(currentHomingAxis));
+                            // Serial.printf("limitSwitch %s is open\n", toString(currentHomingAxis));
                             goTo(homingState::closing);
                         }
                     } else {
@@ -203,8 +202,13 @@ void homingController::enterState(homingState theNewState) {
             point currentPosition;
             simplifiedMotion aMotion;
             theMotionController.getMachinePosition(currentPosition);
-            Serial.printf("axis %s : [%d], closing\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
-            aMotion.set(currentPosition, currentHomingAxis, theMachineProperties.motors.sMax[currentHomingAxisIndex], theMachineProperties.vHoming);
+            // Serial.printf("axis %s : [%d], closing\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
+            if (theMachineProperties.homingDirection[currentHomingAxisIndex]) {
+                aMotion.set(currentPosition, currentHomingAxis, theMachineProperties.motors.sMax[currentHomingAxisIndex], theMachineProperties.vHoming);
+            } else {
+                aMotion.set(currentPosition, currentHomingAxis, -1 * theMachineProperties.motors.sMax[currentHomingAxisIndex], theMachineProperties.vHoming);
+            }
+
             theMotionController.append(aMotion);
             theMotionController.start();
         } break;
@@ -212,7 +216,7 @@ void homingController::enterState(homingState theNewState) {
         case homingState::closedWaitForStop: {
             point currentPosition;
             theMotionController.getMachinePosition(currentPosition);
-            Serial.printf("axis %s : [%d], closed, stopping\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
+            // Serial.printf("axis %s : [%d], closed, stopping\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
             theMotionController.stop();
         } break;
 
@@ -221,8 +225,12 @@ void homingController::enterState(homingState theNewState) {
             point currentPosition;
             simplifiedMotion aMotion;
             theMotionController.getMachinePosition(currentPosition);
-            Serial.printf("axis %s : [%d], stopped, opening\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
-            aMotion.set(currentPosition, currentHomingAxis, -1 * theMachineProperties.motors.sMax[currentHomingAxisIndex], theMachineProperties.vHoming);
+            // Serial.printf("axis %s : [%d], stopped, opening\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
+            if (theMachineProperties.homingDirection[currentHomingAxisIndex]) {
+                aMotion.set(currentPosition, currentHomingAxis, -1 * theMachineProperties.motors.sMax[currentHomingAxisIndex], theMachineProperties.vHomingSlow);
+            } else {
+                aMotion.set(currentPosition, currentHomingAxis, theMachineProperties.motors.sMax[currentHomingAxisIndex], theMachineProperties.vHomingSlow);
+            }
             theMotionController.append(aMotion);
             theMotionController.start();
         } break;
@@ -230,7 +238,7 @@ void homingController::enterState(homingState theNewState) {
         case homingState::openedWaitForStop: {
             point currentPosition;
             theMotionController.getMachinePosition(currentPosition);
-            Serial.printf("axis %s : [%d], opened, stopping\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
+            // Serial.printf("axis %s : [%d], opened, stopping\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
             theMotionController.stop();
         } break;
 
@@ -239,8 +247,12 @@ void homingController::enterState(homingState theNewState) {
             point currentPosition;
             simplifiedMotion aMotion;
             theMotionController.getMachinePosition(currentPosition);
-            Serial.printf("axis %s : [%d], stopped, offsetting\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
-            aMotion.set(currentPosition, currentHomingAxis, theMachineProperties.homingOffset[currentHomingAxisIndex], theMachineProperties.vHoming);
+            // Serial.printf("axis %s : [%d], stopped, offsetting\n", toString(currentHomingAxis), currentPosition.inSteps[currentHomingAxisIndex]);
+            if (theMachineProperties.homingDirection[currentHomingAxisIndex]) {
+                aMotion.set(currentPosition, currentHomingAxis, -1 * theMachineProperties.homingOffset[currentHomingAxisIndex], theMachineProperties.vHoming);
+            } else {
+                aMotion.set(currentPosition, currentHomingAxis, theMachineProperties.homingOffset[currentHomingAxisIndex], theMachineProperties.vHoming);
+            }
             theMotionController.append(aMotion);
             theMotionController.start();
         } break;

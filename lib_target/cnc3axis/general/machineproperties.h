@@ -37,9 +37,9 @@ class machineProperties {
     void save();
 
     struct Motors {
-        float jMax{200.0F};                                       // [mm/s^3] // TODO should we not set jMax per axis ?
-        float aMax[nmbrAxis]{100.0F, 100.0F, 100.0F};              // [mm/s^2]
-        float dMax[nmbrAxis]{-100.0F, -100.0F, -100.0F};           // [mm/s^2]
+        float jMax{600.0F};                                        // [mm/s^3] // TODO should we not set jMax per axis ?
+        float aMax[nmbrAxis]{200.0F, 200.0F, 200.0F};              // [mm/s^2]
+        float dMax[nmbrAxis]{-200.0F, -200.0F, -200.0F};           // [mm/s^2]
                                                                    //        float vMax[nmbrAxis]{60.0F, 60.0F, 60.0F};              // [mm/s]
         float vMax[nmbrAxis]{30.0F, 30.0F, 30.0F};                 // [mm/s]
         float sMax[nmbrAxis]{300.0F, 160.0F, 60.0F};               // [mm]
@@ -47,11 +47,11 @@ class machineProperties {
     } motors;
 
     struct Limits {
-        bool hasLimitsMax[nmbrAxis]{true, false, true};          // limit switches towards the positive direction of the Axis
-        uint32_t limitMaxIndex[nmbrAxis]{1, 2, 0};               // index into myInputs[] telling which input is the matching limit switch
-        bool hasLimitsMin[nmbrAxis]{false, false, false};        // limit switches towards the negative direction of the Axis
-        uint32_t limitMinIndex[nmbrAxis]{0, 2, 4};               // index into myInputs[] telling which input is the matching limit switch
-        float maxLimitswitchTravel{2.0F};                        // [mm]
+        bool hasLimitsMax[nmbrAxis]{true, false, true};         // limit switches towards the positive direction of the Axis
+        uint32_t limitMaxIndex[nmbrAxis]{1, 2, 0};              // index into myInputs[] telling which input is the matching limit switch
+        bool hasLimitsMin[nmbrAxis]{false, true, false};        // limit switches towards the negative direction of the Axis
+        uint32_t limitMinIndex[nmbrAxis]{0, 2, 4};              // index into myInputs[] telling which input is the matching limit switch
+        float maxLimitswitchTravel{2.0F};                       // [mm]
     } limits;
 
     struct Spindle {
@@ -68,12 +68,12 @@ class machineProperties {
 
     double minLengthSProfile{0.0F};        // [mm] all motions with a length smaller will be 2nd order T-profile - larger will be 3rd order S-profile
 
-    float vHoming{5};           // faster homing speed, towards switch closing
+    float vHoming{10};           // faster homing speed, towards switch closing
     float vHomingSlow{1};        // slower homing, towards opening limitswitch
 
-    axis homingSequence[nmbrAxis]{axis::Z, axis::X, axis::nmbrAxis};        // in which sequence do we want to home axis.
-    bool homingDirection[nmbrAxis]{true, true, true};                       // in which direction do we want to home : true = positive, false = negative
-    double homingOffset[nmbrAxis]{-10.0, -10.0, -10.0};                     // after homing, what distance from the limitswitches do we set the machine zero
+    axis homingSequence[nmbrAxis]{axis::Z, axis::X, axis::Y};        // in which sequence do we want to home axis.
+    bool homingDirection[nmbrAxis]{true, false, true};               // in which direction do we want to home : true = positive, false = negative
+    double homingOffset[nmbrAxis]{3.0, 3.0, 3.0};                    // after homing, what distance from the limitswitches do we set the machine zero. Needs to be positive
 
     // static constexpr float t = limits.maxLimitswitchTravel * 6.0 / motors.jMax;
 };

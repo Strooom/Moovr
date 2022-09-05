@@ -19,7 +19,7 @@ class sampleTime {
     void setminStepPulseWidth(const float theMinStepPulseWidth);        //
 
 #ifndef unitTesting
-  private:
+//  private:
 #endif
     friend class motionCtrl;
     float timeInMotion{0.0F};             // time [s] between beginning of the motion and the current sampling point
