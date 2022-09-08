@@ -12,6 +12,8 @@ void initialization() {
     TEST_ASSERT_GREATER_OR_EQUAL_UINT32(someMinimumLevel, theBuffer.getLevel());
     TEST_ASSERT_GREATER_OR_EQUAL_UINT32(someMinimumTotalTime, theBuffer.getTimeInTicks());
     TEST_ASSERT_FALSE(theBuffer.needsFilling());
+    TEST_ASSERT_EQUAL_UINT32(someMinimumLevel, theBuffer.getMaxLevel());
+    TEST_ASSERT_EQUAL_UINT32(theBuffer.length, theBuffer.getMinLevel());
 }
 
 void read_write() {
@@ -23,6 +25,7 @@ void read_write() {
     step aStep{stepDuration, 0};
     uint32_t totalTimeBefore = theBuffer.getTimeInTicks();
     uint32_t levelBefore     = theBuffer.getLevel();
+
     theBuffer.write(aStep);
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32((totalTimeBefore + stepDuration), theBuffer.getTimeInTicks());
@@ -33,7 +36,6 @@ void read_write() {
     TEST_ASSERT_EQUAL_UINT32(1U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32((totalTimeBefore + stepDuration - aStep.timeBefore), theBuffer.getTimeInTicks());
     TEST_ASSERT_EQUAL_UINT32((levelBefore), theBuffer.getLevel());
-    // TODO : add minLevel and maxLevel tracking
 }
 
 void indexWrapping() {
@@ -104,10 +106,29 @@ void overflow() {
     TEST_ASSERT_EQUAL_UINT32(event::none, theBuffer.getLastError());
 }
 
+void minmaxlevel() {
+    constexpr uint32_t someMinimumTotalTime{100U};
+    constexpr uint32_t someMinimumLevel{4U};
+    stepBuffer theBuffer = stepBuffer(someMinimumTotalTime, someMinimumLevel);
+    uint32_t maxLevel    = theBuffer.getMaxLevel();
+    for (uint32_t nmbrItems = 0; nmbrItems < 16; nmbrItems++) {
+        theBuffer.write(step{10, 10});
+    }
+    TEST_ASSERT_EQUAL_UINT32(maxLevel + 16, theBuffer.getMaxLevel());
+    (void)theBuffer.read();
+    uint32_t minLevel = theBuffer.getMinLevel();
+    for (uint32_t nmbrItems = 0; nmbrItems < 16; nmbrItems++) {
+        (void)theBuffer.read();
+    }
+    TEST_ASSERT_EQUAL_UINT32(minLevel - 16, theBuffer.getMinLevel());
+    TEST_ASSERT_EQUAL_UINT32(maxLevel + 16, theBuffer.getMaxLevel());
+}
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(initialization);
     RUN_TEST(read_write);
+    RUN_TEST(minmaxlevel);
     RUN_TEST(needsFilling);
     RUN_TEST(underflow);
     RUN_TEST(overflow);

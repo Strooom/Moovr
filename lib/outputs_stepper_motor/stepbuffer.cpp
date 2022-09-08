@@ -39,6 +39,9 @@ void stepBuffer::write(step aStep) {
         buffer[writeIndexSignals].signals       = aStep.signals;                               //
         level++;                                                                               // add maxLevel tracking
         totalTime += aStep.timeBefore;
+        if (level > maxLevel) {
+            maxLevel = level;
+        }
     } else {
         lastError = event::stepBufferOverflow;
     }
@@ -51,7 +54,10 @@ step stepBuffer::read() {
         aStep.signals    = buffer[head].signals;
         totalTime -= buffer[head].timeBefore;
         head = (head + 1) % length;
-        level--;        // add minLevel tracking
+        level--;
+        if (level < minLevel) {
+            minLevel = level;
+        }
         return aStep;
     } else {
         lastError = event::stepBufferUnderflow;
@@ -81,12 +87,12 @@ event stepBuffer::getLastError() {
 
 uint32_t stepBuffer::getMinLevel() {
     uint32_t result = minLevel;
-    minLevel        = length;
+    minLevel        = level;
     return result;
 }
 
 uint32_t stepBuffer::getMaxLevel() {
     uint32_t result = maxLevel;
-    minLevel        = 0;
+    maxLevel        = level;
     return result;
 }
