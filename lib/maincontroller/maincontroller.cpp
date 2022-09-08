@@ -216,10 +216,10 @@ void mainController::handleMessages()
     //             switch (theCommand)						// then , depending on the command...
     //                 {
     //                 case command::gCode:
-    //                     theParser.getBlock(commandLine);	// Parse the line of gCode text into a gCodeBlock
-    //                     while (theParser.getNmbrWords() > 0)
+    //                     theInterpreter.getBlock(commandLine);	// Parse the line of gCode text into a gCodeBlock
+    //                     while (theInterpreter.getNmbrWords() > 0)
     //                         {
-    //                         theParser.parseBlock(theParseResult);							// Parse the gCode Block into a gCode state update and/or a gCodeMotion
+    //                         theInterpreter.interpreteBlock(theParseResult);							// Parse the gCode Block into a gCode state update and/or a gCodeMotion
     //                         switch (theParseResult.theParseResultType)
     //                             {
     //                             case gCodeParserResult::ParseResultType::OkContextUpdateOnly:
@@ -286,7 +286,7 @@ void mainController::handleMessages()
     //     //theHostInterface.sendMessage(responseMsg);
 
     //     //responseMsg[0] = 0x0;	// clear the responseString
-    //     //theParser.getState(responseMsg, 0xFF);
+    //     //theInterpreter.getState(responseMsg, 0xFF);
     //     //theHostInterface.sendMessage(responseMsg);
 
     //     //responseMsg[0] = 0x0;	// clear the responseString

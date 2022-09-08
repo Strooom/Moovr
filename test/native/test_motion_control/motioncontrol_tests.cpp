@@ -152,10 +152,10 @@ void compare() {
     simplifiedMotion aMotion;
     motionCtrl theMotionCtrl;
     theMotionCtrl.initialize(maxTicksSinceLastOutput, minStepPulseWidth);
-    gCode theParser;
+    gCode theInterpreter;
 
-    // theParser.getBlockFromString("G1 X10 F300");
-    // theParser.parseBlock(aMotion);
+    // theInterpreter.getBlockFromString("G1 X10 F300");
+    // theInterpreter.interpreteBlock(aMotion);
     // theMotionCtrl.append(aMotion);
     aMotion.set(currentPosition, axis::X, 10.0, 5.0);
     theMotionCtrl.append(aMotion);
@@ -167,8 +167,8 @@ void compare() {
 
     theMotionCtrl.getMachinePosition(currentPosition);
 
-    // theParser.getBlockFromString("G1 X0");
-    // theParser.parseBlock(aMotion);
+    // theInterpreter.getBlockFromString("G1 X0");
+    // theInterpreter.interpreteBlock(aMotion);
     // theMotionCtrl.append(aMotion);
     aMotion.set(currentPosition, axis::X, -10.0, 5.0);
     theMotionCtrl.append(aMotion);

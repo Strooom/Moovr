@@ -23,7 +23,7 @@ void initialization() {
     motionBuffer theMotionBuffer;
     TEST_ASSERT_EQUAL(0U, theMotionBuffer.head);
     TEST_ASSERT_EQUAL(0U, theMotionBuffer.level);
-    TEST_ASSERT_EQUAL(0U, theMotionBuffer.levelMax);
+    TEST_ASSERT_EQUAL(0U, theMotionBuffer.maxLevel);
     TEST_ASSERT_TRUE(theMotionBuffer.isEmpty());
     TEST_ASSERT_FALSE(theMotionBuffer.isFull());
 }

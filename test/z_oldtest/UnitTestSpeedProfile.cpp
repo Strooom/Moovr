@@ -12,22 +12,22 @@ TEST_CLASS (C01_SpeedProfile) {
         Assert::AreEqual(theSpeedPofile.duration, 0.0F);
     }
     TEST_METHOD (T02_setSpeed) {
-        gCode theParser;
+        gCode theInterpreter;
         gCodeParserResult theResult;
         motionSpeedProfile theSpeedPofile;
-        theParser.initialize();
-        theParser.getBlock("G1 X80 F1200");
-        theParser.parseBlock(theResult);
+        theInterpreter.initialize();
+        theInterpreter.getBlock("G1 X80 F1200");
+        theInterpreter.interpreteBlock(theResult);
         theSpeedPofile.setSpeed(theResult);
         Assert::AreEqual(theSpeedPofile.vFeed, 20.0F);
     }
     TEST_METHOD (T03_setDuration) {
-        gCode theParser;
+        gCode theInterpreter;
         gCodeParserResult theResult;
         motionSpeedProfile theSpeedPofile;
-        theParser.initialize();
-        theParser.getBlock("G4 P10");
-        theParser.parseBlock(theResult);
+        theInterpreter.initialize();
+        theInterpreter.getBlock("G4 P10");
+        theInterpreter.interpreteBlock(theResult);
         theSpeedPofile.setDuration(theResult);
         Assert::AreEqual(theSpeedPofile.duration, 10.0F);
     }

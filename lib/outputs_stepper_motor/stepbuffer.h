@@ -13,7 +13,7 @@
 
 class stepBuffer {
   public:
-    stepBuffer(uint32_t minimumTotalTime, uint32_t minimumLevel);
+    stepBuffer(uint32_t lowWaterTotalTime, uint32_t lowWaterMark);
     void initialize();
     void write(step aStep);
     step read();
@@ -21,6 +21,8 @@ class stepBuffer {
 
     uint32_t getTimeInTicks() const;
     uint32_t getLevel() const;
+    uint32_t getMinLevel();
+    uint32_t getMaxLevel();
     event getLastError();
 
 #ifndef unitTesting
@@ -29,11 +31,15 @@ class stepBuffer {
     static constexpr uint32_t length{256};        //
     step buffer[stepBuffer::length];              //
     uint32_t level{0};                            //
+    uint32_t minLevel{length};                    // keeping track of lowest level of buffer, in order to help dimensioning machine parameters
+    uint32_t maxLevel{0};                         // keeping track of highest level of buffer, in order to help dimensioning it's size
     uint32_t head{0};                             //
     uint32_t totalTime{0};                        // this keeps track of the total timeBefore off all items in the buffer
 
-    const uint32_t minimumTotalTime{0};
-    const uint32_t minimumLevel{0};
+    uint32_t lowWaterTotalTime;        // minimum totalTime we'd like to have in the buffer
+    uint32_t lowWaterMark;             // minimum number of items we'd like to have in the buffer
+
+    // TODO add 2 members keeping track of max and min level of buffer in order to help dimenioning it..
 
     event lastError{event::none};        // this keeps track of underflow or overflow errors
 };

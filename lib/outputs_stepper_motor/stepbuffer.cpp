@@ -12,18 +12,22 @@
 
 #include "stepbuffer.h"
 
-
-stepBuffer::stepBuffer(uint32_t aMinimumTotalTime, uint32_t aMinimumLevel) : minimumTotalTime(aMinimumTotalTime), minimumLevel(aMinimumLevel) {
+stepBuffer::stepBuffer(uint32_t aMinimumTotalTime, uint32_t aMinimumLevel) : lowWaterTotalTime(aMinimumTotalTime), lowWaterMark(aMinimumLevel) {
     initialize();
 }
 
 void stepBuffer::initialize() {
+    if (lowWaterMark < 1) {
+        lowWaterMark = 1;
+    }
     level     = 0;
+    minLevel  = length;
+    maxLevel  = 0;
     head      = 0;
     totalTime = 0;
 
-    while (needsFilling()) {                                      // this buffer should never be empty, so let's add some minimal items to it
-        write(step{(minimumTotalTime / minimumLevel), 0});        //
+    while (needsFilling()) {
+        write(step{(lowWaterTotalTime / lowWaterMark), 0});
     }
 }
 
@@ -33,10 +37,13 @@ void stepBuffer::write(step aStep) {
         uint32_t writeIndexTimeBefore           = (length + head + level - 2) % length;        // timeBefore is written 2 positions back
         buffer[writeIndexTimeBefore].timeBefore = aStep.timeBefore;                            //
         buffer[writeIndexSignals].signals       = aStep.signals;                               //
-        level++;
+        level++;                                                                               // add maxLevel tracking
         totalTime += aStep.timeBefore;
+        if (level > maxLevel) {
+            maxLevel = level;
+        }
     } else {
-        lastError = event::stepBufferOverflow; // critical problem, resulting in crash of the buffer output...
+        lastError = event::stepBufferOverflow;
     }
 }
 
@@ -48,10 +55,13 @@ step stepBuffer::read() {
         totalTime -= buffer[head].timeBefore;
         head = (head + 1) % length;
         level--;
+        if (level < minLevel) {
+            minLevel = level;
+        }
         return aStep;
     } else {
         lastError = event::stepBufferUnderflow;
-        return (step{1000, 1000});        // TODO - fix these values
+        return (step{(lowWaterTotalTime / lowWaterMark), 0});
     }
 }
 
@@ -64,12 +74,25 @@ uint32_t stepBuffer::getLevel() const {
 }
 
 bool stepBuffer::needsFilling() const {
-    bool result = ((level < minimumLevel) || (totalTime < minimumTotalTime));
-    return result;
+    bool belowMinimumLevel = ((level < lowWaterMark) || (totalTime < lowWaterTotalTime));        // prevent underflow
+    bool notFull           = (level < length);                                                   // prevent overflow
+    return belowMinimumLevel && notFull;
 }
 
 event stepBuffer::getLastError() {
     event result = lastError;
     lastError    = event::none;
+    return result;
+}
+
+uint32_t stepBuffer::getMinLevel() {
+    uint32_t result = minLevel;
+    minLevel        = level;
+    return result;
+}
+
+uint32_t stepBuffer::getMaxLevel() {
+    uint32_t result = maxLevel;
+    maxLevel        = level;
     return result;
 }

@@ -52,7 +52,7 @@ TEST_CLASS (C01_Motion) {
 
         aParser.initialize();
         aParser.getBlock("G1 X80 F1200");        // This segment, in combination with above machineProperties, results into 1 s for each of the 7 phases of the motion
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         anItem.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
 
         // TODO
@@ -72,7 +72,7 @@ TEST_CLASS (C01_Motion) {
 
         aParser.initialize();
         aParser.getBlock("G1 X80 F1200");        // This segment, in combination with above machineProperties, results into 1 s for each of the 7 phases of the motion
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         anItem.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
         anItem.optimizeCurrent(motionStrategy::minimizeSpeed, theOverrides, 3.5F);
     }
@@ -91,7 +91,7 @@ TEST_CLASS (C01_Motion) {
 
         aParser.initialize();
         aParser.getBlock("G1 X100 F1200");
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         anItem.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
         theOverrides.feedOverride = 1.5F;
         anItem.optimizeCurrent(motionStrategy::maximizeSpeed, theOverrides, 3.5F);
