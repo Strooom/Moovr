@@ -1,10 +1,8 @@
 #include <unity.h>
 #include "stepbuffer.h"
 
-void setUp(void) {}           //  before test
+void setUp(void) {}           // before test
 void tearDown(void) {}        // after test
-void noInterrupts() {}        // mock for unitTesting
-void interrupts() {}          // idem
 
 void initialization() {
     constexpr uint32_t someMinimumTotalTime{100U};
@@ -35,6 +33,7 @@ void read_write() {
     TEST_ASSERT_EQUAL_UINT32(1U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32((totalTimeBefore + stepDuration - aStep.timeBefore), theBuffer.getTimeInTicks());
     TEST_ASSERT_EQUAL_UINT32((levelBefore), theBuffer.getLevel());
+    // TODO : add minLevel and maxLevel tracking
 }
 
 void indexWrapping() {
@@ -74,6 +73,7 @@ void needsFilling() {
 
     theBuffer.write(step{someMinimumTotalTime, 0});
     TEST_ASSERT_FALSE(theBuffer.needsFilling());
+    // TODO : also test needsfilling when buffer is about to overflow
 }
 
 void underflow() {
