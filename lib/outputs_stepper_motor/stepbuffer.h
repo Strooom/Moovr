@@ -36,8 +36,8 @@ class stepBuffer {
     uint32_t head{0};                             //
     uint32_t totalTime{0};                        // this keeps track of the total timeBefore off all items in the buffer
 
-    const uint32_t lowWaterTotalTime{0};        // minimum totalTime we'd like to have in the buffer
-    const uint32_t lowWaterMark{0};             // minimum number of items we'd like to have in the buffer
+    uint32_t lowWaterTotalTime;        // minimum totalTime we'd like to have in the buffer
+    uint32_t lowWaterMark;             // minimum number of items we'd like to have in the buffer
 
     // TODO add 2 members keeping track of max and min level of buffer in order to help dimenioning it..
 
