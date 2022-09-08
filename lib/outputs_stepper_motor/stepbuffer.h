@@ -39,8 +39,6 @@ class stepBuffer {
     uint32_t lowWaterTotalTime;        // minimum totalTime we'd like to have in the buffer
     uint32_t lowWaterMark;             // minimum number of items we'd like to have in the buffer
 
-    // TODO add 2 members keeping track of max and min level of buffer in order to help dimenioning it..
-
     event lastError{event::none};        // this keeps track of underflow or overflow errors
 };
 
