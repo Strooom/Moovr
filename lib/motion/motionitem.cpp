@@ -192,6 +192,13 @@ void motion::optimize(overrides theOverrides, motionStrategy theStrategy) {
         } break;
 
         case motionType::pauseAndResume:
+            if (theStrategy == motionStrategy::maximizeSpeed) {
+                speedProfile.tStop = std::numeric_limits<float>::infinity();
+            } else {
+                speedProfile.tStop = 0.0F;
+            }
+            break;
+
         case motionType::pause:
         case motionType::none:
         default:

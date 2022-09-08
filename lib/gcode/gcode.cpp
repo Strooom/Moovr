@@ -24,12 +24,9 @@ void gCode::reset() {
     theState.WCSorigin[static_cast<uint32_t>(modalGroupCoordinateSet::G54)][static_cast<uint32_t>(axis::X)] = 0;
     theState.WCSorigin[static_cast<uint32_t>(modalGroupCoordinateSet::G54)][static_cast<uint32_t>(axis::Y)] = 0;
     theState.WCSorigin[static_cast<uint32_t>(modalGroupCoordinateSet::G54)][static_cast<uint32_t>(axis::Z)] = 0;
-
-    // read Machine settings from SD-Card to override the defaults
-    // TODO
 }
 
-void gCode::parseBlock(simplifiedMotion &theMotion) {
+void gCode::interpreteBlock(simplifiedMotion &theMotion) {
     theResult      = gCodeParseResultType::EmptyBlock;
     theMotion.type = motionType::none;
     theError       = gCodeParseError::None;
@@ -67,7 +64,7 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
                     theState.letterValueState[static_cast<uint32_t>(gCodeLetter::P)] = theBlock.gCodeWords[j].number;
                     theResult                                                        = gCodeParseResultType::OkContextUpdateAndMotion;
                     theMotion.type                                                   = motionType::pauseAndResume;
-                    calcMotion(theMotion);        // TODO : maybe no need to do all calculations, only subset calculating duration would be ok
+                    calcMotion(theMotion);
                     theBlock.removeWord(i);
                     theBlock.removeWord(j);
                     return;
@@ -95,7 +92,13 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
             if ((j = theBlock.searchWord('L', 20)) >= 0) {
                 int32_t k;
                 if ((k = theBlock.searchWord('P')) >= 0) {
-                    // TODO : Check P integer 1 .. 9
+                    uint32_t WCSindex = theBlock.gCodeWords[k].intNumber / 10;
+                    if ((WCSindex >= 0) && (WCSindex <= 9)) {
+
+                    } else {
+                    theResult = gCodeParseResultType::Error;
+                    theError  = gCodeParseError::InvalidPForG10;
+                    }
                 } else {
                     theResult = gCodeParseResultType::Error;
                     theError  = gCodeParseError::MissingPForG10;
@@ -103,7 +106,13 @@ void gCode::parseBlock(simplifiedMotion &theMotion) {
             } else if ((j = theBlock.searchWord('L', 200)) >= 0) {
                 int32_t k;
                 if ((k = theBlock.searchWord('P')) >= 0) {
-                    // TODO : Check P integer 1 .. 9
+                    uint32_t WCSindex = theBlock.gCodeWords[k].intNumber / 10;
+                    if ((WCSindex >= 0) && (WCSindex <= 9)) {
+
+                    } else {
+                    theResult = gCodeParseResultType::Error;
+                    theError  = gCodeParseError::InvalidPForG10;
+                    }
                 } else {
                     theResult = gCodeParseResultType::Error;
                     theError  = gCodeParseError::MissingPForG10;
@@ -750,14 +759,6 @@ void gCode::updatePosition() {
     for (uint32_t anAxis = 0; anAxis < nmbrAxis; ++anAxis) {
         theState.currentPosition[anAxis] = theState.nextPosition[anAxis];
     }
-}
-
-void gCode::saveState() {
-    // TODO
-}
-
-void gCode::restoreState() {
-    // TODO
 }
 
 void gCode::getBlockFromString(const uint8_t *gCodeAsString) {

@@ -50,7 +50,7 @@ motionCtrl theMotionController;
 intervalTimer sampleInputsTimer;
 stepBuffer theStepBuffer(minStepBufferTotalTimeTicks, minStepBufferLevel);
 
-gCode theParser;
+gCode theInterpreter;
 
 // simplifiedMotion aMotion;
 // mcuLoad theMcuLoad;

@@ -23,7 +23,7 @@ class gCode {
     void restoreState();        // Restore the state from previous saveState
     void getBlockFromString(const uint8_t *gCodeAsString);
     void getBlockFromString(const char *gCodeAsString);
-    void parseBlock(simplifiedMotion &theMotion);        // Process all words in block, update gCode context and spawn a motion if the block contains one..
+    void interpreteBlock(simplifiedMotion &theMotion);        // Process all words in block, update gCode context and spawn a motion if the block contains one..
 
 #ifndef unitTesting
   private:
