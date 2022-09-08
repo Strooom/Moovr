@@ -26,7 +26,7 @@ TEST_CLASS (C01_gCode2MotionTests) {
 
         aParser.initialize();
         aParser.getBlock("G1 X80 F1200");        // This segment, in combination with above machineProperties, results into 1 s for each of the 7 phases of the motion
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         anItem.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
         Assert::IsTrue(motionType::FeedLinear == anItem.type, L"001");
         Assert::IsTrue(80.0F == anItem.trajectory.length, L"002");
@@ -47,7 +47,7 @@ TEST_CLASS (C01_gCode2MotionTests) {
 
         aParser.initialize();
         aParser.getBlock("G1 X30 F600");        // This segment and feedrate result in an empty phase 2 and 6
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         anItem.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
         Assert::IsTrue(motionType::FeedLinear == anItem.type, L"001");
         Assert::IsTrue(30.0F == anItem.trajectory.length, L"002");
@@ -68,7 +68,7 @@ TEST_CLASS (C01_gCode2MotionTests) {
 
         aParser.initialize();
         aParser.getBlock("G1 X20 F600");        // This segment and feedrate result in an empty phase 2, 4 and 6
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         anItem.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
         Assert::IsTrue(motionType::FeedLinear == anItem.type, L"001");
         Assert::IsTrue(20.0F == anItem.trajectory.length, L"002");
@@ -89,7 +89,7 @@ TEST_CLASS (C01_gCode2MotionTests) {
 
         aParser.initialize();
         aParser.getBlock("G1 X10 F600");
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         anItem.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
         Assert::IsTrue(motionType::FeedLinear == anItem.type, L"001");
         Assert::IsTrue(10.0F == anItem.trajectory.length, L"002");
@@ -110,7 +110,7 @@ TEST_CLASS (C01_gCode2MotionTests) {
 
         aParser.initialize();
         aParser.getBlock("G1 X5 F600");
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         anItem.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
         Assert::IsTrue(motionType::FeedLinear == anItem.type, L"001");
         Assert::IsTrue(5.0F == anItem.trajectory.length, L"002");
@@ -138,7 +138,7 @@ TEST_CLASS (C01_gCode2MotionTests) {
         //aParser.getBlock("G1 X80 F1200");
 
         
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
         theMotion.set(theResult, theMachineProperties, motionStrategy::maximizeSpeed, theOverrides);
 
         //Assert::IsTrue(theMotion.s(3.5F) == 40.0F, L"001");
@@ -166,7 +166,7 @@ TEST_CLASS (C02_motion2StepsTests) {
 
         aParser.initialize();
         aParser.getBlock("G1 X80 F1200");        // This segment, in combination with above machineProperties, results into 1 s for each of the 7 phases of the motion
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
 
         Assert::IsTrue(theCtrl.theMotionBuffer.isEmpty(), L"001");
         theCtrl.append(theResult);
@@ -194,7 +194,7 @@ TEST_CLASS (C03_motionOptimizingTests) {
 
         aParser.initialize();
         aParser.getBlock("G1 X80 F1200");        // This segment, in combination with above machineProperties, results into 1 s for each of the 7 phases of the motion
-        aParser.parseBlock(theResult);
+        aParser.interpreteBlock(theResult);
 
         Assert::IsTrue(theCtrl.theMotionBuffer.isEmpty(), L"001");
         theCtrl.append(theResult);

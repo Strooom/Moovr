@@ -92,18 +92,18 @@ void setup()
 		// Here they are created on the stack, but I could move them to the globals if needed.
         MotionItem theMotionItem;																	// construct a motionITEM
         theTest.printValue(static_cast<int32_t>(sizeof(theMotionItem)), "memory footprint of MotionItem [bytes]");
-		gCode theParser;
-		theTest.printValue(static_cast<int32_t>(sizeof(theParser)), "memory footprint of gCode Parser [bytes]");
+		gCode theInterpreter;
+		theTest.printValue(static_cast<int32_t>(sizeof(theInterpreter)), "memory footprint of gCode Parser [bytes]");
 		gCodeParserResult result;
 		theTest.printValue(static_cast<int32_t>(sizeof(result)), "memory footprint of gCodeParserResult [bytes]");
 		MachineProperties theMachineProperties;
 		theTest.printValue(static_cast<int32_t>(sizeof(theMachineProperties)), "memory footprint of theMachineProperties [bytes]");
 
-		theParser.initialize();								// initialize the gCode parser
-		theParser.getBlock("F1000 G0 Y100 ");						// load 1 block of gCode
-		theParser.parseBlock(result);						// parse it, into gCodeParserResult
-		theParser.getBlock("G2 X0 Y-100 J-100");				// load 1 block of gCode
-		theParser.parseBlock(result);						// parse it, into gCodeParserResult
+		theInterpreter.initialize();								// initialize the gCode parser
+		theInterpreter.getBlock("F1000 G0 Y100 ");						// load 1 block of gCode
+		theInterpreter.interpreteBlock(result);						// parse it, into gCodeParserResult
+		theInterpreter.getBlock("G2 X0 Y-100 J-100");				// load 1 block of gCode
+		theInterpreter.interpreteBlock(result);						// parse it, into gCodeParserResult
 		theMotionItem.set(result, theMachineProperties);	// set properties of motionItem according to gCodeParserResult
 
 		theMotionItem.print();

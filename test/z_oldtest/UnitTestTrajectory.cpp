@@ -12,12 +12,12 @@ TEST_CLASS (C01_Trajectory) {
         Assert::AreEqual(theTrajectory.length, 0.0F);
     }
     TEST_METHOD (T02_set) {
-        gCode theParser;
+        gCode theInterpreter;
         gCodeParserResult theResult;
         motionTrajectory theTrajectory;
-        theParser.initialize();
-        theParser.getBlock("G1 X80 F1200");
-        theParser.parseBlock(theResult);
+        theInterpreter.initialize();
+        theInterpreter.getBlock("G1 X80 F1200");
+        theInterpreter.interpreteBlock(theResult);
         theTrajectory.set(theResult);
         Assert::AreEqual(theTrajectory.length, 80.0F);
     }

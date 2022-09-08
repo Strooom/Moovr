@@ -30,10 +30,10 @@ void test_001() {
     theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 32.0f);
 
     simplifiedMotion aMotion;
-    gCode theParser;
+    gCode theInterpreter;
 
-    theParser.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
-    theParser.parseBlock(aMotion);
+    theInterpreter.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
+    theInterpreter.interpreteBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
     theMotionCtrl.start();
@@ -83,15 +83,15 @@ void test_002() {
     theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 32.0f);
 
     simplifiedMotion aMotion;
-    gCode theParser;
+    gCode theInterpreter;
     step aStep;
 
-    theParser.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
-    theParser.parseBlock(aMotion);
+    theInterpreter.getBlockFromString("G0 X2");        // 2 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 3 seconds
+    theInterpreter.interpreteBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
-    theParser.getBlockFromString("G0 X0");
-    theParser.parseBlock(aMotion);
+    theInterpreter.getBlockFromString("G0 X0");
+    theInterpreter.interpreteBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
     theMotionCtrl.start();
@@ -122,11 +122,11 @@ void test_003() {
     theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 32.0f);
 
     simplifiedMotion aMotion;
-    gCode theParser;
+    gCode theInterpreter;
     step aStep;
 
-    theParser.getBlockFromString("G0 X10");        // 10 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 11 seconds
-    theParser.parseBlock(aMotion);
+    theInterpreter.getBlockFromString("G0 X10");        // 10 mm move at vmax = 1 mm/s, amax = 1mm/s2 -> 11 seconds
+    theInterpreter.interpreteBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
     theMotionCtrl.start();
@@ -166,11 +166,11 @@ void optimize() {
     theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 32.0f);
 
     simplifiedMotion aMotion;
-    gCode theParser;
+    gCode theInterpreter;
     step aStep;
 
-    theParser.getBlockFromString("G1 X10 F30");
-    theParser.parseBlock(aMotion);
+    theInterpreter.getBlockFromString("G1 X10 F30");
+    theInterpreter.interpreteBlock(aMotion);
     theMotionCtrl.append(aMotion);
 
     theMotionCtrl.start();

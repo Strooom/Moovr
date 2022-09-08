@@ -1,0 +1,1 @@
+1. When doing a 'rename' with F2, the occurence of the object is not found by VSCode in source code only included in other environments than the one currently active

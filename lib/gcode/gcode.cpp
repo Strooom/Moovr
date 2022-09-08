@@ -29,7 +29,7 @@ void gCode::reset() {
     // TODO
 }
 
-void gCode::parseBlock(simplifiedMotion &theMotion) {
+void gCode::interpreteBlock(simplifiedMotion &theMotion) {
     theResult      = gCodeParseResultType::EmptyBlock;
     theMotion.type = motionType::none;
     theError       = gCodeParseError::None;

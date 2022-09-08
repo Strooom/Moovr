@@ -44,7 +44,7 @@ mainController theMainCtrl;
 motionCtrl theMotionController;
 stepBuffer theStepBuffer(minStepBufferTotalTimeTicks, minStepBufferLevel);
 
-gCode theParser;
+gCode theInterpreter;
 
 // simplifiedMotion aMotion;
 // mcuLoad theMcuLoad;
