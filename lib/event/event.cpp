@@ -80,6 +80,9 @@ const char* toString(event anEvent) {
         case event::motionBufferOverflow:
             return "motionBufferOverflow";
             break;
+        case event::motionBufferUnderflow:
+            return "motionBufferUnderflow";
+            break;
         case event::homingStarted:
             return "homing started";
             break;
