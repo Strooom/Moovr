@@ -70,8 +70,8 @@ inputs allSwitchAndButtons;
 debouncedInput myInputs[nmbrInputs] = {
     debouncedInput(event::limitSwitchZMaxClosed, event::limitSwitchZMaxOpened),
     debouncedInput(event::limitSwitchXMaxClosed, event::limitSwitchXMaxOpened),
-    debouncedInput(event::limitSwitchYMinClosed, event::limitSwitchYMinOpened),
     debouncedInput(event::limitSwitchYMaxClosed, event::limitSwitchYMaxOpened),
+    debouncedInput(event::limitSwitchYMinClosed, event::limitSwitchYMinOpened),
     debouncedInput(event::limitSwitchZMinClosed, event::limitSwitchZMinOpened),
     debouncedInput(event::limitSwitchXMinClosed, event::limitSwitchXMinOpened),
     debouncedInput(event::emergencyStopButtonPressed, event::emergencyStopButtonReleased),

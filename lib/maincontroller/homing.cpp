@@ -32,12 +32,15 @@ void homingController::start() {
 }
 
 bool homingController::nextAxis() {
-    homingSequenceIndex++;
-    return selectAxis();
+    if (homingSequenceIndex < theMachineProperties.nmbrHomingAxis) {
+        homingSequenceIndex++;
+        return selectAxis();
+    }
+    return false;
 }
 
 bool homingController::selectAxis() {
-    while (homingSequenceIndex < nmbrAxis) {
+    while (homingSequenceIndex < theMachineProperties.nmbrHomingAxis) {
         currentHomingAxis      = theMachineProperties.homingSequence[homingSequenceIndex];
         currentHomingAxisIndex = static_cast<uint32_t>(currentHomingAxis);
         if (static_cast<uint32_t>(currentHomingAxis) < nmbrAxis) {

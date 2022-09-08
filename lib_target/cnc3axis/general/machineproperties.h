@@ -47,9 +47,9 @@ class machineProperties {
     } motors;
 
     struct Limits {
-        bool hasLimitsMax[nmbrAxis]{true, false, true};         // limit switches towards the positive direction of the Axis
+        bool hasLimitsMax[nmbrAxis]{true, true, true};         // limit switches towards the positive direction of the Axis
         uint32_t limitMaxIndex[nmbrAxis]{1, 2, 0};              // index into myInputs[] telling which input is the matching limit switch
-        bool hasLimitsMin[nmbrAxis]{false, true, false};        // limit switches towards the negative direction of the Axis
+        bool hasLimitsMin[nmbrAxis]{false, false, false};        // limit switches towards the negative direction of the Axis
         uint32_t limitMinIndex[nmbrAxis]{0, 2, 4};              // index into myInputs[] telling which input is the matching limit switch
         float maxLimitswitchTravel{2.0F};                       // [mm]
     } limits;
@@ -71,8 +71,9 @@ class machineProperties {
     float vHoming{10};           // faster homing speed, towards switch closing
     float vHomingSlow{1};        // slower homing, towards opening limitswitch
 
-    axis homingSequence[nmbrAxis]{axis::Z, axis::X, axis::Y};        // in which sequence do we want to home axis.
-    bool homingDirection[nmbrAxis]{true, false, true};               // in which direction do we want to home : true = positive, false = negative
+    static constexpr uint32_t nmbrHomingAxis{3U};                    // how many axis do have homing
+    axis homingSequence[nmbrHomingAxis]{axis::Z, axis::X, axis::Y};        // in which sequence do we want to home axis.
+    bool homingDirection[nmbrAxis]{true, true, true};                // in which direction do we want to home : true = positive, false = negative
     double homingOffset[nmbrAxis]{3.0, 3.0, 3.0};                    // after homing, what distance from the limitswitches do we set the machine zero. Needs to be positive
 
     // static constexpr float t = limits.maxLimitswitchTravel * 6.0 / motors.jMax;
