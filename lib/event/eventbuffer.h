@@ -15,7 +15,7 @@ class eventBuffer {
     void pushEvent(event anEvent);
     event popEvent();
     bool hasEvents();
-    uint32_t getLevelMax();
+    uint32_t getMaxLevel();
     event getLastError();
 
 #ifndef unitTesting
@@ -25,6 +25,6 @@ class eventBuffer {
     event theEventBuffer[eventBuffer::length]{};
     uint32_t head{0};
     uint32_t level{0};
-    uint32_t levelMax{0};
+    uint32_t maxLevel{0};
     event lastError{event::none};        // this keeps track of underflow or overflow errors
 };
