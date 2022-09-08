@@ -41,13 +41,10 @@ void test_001() {
     step aStep;
 
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
-    TEST_ASSERT_EQUAL(19, aStep.timeBefore);
+    TEST_ASSERT_EQUAL(18, aStep.timeBefore);
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
-    TEST_ASSERT_EQUAL(10, aStep.timeBefore);
-    aStep = theMotionCtrl.calcNextStepperMotorSignals();
-    aStep = theMotionCtrl.calcNextStepperMotorSignals();
-    TEST_ASSERT_EQUAL(7, aStep.timeBefore);
+    TEST_ASSERT_EQUAL(11, aStep.timeBefore);
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     TEST_ASSERT_EQUAL(7, aStep.timeBefore);
@@ -59,7 +56,10 @@ void test_001() {
     TEST_ASSERT_EQUAL(7, aStep.timeBefore);
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
-    TEST_ASSERT_EQUAL(8, aStep.timeBefore);
+    TEST_ASSERT_EQUAL(7, aStep.timeBefore);
+    aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    TEST_ASSERT_EQUAL(7, aStep.timeBefore);
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     aStep = theMotionCtrl.calcNextStepperMotorSignals();
     TEST_ASSERT_EQUAL(11, aStep.timeBefore);
@@ -184,9 +184,39 @@ void optimize() {
     theMotionCtrl.optimize();
     TEST_ASSERT_EQUAL(11.0f, theMotionCtrl.theMotionBuffer.getHead().speedProfile.duration);
 
-    theMotionCtrl.theOverrides.feedOverride = 3.0f; // this 300# exceeds vMax, so it will limit to 
+    theMotionCtrl.theOverrides.feedOverride = 3.0f;        // this 300# exceeds vMax, so it will limit to
     theMotionCtrl.optimize();
     TEST_ASSERT_EQUAL(11.0f, theMotionCtrl.theMotionBuffer.getHead().speedProfile.duration);
+}
+
+void G4() {
+    theEventBuffer.initialize();
+    theMachineProperties.setForTest(1U);
+    motionCtrl theMotionCtrl;
+    theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(1000U);        // not interested in (interfering) these dummy stepsignals, so disabling them, //  theMotionCtrl.theStepSignals.setMaxTicksSinceLastOutput(std::numeric_limits<uint32_t>::max());
+    theMotionCtrl.theSampleTime.setminStepPulseWidth(1.0f / 32.0f);
+
+    simplifiedMotion aMotion;
+    gCode theInterpreter;
+    step aStep;
+
+    theInterpreter.getBlockFromString("G4 P0.5");
+    theInterpreter.interpreteBlock(aMotion);
+    theMotionCtrl.append(aMotion);
+    theMotionCtrl.start();
+
+    for (int i = 0; i < 2; i++) {
+        aStep = theMotionCtrl.calcNextStepperMotorSignals();
+    }
+
+    TEST_ASSERT_FALSE(theMotionCtrl.isRunning());
+    TEST_ASSERT_EQUAL(4U, theEventBuffer.level);
+    TEST_ASSERT_EQUAL(event::motionStarted, theEventBuffer.theEventBuffer[0]);
+    TEST_ASSERT_EQUAL(event::motionStopped, theEventBuffer.theEventBuffer[1]);
+    TEST_ASSERT_EQUAL(event::motionCompleted, theEventBuffer.theEventBuffer[2]);
+    TEST_ASSERT_EQUAL(event::allMotionsCompleted, theEventBuffer.theEventBuffer[3]);
+
+    // TODO : can we feedhold in the middle of a G4, and then resume ?
 }
 
 int main(int argc, char **argv) {
@@ -195,5 +225,6 @@ int main(int argc, char **argv) {
     RUN_TEST(test_002);
     RUN_TEST(test_003);
     RUN_TEST(optimize);
+    RUN_TEST(G4);
     UNITY_END();
 }

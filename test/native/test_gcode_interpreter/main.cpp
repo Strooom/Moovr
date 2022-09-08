@@ -120,6 +120,8 @@ void G1() {
 }
 
 void G2G3() {
+    // test invalid ijk resulting in unknown radius...
+    // test invalid R ??
     TEST_IGNORE();
 }
 
