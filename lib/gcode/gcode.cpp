@@ -82,6 +82,7 @@ void gCode::interpreteBlock(simplifiedMotion &theMotion) {
     setArcPlane();
     setUnitsMode();
     setWCSMode();
+    setPathControlMode();
     setdistanceMode();
 
     if (theBlock.hasWords()) {
@@ -94,10 +95,9 @@ void gCode::interpreteBlock(simplifiedMotion &theMotion) {
                 if ((k = theBlock.searchWord('P')) >= 0) {
                     uint32_t WCSindex = theBlock.gCodeWords[k].intNumber / 10;
                     if ((WCSindex >= 0) && (WCSindex <= 9)) {
-
                     } else {
-                    theResult = gCodeParseResultType::Error;
-                    theError  = gCodeParseError::InvalidPForG10;
+                        theResult = gCodeParseResultType::Error;
+                        theError  = gCodeParseError::InvalidPForG10;
                     }
                 } else {
                     theResult = gCodeParseResultType::Error;
@@ -108,10 +108,9 @@ void gCode::interpreteBlock(simplifiedMotion &theMotion) {
                 if ((k = theBlock.searchWord('P')) >= 0) {
                     uint32_t WCSindex = theBlock.gCodeWords[k].intNumber / 10;
                     if ((WCSindex >= 0) && (WCSindex <= 9)) {
-
                     } else {
-                    theResult = gCodeParseResultType::Error;
-                    theError  = gCodeParseError::InvalidPForG10;
+                        theResult = gCodeParseResultType::Error;
+                        theError  = gCodeParseError::InvalidPForG10;
                     }
                 } else {
                     theResult = gCodeParseResultType::Error;
@@ -352,6 +351,22 @@ void gCode::setArcPlane() {
             theBlock.removeWord(i);
         } else if (((i = theBlock.searchWord('G', 190U)) >= 0) && (static_cast<uint32_t>(axis::nmbrAxis) >= 3)) {
             theState.modalGroupsState[static_cast<uint32_t>(modalGroup::Plane)] = static_cast<uint32_t>(modalGroupPlane::G19);
+            theBlock.removeWord(i);
+        }
+    }
+}
+
+void gCode::setPathControlMode() {
+    if (theBlock.hasWords()) {
+        int32_t i;
+        // Set Path Control Mode (G61, G64)
+        // G61.1 not supported, I don't see the benefit of it right now..
+        if ((i = theBlock.searchWord('G', 610U)) >= 0) {
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::PathControlMode)] = static_cast<uint32_t>(modalGroupPathControlMode::exactPath);
+            theBlock.removeWord(i);
+        } else if ((i = theBlock.searchWord('G', 640U)) >= 0)
+        {
+            theState.modalGroupsState[static_cast<uint32_t>(modalGroup::PathControlMode)] = static_cast<uint32_t>(modalGroupPathControlMode::continuous);
             theBlock.removeWord(i);
         }
     }

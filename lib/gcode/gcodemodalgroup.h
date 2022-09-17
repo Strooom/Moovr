@@ -102,7 +102,7 @@ enum class modalGroupCoolantMist : uint32_t
 
 enum class modalGroupPathControlMode : uint32_t
     {
-    G61, G64,
+    exactPath, continuous,
     nmbrModes
     };
 
