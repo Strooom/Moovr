@@ -119,6 +119,10 @@ void motionCtrl::optimizePair(int32_t junctionIndex) {
 
 float motionCtrl::vJunction(uint32_t left, uint32_t right) const {
     // TODO add smarter code to determine aligned segments from turns..
+    // See Blog : Improving GRBL Cornering Algorithm
+    // Add unit direction vector at entry and exit of motion segments. 
+    // G61 always come to a complete stop
+    // G64 use the GRBL algorithm, needs a parameter in machineProperties
     return 0.0F;
 
     float vResult{0};        // local variable to calculate and test for speed conditions
