@@ -202,6 +202,12 @@ void gCodeBlock::countModalGroupAndOthers(uint32_t i) {
                 ++modalGroupCount[(uint32_t)modalGroup::CoordinateSet];
                 ++modalGroupCount[(uint32_t)modalGroup::Group0];
                 break;
+
+            case 610U:
+            case 640U:
+                ++modalGroupCount[(uint32_t)modalGroup::PathControlMode];
+                break;
+
         }
     } else if ('M' == gCodeWords[i].letter) {
         switch (gCodeWords[i].intNumber) {

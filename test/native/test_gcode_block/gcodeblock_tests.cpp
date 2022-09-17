@@ -88,6 +88,9 @@ void modalGroupViolation() {
     TEST_ASSERT_FALSE(aBlock.hasModalGroupViolation());
     aBlock.getBlockFromString("G0 G1");
     TEST_ASSERT_TRUE(aBlock.hasModalGroupViolation());
+    aBlock.initialize();
+    aBlock.getBlockFromString("G61 G64");
+    TEST_ASSERT_TRUE(aBlock.hasModalGroupViolation());
 }
 
 void letterWordViolation() {
