@@ -72,7 +72,8 @@ class machineProperties {
     float vHoming{15};           // faster homing speed, towards switch closing
     float vHomingSlow{1};        // slower homing, towards opening limitswitch
 
-    axis homingSequence[nmbrAxis]{axis::Z, axis::X, axis::nmbrAxis};        // in which sequence do we want to home axis.
-    bool homingDirection[nmbrAxis]{true, true, true};                       // in which direction do we want to home : true = positive, false = negative
-    double homingOffset[nmbrAxis]{-10.0, -10.0, -10.0};                     // after homing, what distance from the limitswitches do we set the machine zero
+    static constexpr uint32_t nmbrHomingAxis{3U};                          // how many axis do have homing
+    axis homingSequence[nmbrHomingAxis]{axis::Z, axis::X, axis::Y};        // in which sequence do we want to home axis.
+    bool homingDirection[nmbrAxis]{true, true, true};                      // in which direction do we want to home : true = positive, false = negative
+    double homingOffset[nmbrAxis]{3.0, 3.0, 3.0};                          // after homing, what distance from the limitswitches do we set the machine zero. Needs to be positive
 };

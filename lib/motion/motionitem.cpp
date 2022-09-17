@@ -255,15 +255,15 @@ void motion::limit()        // calculate vMax, aMax and dMax from trajectory and
             }
         }
 
-        if (speedProfile.vMax > fabs(theMachineProperties.motors.vMax[i] / trajectory.directionUnitVector[i]))        // it seems the floating point division understands 'infinity' and so this works without testing for div by zero
+        if (speedProfile.vMax > fabs(theMachineProperties.motors.vMax[i] / trajectory.entryVector[i]))        // it seems the floating point division understands 'infinity' and so this works without testing for div by zero
         {
-            speedProfile.vMax = static_cast<float>(fabs(theMachineProperties.motors.vMax[i] / trajectory.directionUnitVector[i]));        // restrict vMax, if this would result in exceeding vMax for any of the Axis
+            speedProfile.vMax = static_cast<float>(fabs(theMachineProperties.motors.vMax[i] / trajectory.entryVector[i]));        // restrict vMax, if this would result in exceeding vMax for any of the Axis
         }
-        if (speedProfile.aMax > fabs(theMachineProperties.motors.aMax[i] / trajectory.directionUnitVector[i])) {
-            speedProfile.aMax = static_cast<float>(fabs(theMachineProperties.motors.aMax[i] / trajectory.directionUnitVector[i]));        // restrict aMax, if this would result in exceeding aMax for any of the Axis
+        if (speedProfile.aMax > fabs(theMachineProperties.motors.aMax[i] / trajectory.entryVector[i])) {
+            speedProfile.aMax = static_cast<float>(fabs(theMachineProperties.motors.aMax[i] / trajectory.entryVector[i]));        // restrict aMax, if this would result in exceeding aMax for any of the Axis
         }
-        if (fabs(speedProfile.dMax) > fabs(theMachineProperties.motors.dMax[i] / trajectory.directionUnitVector[i])) {
-            speedProfile.dMax = static_cast<float>(-1 * fabs(theMachineProperties.motors.dMax[i] / trajectory.directionUnitVector[i]));        // restrict dMax, if this would result in exceeding dMax for any of the Axis
+        if (fabs(speedProfile.dMax) > fabs(theMachineProperties.motors.dMax[i] / trajectory.entryVector[i])) {
+            speedProfile.dMax = static_cast<float>(-1 * fabs(theMachineProperties.motors.dMax[i] / trajectory.entryVector[i]));        // restrict dMax, if this would result in exceeding dMax for any of the Axis
         }
     }
     speedProfile.jMax = theMachineProperties.motors.jMax;
@@ -312,140 +312,3 @@ float motion::positionInMmFromDistanceTravelled(uint32_t anAxis, float distanceT
     }
 }
 
-// void motion::export2csv(const char *outputFilename, uint32_t nmbrDataPoints) {
-// // #ifdef WIN32
-// //     //    std::ofstream outputFile("C:\\Users\\Pascal\\Google Drive\\motionOutput.csv");
-// //     std::ofstream outputFile(outputFilename);
-// //     outputFile << "time, acceleration, speed, distance" << std::endl;
-// //     for (uint32_t i = 0; i <= nmbrDataPoints; i++) {
-// //         float t = (speedProfile.duration * static_cast<float>(i)) / static_cast<float>(nmbrDataPoints);
-// //         outputFile << t << "," << a(t) << "," << v(t) << "," << s(t) << std::endl;
-// //     }
-// //     outputFile.close();
-// // #endif
-// }
-
-// void motion::setForTest(uint32_t setNmbr) {
-//     // This sets the motion parameters directly to a well defined value (whithout going through gCode parsing)
-//     // in order to simplify unit testing the motionController
-
-//     switch (setNmbr) {
-//         case 0U:
-//             type                        = motionType::feedLinear;
-//             trajectory.delta[0]         = 1.0F;
-//             trajectory.length           = 1.0F;
-//             trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
-//             speedProfile.duration       = 1000.F * minStepBufferTotalTime;
-//             speedProfile.mid.vMid       = 1 / (1000.F * minStepBufferTotalTime);
-//             speedProfile.mid.duration   = 1000.F * minStepBufferTotalTime;
-
-//             break;
-//         case 1U:
-//             type                        = motionType::feedLinear;
-//             trajectory.delta[0]         = 1.0F;
-//             trajectory.length           = 1.0F;
-//             trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
-//             speedProfile.duration       = minStepBufferTotalTime;
-//             speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
-//             speedProfile.mid.duration   = minStepBufferTotalTime;
-//             break;
-
-//         case 2U:
-//             type                  = motionType::feedLinear;
-//             trajectory.length     = 1.0F;
-//             speedProfile.duration = minStepPulseWidth * 0.25F;
-//             //trajectory.delta[0]         = 1.0F;
-//             //trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
-//             //speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
-//             //speedProfile.mid.duration   = minStepBufferTotalTime;
-//             break;
-
-//         case 3U:
-//             type                  = motionType::feedLinear;
-//             trajectory.length     = 1.0F;
-//             speedProfile.duration = minStepPulseWidth * 1.5F;
-//             //trajectory.delta[0]         = 1.0F;
-//             //trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
-//             //speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
-//             //speedProfile.mid.duration   = minStepBufferTotalTime;
-//             break;
-
-//         case 4U:
-//             type                  = motionType::feedLinear;
-//             trajectory.length     = 1.0F;
-//             speedProfile.duration = minStepPulseWidth * 10.0F;
-//             speedProfile.tStop    = minStepPulseWidth * 2.5F;
-
-//             //trajectory.delta[0]         = 1.0F;
-//             //trajectory.deltaRealTime[0] = trajectory.delta[0] / trajectory.length;
-//             //speedProfile.mid.vMid       = 1 / minStepBufferTotalTime;
-//             //speedProfile.mid.duration   = minStepBufferTotalTime;
-//             break;
-
-//         default:
-//             break;
-//     }
-// }
-
-// void motion::optimizeOld() {
-//      float vMid{0.0F};
-//      switch (type) {
-//          case motionType::traverse:
-//          case motionType::feedLinear:
-//          case motionType::feedHelicalCW:
-//          case motionType::feedHelicalCCW:
-//              if (theStrategy == motionStrategy::maximizeSpeed) {
-//                  vMid = speedProfile.vFeed * theOverrides.feedOverride;        // vFeed was set in gCode, overrides may yield new value, but new vMid must still be within machine limits
-//                  if (vMid > speedProfile.vMax) {
-//                      vMid = speedProfile.vMax;
-//                  }
-//                  speedProfile.left.setvEnd(vMid);
-//                  speedProfile.right.setvStart(vMid);
-//                  // speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
-//                  // speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
-//                  speedProfile.left.calculate(speedProfileOrder::secondOrder);
-//                  speedProfile.right.calculate(speedProfileOrder::secondOrder);
-//                  if ((speedProfile.left.length + speedProfile.right.length) <= (trajectory.length - speedProfile.done.length)) {
-//                      // Add a non-zero constant speed mid phase
-//                      speedProfile.mid.length = (trajectory.length - speedProfile.done.length) - (speedProfile.left.length + speedProfile.right.length);
-//                      speedProfile.mid.set(vMid);
-//                      speedProfile.mid.duration = speedProfile.mid.length / vMid;
-//                  } else {
-//                      // Switch to a triangular T-profile
-//                      vMid = vTri(theStrategy);
-//                      speedProfile.left.setvEnd(vMid);
-//                      speedProfile.right.setvStart(vMid);
-//                      speedProfile.left.calculate(speedProfileOrder::firstOrder);
-//                      speedProfile.right.calculate(speedProfileOrder::firstOrder);
-//                      speedProfile.mid.length   = 0.0F;
-//                      speedProfile.mid.duration = 0.0F;
-//                  }
-//                  speedProfile.duration = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
-//                  speedProfile.tStop    = std::numeric_limits<float>::infinity();
-//              } else {
-//                  vMid = vTri(theStrategy);
-//                  // TODO : if 0.0F can be reached, it is worthwhile to try second order profile for smoother stopping
-//                  speedProfile.left.setvEnd(vMid);
-//                  speedProfile.right.setvStart(vMid);
-//                  //                speedProfile.left.calculate(motionSpeedProfileOrder::firstOrder);
-//                  //                speedProfile.right.calculate(motionSpeedProfileOrder::firstOrder);
-//                  speedProfile.left.calculate(speedProfileOrder::secondOrder);
-//                  speedProfile.right.calculate(speedProfileOrder::secondOrder);
-//                  speedProfile.mid.length   = 0.0F;
-//                  speedProfile.mid.duration = 0.0F;
-//                  speedProfile.duration     = speedProfile.done.duration + speedProfile.left.duration + speedProfile.mid.duration + speedProfile.right.duration;
-//                  if (vMid == 0.0F) {
-//                      speedProfile.tStop = speedProfile.left.vStart / (-speedProfile.dMax);
-//                  } else {
-//                      speedProfile.tStop = std::numeric_limits<float>::infinity();
-//                  }
-//              }
-//              break;
-
-//         case motionType::pauseAndResume:
-//         case motionType::pause:
-//         case motionType::none:
-//         default:
-//             break;
-//     }
-// }

@@ -35,9 +35,10 @@ class motionTrajectory {
     float radius{};                       // [mm]
 
     // Common to all moves
-    float length{};                               // [mm]
-    float deltaRealTime[nmbrAxis]{};              // [mm]
-    float directionUnitVector[nmbrAxis]{};        // [dimensionless]
+    float length{};                         // [mm]
+    float deltaRealTime[nmbrAxis]{};        // [mm]
+    float entryVector[nmbrAxis]{};          // [dimensionless]
+    float exitVector[nmbrAxis]{};           // [dimensionless]
 
     uint32_t toString(char* output, const motionType type) const;
 };

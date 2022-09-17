@@ -362,11 +362,11 @@ void setTrajectory() {
     theTrajectory.set(aMotion);
 
     TEST_ASSERT_EQUAL_FLOAT(1.0f, theTrajectory.deltaRealTime[0]);
-    TEST_ASSERT_EQUAL_FLOAT(1.0f, theTrajectory.directionUnitVector[0]);
+    TEST_ASSERT_EQUAL_FLOAT(1.0f, theTrajectory.entryVector[0]);
     TEST_ASSERT_EQUAL_FLOAT(0.0f, theTrajectory.deltaRealTime[1]);
-    TEST_ASSERT_EQUAL_FLOAT(0.0f, theTrajectory.directionUnitVector[1]);
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, theTrajectory.entryVector[1]);
     TEST_ASSERT_EQUAL_FLOAT(0.0f, theTrajectory.deltaRealTime[2]);
-    TEST_ASSERT_EQUAL_FLOAT(0.0f, theTrajectory.directionUnitVector[2]);
+    TEST_ASSERT_EQUAL_FLOAT(0.0f, theTrajectory.entryVector[2]);
 
     // TODO : test some other cases eg. helical move
 }
