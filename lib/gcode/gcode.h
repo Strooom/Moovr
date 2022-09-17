@@ -46,6 +46,7 @@ class gCode {
     void setOverrideMode();
     void setArcPlane();
     void setUnitsMode();
+    void setPathControlMode();
     void setWCSMode();
     void setdistanceMode();
 

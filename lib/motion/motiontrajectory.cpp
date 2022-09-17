@@ -55,7 +55,7 @@ uint32_t motionTrajectory::toString(char* output, const motionType type) const {
     return outputLenght;
 }
 
-void motionTrajectory::set(const simplifiedMotion &theMotion) {
+void motionTrajectory::set(const simplifiedMotion& theMotion) {
     // TODO : handle this depending on the motion type...
     // Lets set to zero all vars not used for a particular case, as this makes debugging cleaner..
     arcAxis0   = theMotion.trajectory.arcAxis[0];
@@ -68,17 +68,21 @@ void motionTrajectory::set(const simplifiedMotion &theMotion) {
 
     length = static_cast<float>(theMotion.trajectory.length);
 
-// TODO : how to handle here length = 0.0F ?? Apparently this does not lead to an error in floating point..
+    // TODO : how to handle here length = 0.0F ?? Apparently this does not lead to an error in floating point..
 
     for (uint8_t axisIndex = 0; axisIndex < nmbrAxis; ++axisIndex) {
         if ((axisIndex == (uint8_t)theMotion.trajectory.arcAxis[0]) || (axisIndex == (uint8_t)theMotion.trajectory.arcAxis[1])) {
-            deltaRealTime[axisIndex]       = static_cast<float>(theMotion.trajectory.deltaAngle / theMotion.trajectory.length);        // for the ARC part
-            directionUnitVector[axisIndex] = 1.0;                                                                                                              // ### For circular moving Axis, we don't know the fraction, so we assume worst case
+            deltaRealTime[axisIndex] = static_cast<float>(theMotion.trajectory.deltaAngle / theMotion.trajectory.length);        // for the ARC part
+            entryVector[axisIndex]   = 1.0;                                                                                      // ### For circular moving Axis, we don't know the fraction, so we assume worst case
         } else {
-            deltaRealTime[axisIndex]       = static_cast<float>(theMotion.trajectory.delta[axisIndex] / theMotion.trajectory.length);        // for the LINEAR part
-            directionUnitVector[axisIndex] = static_cast<float>(theMotion.trajectory.delta[axisIndex] / theMotion.trajectory.length);        // ### For linear moving Axis, take into account that this Axis is doing only a fraction of the speed of the 3d-move - the projection part..
+            deltaRealTime[axisIndex] = static_cast<float>(theMotion.trajectory.delta[axisIndex] / theMotion.trajectory.length);        // for the LINEAR part
+            entryVector[axisIndex]   = static_cast<float>(theMotion.trajectory.delta[axisIndex] / theMotion.trajectory.length);        // ### For linear moving Axis, take into account that this Axis is doing only a fraction of the speed of the 3d-move - the projection part..
         }
         startPosition[axisIndex] = static_cast<float>(theMotion.trajectory.startPosition[axisIndex]);
         delta[axisIndex]         = static_cast<float>(theMotion.trajectory.delta[axisIndex]);
     }
 }
+
+// TODO : here we need to calculate entryVector and exitVector
+// for linear moves they are the same -> only one needs to be calculated
+// for helical moves they can be different, and we need some trigionometry calculations..

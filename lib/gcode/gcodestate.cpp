@@ -10,17 +10,18 @@
 
 void gCodeState::initialize() {
     // Initialize all Model groups
-    modalGroupsState[static_cast<uint32_t>(modalGroup::Motion)]         = static_cast<uint32_t>(modalGroupMotion::G0);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::FeedRate)]       = static_cast<uint32_t>(modalGroupFeedRate::G94);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::Spindle)]        = static_cast<uint32_t>(modalGroupSpindle::M5);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)]           = static_cast<uint32_t>(modalGroupUnit::G21);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)]           = static_cast<uint32_t>(modalGroupUnit::G21);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::Plane)]          = static_cast<uint32_t>(modalGroupPlane::G17);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::Distance)]       = static_cast<uint32_t>(modalGroupDistance::G90);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)]  = static_cast<uint32_t>(modalGroupCoordinateSet::G54);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantFlood)]   = static_cast<uint32_t>(modalGroupCoolantFlood::M9);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantMist)]    = static_cast<uint32_t>(modalGroupCoolantMist::M9);
-    modalGroupsState[static_cast<uint32_t>(modalGroup::ManualOverride)] = static_cast<uint32_t>(modalGroupOverrides::M48);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::Motion)]          = static_cast<uint32_t>(modalGroupMotion::G0);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::FeedRate)]        = static_cast<uint32_t>(modalGroupFeedRate::G94);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::Spindle)]         = static_cast<uint32_t>(modalGroupSpindle::M5);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)]            = static_cast<uint32_t>(modalGroupUnit::G21);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::Unit)]            = static_cast<uint32_t>(modalGroupUnit::G21);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::Plane)]           = static_cast<uint32_t>(modalGroupPlane::G17);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::Distance)]        = static_cast<uint32_t>(modalGroupDistance::G90);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::CoordinateSet)]   = static_cast<uint32_t>(modalGroupCoordinateSet::G54);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantFlood)]    = static_cast<uint32_t>(modalGroupCoolantFlood::M9);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::CoolantMist)]     = static_cast<uint32_t>(modalGroupCoolantMist::M9);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::ManualOverride)]  = static_cast<uint32_t>(modalGroupOverrides::M48);
+    modalGroupsState[static_cast<uint32_t>(modalGroup::PathControlMode)] = static_cast<uint32_t>(modalGroupPathControlMode::exactPath);
 
     // initialize all letterValues
     for (uint32_t theGCodeLetter = static_cast<uint32_t>(gCodeLetter::X); theGCodeLetter < nmbrLetters; theGCodeLetter++) {

@@ -21,6 +21,7 @@ enum class modalGroup : uint32_t
     CoolantFlood,
     CoolantMist,
     ManualOverride,
+    PathControlMode,
     // ArcDistance,
     // CutterCompensation,
     // ToolLengthOffset,
@@ -98,3 +99,10 @@ enum class modalGroupCoolantMist : uint32_t
     M9, M8,
     nmbrModes
     };
+
+enum class modalGroupPathControlMode : uint32_t
+    {
+    exactPath, continuous,
+    nmbrModes
+    };
+

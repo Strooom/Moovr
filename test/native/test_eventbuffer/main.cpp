@@ -10,8 +10,8 @@ void initialization() {
     eventBuffer theBuffer = eventBuffer();
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.level);
-    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.levelMax);
-    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.getLevelMax());
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.maxLevel);
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.getMaxLevel());
     TEST_ASSERT_FALSE(theBuffer.hasEvents());
 }
 
@@ -26,13 +26,13 @@ void pushPop() {
     theBuffer.pushEvent(event::allMotionsCompleted);
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32(1U, theBuffer.level);
-    TEST_ASSERT_EQUAL_UINT32(1U, theBuffer.levelMax);
+    TEST_ASSERT_EQUAL_UINT32(1U, theBuffer.maxLevel);
     TEST_ASSERT_TRUE(theBuffer.hasEvents());
 
     (void)theBuffer.popEvent();
     TEST_ASSERT_EQUAL_UINT32(1U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.level);
-    TEST_ASSERT_EQUAL_UINT32(1U, theBuffer.levelMax);
+    TEST_ASSERT_EQUAL_UINT32(1U, theBuffer.maxLevel);
 }
 
 void boundariesUnderflow() {
@@ -41,7 +41,7 @@ void boundariesUnderflow() {
     anEvent = theBuffer.popEvent();
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.level);
-    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.levelMax);
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.maxLevel);
     TEST_ASSERT_EQUAL(event::none, anEvent);
     TEST_ASSERT_EQUAL(event::eventBufferUnderflow, theBuffer.getLastError());
 }
@@ -53,12 +53,12 @@ void boundariesOverflow() {
     }
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32(theBuffer.length, theBuffer.level);
-    TEST_ASSERT_EQUAL_UINT32(theBuffer.length, theBuffer.levelMax);
+    TEST_ASSERT_EQUAL_UINT32(theBuffer.length, theBuffer.maxLevel);
 
     theBuffer.pushEvent(event::allMotionsCompleted);
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32(theBuffer.length, theBuffer.level);
-    TEST_ASSERT_EQUAL_UINT32(theBuffer.length, theBuffer.levelMax);
+    TEST_ASSERT_EQUAL_UINT32(theBuffer.length, theBuffer.maxLevel);
     TEST_ASSERT_EQUAL(event::eventBufferOverflow, theBuffer.getLastError());
 }
 
@@ -69,8 +69,8 @@ void test_initialize() {
     theBuffer.initialize();
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.head);
     TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.level);
-    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.levelMax);
-    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.getLevelMax());
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.maxLevel);
+    TEST_ASSERT_EQUAL_UINT32(0U, theBuffer.getMaxLevel());
     TEST_ASSERT_FALSE(theBuffer.hasEvents());
 }
 

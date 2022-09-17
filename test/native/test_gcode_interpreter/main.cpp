@@ -144,6 +144,23 @@ void G4() {
     }
 }
 
+void G61G64() {
+    gCode theInterpreter;
+    simplifiedMotion theMotion;
+
+    theInterpreter.reset();
+    TEST_ASSERT_EQUAL(modalGroupPathControlMode::exactPath, theInterpreter.theState.modalGroupsState[static_cast<uint32_t>(modalGroup::PathControlMode)]); // checks default value
+
+    theInterpreter.theBlock.getBlockFromString("G64");
+    theInterpreter.interpreteBlock(theMotion);
+    TEST_ASSERT_EQUAL(modalGroupPathControlMode::continuous, theInterpreter.theState.modalGroupsState[static_cast<uint32_t>(modalGroup::PathControlMode)]); // checks default value
+
+    theInterpreter.theBlock.getBlockFromString("G61");
+    theInterpreter.interpreteBlock(theMotion);
+    TEST_ASSERT_EQUAL(modalGroupPathControlMode::exactPath, theInterpreter.theState.modalGroupsState[static_cast<uint32_t>(modalGroup::PathControlMode)]); // checks default value
+}
+
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(reset);
@@ -153,6 +170,7 @@ int main(int argc, char **argv) {
     RUN_TEST(G1);
     RUN_TEST(G2G3);
     RUN_TEST(G4);
+    RUN_TEST(G61G64);
     UNITY_END();
 }
 
