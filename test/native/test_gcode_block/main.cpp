@@ -104,6 +104,23 @@ void letterWordViolation() {
 }
 
 
+void numberDetection() {
+    gCodeBlock aBlock;
+    aBlock.initialize();
+    aBlock.getBlockFromString("X5");
+    TEST_ASSERT_EQUAL(5, aBlock.gCodeWords[0].number);
+    aBlock.initialize();
+    aBlock.getBlockFromString("X00005");
+    TEST_ASSERT_EQUAL(5, aBlock.gCodeWords[0].number);
+    aBlock.initialize();
+    aBlock.getBlockFromString("X.005");
+    TEST_ASSERT_EQUAL(0.005, aBlock.gCodeWords[0].number);
+    aBlock.initialize();
+    aBlock.getBlockFromString("X005.");
+    TEST_ASSERT_EQUAL(5, aBlock.gCodeWords[0].number);
+}
+
+
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(initialization);
@@ -114,5 +131,6 @@ int main(int argc, char **argv) {
     RUN_TEST(wordSearchAndRemove);
     RUN_TEST(modalGroupViolation);
     RUN_TEST(letterWordViolation);
+    RUN_TEST(numberDetection);
     UNITY_END();
 }
