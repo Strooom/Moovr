@@ -118,6 +118,12 @@ void numberDetection() {
     aBlock.initialize();
     aBlock.getBlockFromString("X005.");
     TEST_ASSERT_EQUAL(5, aBlock.gCodeWords[0].number);
+    aBlock.initialize();
+    aBlock.getBlockFromString("X-005.");
+    TEST_ASSERT_EQUAL(-5, aBlock.gCodeWords[0].number);
+    aBlock.initialize();
+    aBlock.getBlockFromString("X+005.");
+    TEST_ASSERT_EQUAL(5, aBlock.gCodeWords[0].number);
 }
 
 
