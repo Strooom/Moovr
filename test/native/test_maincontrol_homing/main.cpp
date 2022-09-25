@@ -56,7 +56,6 @@ void testSelectAxis3() {        // cannot home if the related limit switches are
     TEST_ASSERT_FALSE(theController.selectAxis());
 }
 
-// test missing limit switches
 int main(int argc, char **argv) {
     UNITY_BEGIN();
     RUN_TEST(initialization);
