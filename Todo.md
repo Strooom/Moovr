@@ -1,14 +1,14 @@
-
 Nxt Tasks
 =========
 
-* make homing work
+* make a minimum implementation of hostInterface protocol, so that we can emulate GRBL and control Moovr from gCode sender software. This could be done by adding a Teensy3.2 inbetween the Rx-Tx between gCode sender and GRBL-Arduino, and then step by step emulating commands
+  - homing
+  - jogging
+  - sending gcode file
+
 * think about how to make machineProperties more structured..
   - motors (j, a, d, v)
   - axis (s, limits)
-  
-
-
 
 
 TODO :
@@ -22,7 +22,9 @@ TODO :
     -> if you don't pass anything, it will take values from machineProperties
     -> if you want, for testing, you can pass something else
 
-
+Nice to Have but not Need to Have
+=================================
+* Home 2 axis simultaneously  : eg. XY. This is possible with an extension of the homing class. It requires homingSequence to contain not only axis, but possible also planes.
 
 # How to get collaboration from the community
 * provide some standard builds which can be flashed on a standard HW setup
